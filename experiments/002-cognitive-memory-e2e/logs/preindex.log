@@ -1,0 +1,31 @@
+=== Indexing claudemem ===
+Indexing /Users/jack/mag/claudemem...
+No summary returned for readLockFile
+No summary returned for isLockStale
+No summary returned for IIndexLock
+No summary returned for constructor
+No summary returned for acquire
+No summary returned for release
+No summary returned for isLocked
+No summary returned for forceRelease
+No summary returned for startHeartbeat
+No summary returned for sleep
+[docs] context7 failed for zod: Rate limited by context7
+indexed_files=715
+chunks_created=6417
+duration_ms=2445561
+cost_usd=0.123233
+enrichment_docs=3612
+enrichment_llm_calls=1178
+enrichment_cost_usd=0.004013
+=== Copy claudemem index ===
+=== Indexing fastmcp ===
+Indexing ...k/mag/agentbench/data/eval-repos/jlowin_fastmcp...
+indexed_files=417
+chunks_created=5027
+duration_ms=1853389
+cost_usd=0.063084
+enrichment_docs=3350
+enrichment_llm_calls=757
+=== Copy fastmcp index ===
+=== DONE ===

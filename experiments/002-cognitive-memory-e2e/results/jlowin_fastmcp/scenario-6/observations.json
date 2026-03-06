@@ -1,0 +1,59 @@
+{
+  "scenarioId": 6,
+  "repo": "fastmcp",
+  "condition": "observations",
+  "title": "Bug: tool error handling",
+  "task": "The FastMCP server doesn't seem to handle tool errors gracefully — when a tool raises an exception, the client gets an opaque error. Find where error handling happens and explain the flow. Do NOT make any code changes.",
+  "output": "Now I have the complete picture. Here's the full error handling flow:\n\n---\n\n## Tool Error Flow\n\nWhen a tool raises an exception, it passes through **three layers** before reaching the client:\n\n### Layer 1 — `_execute_tool` in `server.py:1454`\n\nThis is the first catch point. It calls `tool._run(arguments)` and handles:\n\n- **`ValidationError` / `PydanticValidationError`** — re-raised as-is (never masked; these are client input bugs)\n- **`ToolError`** — re-raised as-is (logged, but message preserved)\n- **Any other `Exception`** — wrapped in a `ToolError`:\n  - If `mask_error_details=True` (from `settings.py`): `ToolError(\"Error calling tool 'foo'\")` — detail stripped\n  - If `mask_error_details=False` (default): `ToolError(\"Error calling tool 'foo': <original message>\")`\n\nThere is a **second identical guard** in `tool_manager.py:161` that does the same wrapping, so any exception that escapes `tool._run()` itself is also caught there before reaching `_execute_tool`.\n\n### Layer 2 — `_call_tool_mcp` in `server.py:1299`\n\nAfter `_execute_tool`, only `NotFoundError` and `DisabledError` are caught here — they're converted to `NotFoundError(\"Unknown tool: ...\")`. A `ToolError` from Layer 1 propagates up unchanged.\n\n### Layer 3 — MCP SDK's `call_tool` decorator in `mcp/server/lowlevel/server.py:583`\n\nThis is the terminal catch. Any exception that reaches here (including `ToolError`) hits:\n\n```python\nexcept Exception as e:\n    return self._make_error_result(str(e))\n```\n\nWhich returns:\n\n```python\nCallToolResult(\n    content=[TextContent(type=\"text\", text=str(e))],\n    isError=True,\n)\n```\n\nThis is a **valid MCP response** (not a protocol error) — `isError=True` signals to the client that the tool failed.\n\n---\n\n### The \"opaque error\" problem\n\nThe issue is in how `ToolError` is constructed at `server.py:1474`:\n\n```python\nraise ToolError(f\"Error calling tool {tool_name!r}: {e}\") from e\n```\n\n`str(e)` on a `ToolError` gives `\"Error calling tool 'foo': <original message>\"`. That string becomes the text content. With `mask_error_details=True`, it's just `\"Error calling tool 'foo'\"` — the original exception message is completely dropped.\n\nThe `mask_error_details` setting (`settings.py:261`) is the primary knob. If a tool raises `ToolError` directly (not some other exception), its message is preserved verbatim through all three layers.",
+  "claudeJson": {
+    "type": "result",
+    "subtype": "success",
+    "is_error": false,
+    "duration_ms": 80934,
+    "duration_api_ms": 77076,
+    "num_turns": 26,
+    "result": "Now I have the complete picture. Here's the full error handling flow:\n\n---\n\n## Tool Error Flow\n\nWhen a tool raises an exception, it passes through **three layers** before reaching the client:\n\n### Layer 1 — `_execute_tool` in `server.py:1454`\n\nThis is the first catch point. It calls `tool._run(arguments)` and handles:\n\n- **`ValidationError` / `PydanticValidationError`** — re-raised as-is (never masked; these are client input bugs)\n- **`ToolError`** — re-raised as-is (logged, but message preserved)\n- **Any other `Exception`** — wrapped in a `ToolError`:\n  - If `mask_error_details=True` (from `settings.py`): `ToolError(\"Error calling tool 'foo'\")` — detail stripped\n  - If `mask_error_details=False` (default): `ToolError(\"Error calling tool 'foo': <original message>\")`\n\nThere is a **second identical guard** in `tool_manager.py:161` that does the same wrapping, so any exception that escapes `tool._run()` itself is also caught there before reaching `_execute_tool`.\n\n### Layer 2 — `_call_tool_mcp` in `server.py:1299`\n\nAfter `_execute_tool`, only `NotFoundError` and `DisabledError` are caught here — they're converted to `NotFoundError(\"Unknown tool: ...\")`. A `ToolError` from Layer 1 propagates up unchanged.\n\n### Layer 3 — MCP SDK's `call_tool` decorator in `mcp/server/lowlevel/server.py:583`\n\nThis is the terminal catch. Any exception that reaches here (including `ToolError`) hits:\n\n```python\nexcept Exception as e:\n    return self._make_error_result(str(e))\n```\n\nWhich returns:\n\n```python\nCallToolResult(\n    content=[TextContent(type=\"text\", text=str(e))],\n    isError=True,\n)\n```\n\nThis is a **valid MCP response** (not a protocol error) — `isError=True` signals to the client that the tool failed.\n\n---\n\n### The \"opaque error\" problem\n\nThe issue is in how `ToolError` is constructed at `server.py:1474`:\n\n```python\nraise ToolError(f\"Error calling tool {tool_name!r}: {e}\") from e\n```\n\n`str(e)` on a `ToolError` gives `\"Error calling tool 'foo': <original message>\"`. That string becomes the text content. With `mask_error_details=True`, it's just `\"Error calling tool 'foo'\"` — the original exception message is completely dropped.\n\nThe `mask_error_details` setting (`settings.py:261`) is the primary knob. If a tool raises `ToolError` directly (not some other exception), its message is preserved verbatim through all three layers.",
+    "stop_reason": "end_turn",
+    "session_id": "b5ce6f8e-6567-484b-9ce7-8425f82ccdaa",
+    "total_cost_usd": 0.46046850000000006,
+    "usage": {
+      "input_tokens": 27,
+      "cache_creation_input_tokens": 29502,
+      "cache_read_input_tokens": 360592,
+      "output_tokens": 3826,
+      "server_tool_use": {
+        "web_search_requests": 0,
+        "web_fetch_requests": 0
+      },
+      "service_tier": "standard",
+      "cache_creation": {
+        "ephemeral_1h_input_tokens": 0,
+        "ephemeral_5m_input_tokens": 29502
+      },
+      "inference_geo": "",
+      "iterations": [],
+      "speed": "standard"
+    },
+    "modelUsage": {
+      "claude-sonnet-4-6": {
+        "inputTokens": 27,
+        "outputTokens": 3826,
+        "cacheReadInputTokens": 360592,
+        "cacheCreationInputTokens": 29502,
+        "webSearchRequests": 0,
+        "costUSD": 0.46046850000000006,
+        "contextWindow": 200000,
+        "maxOutputTokens": 32000
+      }
+    },
+    "permission_denials": [],
+    "fast_mode_state": "off",
+    "uuid": "8ddd37b3-eb59-4ba7-83c6-eda7e4f791e8"
+  },
+  "durationMs": 85616,
+  "tokensIn": 27,
+  "tokensOut": 3826,
+  "toolCalls": 26,
+  "costUsd": 0.46046850000000006,
+  "timestamp": "2026-03-05T23:34:51.724Z"
+}

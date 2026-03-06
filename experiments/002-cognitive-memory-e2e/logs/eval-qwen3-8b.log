@@ -1,0 +1,80 @@
+`torch_dtype` is deprecated! Use `dtype` instead!
+Loaded 50 queries (1.0)
+Models to evaluate: qwen3-8b
+
+Loading qwen3-8b...
+  Base: Qwen/Qwen3-8B
+  Adapter: jackrudenko/claudemem-expansion-qwen3-8b
+  Device: mps, dtype: torch.float16
+Fetching 5 files:   0%|          | 0/5 [00:00<?, ?it/s]Fetching 5 files:  20%|██        | 1/5 [06:23<25:33, 383.48s/it]Fetching 5 files:  40%|████      | 2/5 [11:19<16:35, 331.83s/it]Fetching 5 files: 100%|██████████| 5/5 [11:19<00:00, 135.83s/it]
+Loading weights:   0%|          | 0/399 [00:00<?, ?it/s]Loading weights:   0%|          | 1/399 [00:03<26:12,  3.95s/it]Loading weights:   1%|          | 2/399 [00:04<11:33,  1.75s/it]Loading weights:   3%|▎         | 10/399 [00:04<01:32,  4.22it/s]Loading weights:   4%|▍         | 15/399 [00:04<01:01,  6.27it/s]Loading weights:   7%|▋         | 26/399 [00:05<00:34, 10.96it/s]Loading weights:   9%|▉         | 37/399 [00:05<00:25, 14.44it/s]Loading weights:  12%|█▏        | 48/399 [00:05<00:19, 18.01it/s]Loading weights:  15%|█▍        | 59/399 [00:06<00:17, 19.74it/s]Loading weights:  18%|█▊        | 70/399 [00:06<00:15, 21.01it/s]Loading weights:  20%|██        | 81/399 [00:07<00:13, 23.41it/s]Loading weights:  23%|██▎       | 92/399 [00:07<00:12, 24.40it/s]Loading weights:  26%|██▌       | 103/399 [00:07<00:11, 24.77it/s]Loading weights:  29%|██▊       | 114/399 [00:08<00:10, 26.54it/s]Loading weights:  31%|███▏      | 125/399 [00:08<00:09, 29.75it/s]Loading weights:  32%|███▏      | 129/399 [00:08<00:09, 28.19it/s]Loading weights:  34%|███▍      | 136/399 [00:09<00:09, 27.76it/s]Loading weights:  37%|███▋      | 147/399 [00:09<00:09, 26.39it/s]Loading weights:  40%|███▉      | 158/399 [00:09<00:09, 24.86it/s]Loading weights:  42%|████▏     | 169/399 [00:10<00:09, 25.26it/s]Loading weights:  45%|████▌     | 180/399 [00:10<00:08, 25.55it/s]Loading weights:  48%|████▊     | 191/399 [00:11<00:08, 24.05it/s]Loading weights:  51%|█████     | 202/399 [00:11<00:07, 24.63it/s]Loading weights:  53%|█████▎    | 213/399 [00:12<00:07, 25.08it/s]Loading weights:  56%|█████▌    | 224/399 [00:12<00:06, 25.35it/s]Loading weights:  59%|█████▉    | 235/399 [00:13<00:06, 25.69it/s]Loading weights:  62%|██████▏   | 246/399 [00:13<00:06, 25.14it/s]Loading weights:  64%|██████▍   | 257/399 [00:13<00:05, 25.22it/s]Loading weights:  67%|██████▋   | 268/399 [00:14<00:04, 26.24it/s]Loading weights:  70%|██████▉   | 279/399 [00:14<00:04, 26.00it/s]Loading weights:  73%|███████▎  | 290/399 [00:15<00:04, 26.30it/s]Loading weights:  75%|███████▌  | 301/399 [00:15<00:03, 29.81it/s]Loading weights:  78%|███████▊  | 312/399 [00:15<00:02, 29.24it/s]Loading weights:  81%|████████  | 323/399 [00:16<00:02, 27.97it/s]Loading weights:  84%|████████▎ | 334/399 [00:16<00:02, 27.97it/s]Loading weights:  86%|████████▋ | 345/399 [00:17<00:01, 27.04it/s]Loading weights:  89%|████████▉ | 356/399 [00:17<00:01, 25.40it/s]Loading weights:  92%|█████████▏| 367/399 [00:17<00:01, 25.54it/s]Loading weights:  95%|█████████▍| 378/399 [00:18<00:00, 26.51it/s]Loading weights:  97%|█████████▋| 389/399 [00:18<00:00, 26.47it/s]Loading weights: 100%|██████████| 399/399 [00:18<00:00, 21.25it/s]
+  Model loaded and merged on mps
+
+============================================================
+Benchmarking: qwen3-8b-FT (8B, fine-tuned)
+============================================================
+  [1/50] "useEffect cleanup..." → fmt=1.00 total=0.77 4441ms
+  [2/50] "handleSubmit function..." → fmt=1.00 total=0.80 3983ms
+  [3/50] "SearchBar component..." → fmt=1.00 total=0.71 4323ms
+  [4/50] "createEmbeddingsClient..." → fmt=1.00 total=0.69 5360ms
+  [5/50] "parseParameterSize..." → fmt=1.00 total=0.70 3982ms
+  [6/50] "buildCombinedIndex..." → fmt=1.00 total=0.70 4271ms
+  [7/50] "cosineSimilarity helper..." → fmt=1.00 total=0.72 11360ms
+  [8/50] "QueryGenerator class..." → fmt=1.00 total=0.71 4709ms
+  [9/50] "aggregateRetrievalResults..." → fmt=1.00 total=0.63 5046ms
+  [10/50] "LocalLLMClient constructor..." → fmt=1.00 total=0.71 6108ms
+  [11/50] "fix TypeError cannot read property of un..." → fmt=1.00 total=0.78 6381ms
+  [12/50] "resolve ECONNREFUSED localhost..." → fmt=1.00 total=0.71 9182ms
+  [13/50] "module not found cannot resolve import..." → fmt=1.00 total=0.67 6314ms
+  [14/50] "CORS origin not allowed headers..." → fmt=1.00 total=0.76 6628ms
+  [15/50] "out of memory heap allocation failed..." → fmt=1.00 total=0.70 7137ms
+  [16/50] "database connection timeout pool exhaust..." → fmt=1.00 total=0.64 5967ms
+  [17/50] "promise rejected unhandled async error..." → fmt=1.00 total=0.75 8093ms
+  [18/50] "circular dependency detected import cycl..." → fmt=1.00 total=0.70 6578ms
+  [19/50] "type error argument not assignable to pa..." → fmt=1.00 total=0.77 5783ms
+  [20/50] "permission denied EACCES file access..." → fmt=1.00 total=0.77 6714ms
+  [21/50] "authentication middleware..." → fmt=1.00 total=0.73 5491ms
+  [22/50] "rate limiting implementation..." → fmt=1.00 total=0.75 7363ms
+  [23/50] "caching strategy invalidation..." → fmt=1.00 total=0.70 8993ms
+  [24/50] "retry logic exponential backoff..." → fmt=1.00 total=0.76 7841ms
+  [25/50] "connection pooling database..." → fmt=1.00 total=0.66 7854ms
+  [26/50] "event driven architecture pub sub..." → fmt=1.00 total=0.68 6401ms
+  [27/50] "dependency injection service container..." → fmt=1.00 total=0.73 7042ms
+  [28/50] "pagination cursor offset limit..." → fmt=1.00 total=0.71 6533ms
+  [29/50] "graceful shutdown signal handling..." → fmt=1.00 total=0.74 8604ms
+  [30/50] "streaming response server sent events..." → fmt=1.00 total=0.77 11435ms
+  [31/50] "React context vs Redux state management..." → fmt=1.00 total=0.69 8452ms
+  [32/50] "Express middleware chain next function..." → fmt=1.00 total=0.72 8282ms
+  [33/50] "Prisma ORM query findMany where..." → fmt=1.00 total=0.77 5669ms
+  [34/50] "Next.js server component data fetching..." → fmt=1.00 total=0.66 7921ms
+  [35/50] "Zod schema validation parse transform..." → fmt=1.00 total=0.76 8266ms
+  [36/50] "tRPC router procedure mutation..." → fmt=1.00 total=0.75 6655ms
+  [37/50] "Tailwind responsive breakpoints utilitie..." → fmt=1.00 total=0.69 10964ms
+  [38/50] "Jest mock module spyOn testing..." → fmt=1.00 total=0.76 5571ms
+  [39/50] "Docker compose multi service networking..." → fmt=1.00 total=0.70 6233ms
+  [40/50] "GitHub Actions CI workflow matrix..." → fmt=1.00 total=0.72 8220ms
+  [41/50] "find unused imports dead code..." → fmt=1.00 total=0.65 7188ms
+  [42/50] "detect circular dependencies modules..." → fmt=1.00 total=0.64 7700ms
+  [43/50] "dead code detection unreachable..." → fmt=1.00 total=0.69 6726ms
+  [44/50] "security vulnerability SQL injection..." → fmt=1.00 total=0.70 6794ms
+  [45/50] "code duplication similar functions refac..." → fmt=1.00 total=0.71 7093ms
+  [46/50] "performance bottleneck N+1 query..." → fmt=1.00 total=0.73 6606ms
+  [47/50] "missing error handling try catch..." → fmt=1.00 total=0.76 6286ms
+  [48/50] "type safety any assertion unsafe cast..." → fmt=1.00 total=0.77 5681ms
+  [49/50] "memory leak event listener cleanup..." → fmt=1.00 total=0.75 5843ms
+  [50/50] "race condition async concurrent access..." → fmt=1.00 total=0.77 6866ms
+
+  Results: 50 ok, 0 failed
+  Avg: format=1.000 kw=0.885 sem=1.000 hyde=0.490 speed=6859ms total=0.720
+  Saved: /Users/jack/mag/claudemem/experiments/query-expansion/results/finetuned/qwen3-8b-ft.json
+
+============================================================
+Benchmark Complete (1062s total)
+============================================================
+
+Model                 Format     Lex     Vec    HyDE    Speed   Total
+----------------------------------------------------------------------
+qwen3-8b-FT            1.000   0.885   1.000   0.490    6859ms   0.720
+
+Run report.ts for full comparison:
+  bun run experiments/query-expansion/bench/report.ts

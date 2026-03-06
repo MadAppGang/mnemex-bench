@@ -1,0 +1,59 @@
+{
+  "scenarioId": 3,
+  "repo": "claudemem",
+  "condition": "observations",
+  "title": "Architecture: search scoring",
+  "task": "How does the search scoring system work? Explain the fusion of vector and keyword results, and how document type weights affect ranking. Do NOT make any code changes.",
+  "output": "Here's a complete explanation of the search scoring system:\n\n---\n\n## Search Scoring System\n\n### 1. Two-Signal Retrieval\n\nEvery search runs two independent queries against LanceDB (`store.ts:837-857`):\n\n- **Vector search** — ANN (approximate nearest neighbor) on the query embedding, returning up to `limit * 3` candidates\n- **BM25 full-text search** — keyword-based FTS on the `content` column, also returning `limit * 3` candidates\n\nThe two result lists are then fused.\n\n---\n\n### 2. Reciprocal Rank Fusion (RRF)\n\nThe core fusion algorithm is `typeAwareRRFFusion` (`store.ts:1497`). It uses **Reciprocal Rank Fusion** — a rank-based method that doesn't depend on raw scores being comparable across systems.\n\nFor each result at rank `i` (0-indexed) in a list, its RRF contribution is:\n\n```\nrrf = (channelWeight × typeWeight × testWeight) / (k + i + 1)\n```\n\nWhere:\n- `k = 60` — standard RRF constant; smooths rank-1 vs rank-2 differences\n- `channelWeight` — `VECTOR_WEIGHT = 0.6` for vector results, `BM25_WEIGHT = 0.4` for BM25 results\n- `typeWeight` — per-document-type weight from the active use case (see below)\n- `testWeight` — `1.0` normally, `0.3` if the file is a test file and `testFileMode = \"downrank\"`\n\nIf a document appears in **both** lists, its scores are **summed** — so documents confirmed by both vector similarity and keyword matching rank highest.\n\n---\n\n### 3. Document Type Weights\n\nDocument type weights are the key lever for use-case tuning. They're defined in `USE_CASE_WEIGHTS` (`store.ts:1423`) and multiplied directly into every RRF score. Three use cases:\n\n| Document Type     | `fim` | `search` | `navigation` |\n|-------------------|-------|----------|--------------|\n| `code_chunk`      | 0.40  | 0.15     | 0.15         |\n| `symbol_summary`  | 0.08  | 0.20     | 0.28         |\n| `file_summary`    | —     | 0.20     | 0.25         |\n| `usage_example`   | 0.20  | 0.08     | —            |\n| `idiom`           | 0.12  | 0.12     | 0.08         |\n| `framework_doc`   | 0.07  | 0.10     | 0.10         |\n| `session_observation` | 0.05 | 0.20 | 0.15        |\n| `anti_pattern`    | —     | 0.05     | —            |\n\nA `code_chunk` in FIM mode gets `typeWeight = 0.40`, making it 2.7× more influential than in `search` mode (`0.15`). Conversely, `session_observation` gets `0.20` weight in `search` — equal to summaries — reflecting that observed session patterns are very useful for human queries.\n\nUnknown document types fall back to `typeWeight = 0.1` (`store.ts:1535`).\n\n---\n\n### 4. Final Score Normalization\n\nAfter fusion and truncation to `limit` results, scores are **normalized by the top result** (`store.ts:876-889`):\n\n```\nscore = fusedScore / maxFused\n```\n\nSo the top result always has `score = 1.0`, and all others are relative to it. The raw `vectorScore` and `keywordScore` (stored as `1/(rank+1)`) are also surfaced for debugging.\n\n---\n\n### Summary of Data Flow\n\n```\nquery\n  ├─ embed ──► vector search (60 candidates, weight=0.6)\n  └─ text  ──► BM25 search   (60 candidates, weight=0.4)\n                    │\n                    ▼\n          typeAwareRRFFusion\n            rrf = (channelW × typeW × testW) / (60 + rank + 1)\n            documents in both lists: scores summed\n                    │\n                    ▼\n          sort by fusedScore → slice(0, limit) → normalize to [0,1]\n```",
+  "claudeJson": {
+    "type": "result",
+    "subtype": "success",
+    "is_error": false,
+    "duration_ms": 62185,
+    "duration_api_ms": 59906,
+    "num_turns": 14,
+    "result": "Here's a complete explanation of the search scoring system:\n\n---\n\n## Search Scoring System\n\n### 1. Two-Signal Retrieval\n\nEvery search runs two independent queries against LanceDB (`store.ts:837-857`):\n\n- **Vector search** — ANN (approximate nearest neighbor) on the query embedding, returning up to `limit * 3` candidates\n- **BM25 full-text search** — keyword-based FTS on the `content` column, also returning `limit * 3` candidates\n\nThe two result lists are then fused.\n\n---\n\n### 2. Reciprocal Rank Fusion (RRF)\n\nThe core fusion algorithm is `typeAwareRRFFusion` (`store.ts:1497`). It uses **Reciprocal Rank Fusion** — a rank-based method that doesn't depend on raw scores being comparable across systems.\n\nFor each result at rank `i` (0-indexed) in a list, its RRF contribution is:\n\n```\nrrf = (channelWeight × typeWeight × testWeight) / (k + i + 1)\n```\n\nWhere:\n- `k = 60` — standard RRF constant; smooths rank-1 vs rank-2 differences\n- `channelWeight` — `VECTOR_WEIGHT = 0.6` for vector results, `BM25_WEIGHT = 0.4` for BM25 results\n- `typeWeight` — per-document-type weight from the active use case (see below)\n- `testWeight` — `1.0` normally, `0.3` if the file is a test file and `testFileMode = \"downrank\"`\n\nIf a document appears in **both** lists, its scores are **summed** — so documents confirmed by both vector similarity and keyword matching rank highest.\n\n---\n\n### 3. Document Type Weights\n\nDocument type weights are the key lever for use-case tuning. They're defined in `USE_CASE_WEIGHTS` (`store.ts:1423`) and multiplied directly into every RRF score. Three use cases:\n\n| Document Type     | `fim` | `search` | `navigation` |\n|-------------------|-------|----------|--------------|\n| `code_chunk`      | 0.40  | 0.15     | 0.15         |\n| `symbol_summary`  | 0.08  | 0.20     | 0.28         |\n| `file_summary`    | —     | 0.20     | 0.25         |\n| `usage_example`   | 0.20  | 0.08     | —            |\n| `idiom`           | 0.12  | 0.12     | 0.08         |\n| `framework_doc`   | 0.07  | 0.10     | 0.10         |\n| `session_observation` | 0.05 | 0.20 | 0.15        |\n| `anti_pattern`    | —     | 0.05     | —            |\n\nA `code_chunk` in FIM mode gets `typeWeight = 0.40`, making it 2.7× more influential than in `search` mode (`0.15`). Conversely, `session_observation` gets `0.20` weight in `search` — equal to summaries — reflecting that observed session patterns are very useful for human queries.\n\nUnknown document types fall back to `typeWeight = 0.1` (`store.ts:1535`).\n\n---\n\n### 4. Final Score Normalization\n\nAfter fusion and truncation to `limit` results, scores are **normalized by the top result** (`store.ts:876-889`):\n\n```\nscore = fusedScore / maxFused\n```\n\nSo the top result always has `score = 1.0`, and all others are relative to it. The raw `vectorScore` and `keywordScore` (stored as `1/(rank+1)`) are also surfaced for debugging.\n\n---\n\n### Summary of Data Flow\n\n```\nquery\n  ├─ embed ──► vector search (60 candidates, weight=0.6)\n  └─ text  ──► BM25 search   (60 candidates, weight=0.4)\n                    │\n                    ▼\n          typeAwareRRFFusion\n            rrf = (channelW × typeW × testW) / (60 + rank + 1)\n            documents in both lists: scores summed\n                    │\n                    ▼\n          sort by fusedScore → slice(0, limit) → normalize to [0,1]\n```",
+    "stop_reason": "end_turn",
+    "session_id": "e91e2ef4-4ac1-40ad-afb7-2372d2df6f6b",
+    "total_cost_usd": 0.38092049999999994,
+    "usage": {
+      "input_tokens": 15,
+      "cache_creation_input_tokens": 33926,
+      "cache_read_input_tokens": 197816,
+      "output_tokens": 2796,
+      "server_tool_use": {
+        "web_search_requests": 0,
+        "web_fetch_requests": 0
+      },
+      "service_tier": "standard",
+      "cache_creation": {
+        "ephemeral_1h_input_tokens": 0,
+        "ephemeral_5m_input_tokens": 33926
+      },
+      "inference_geo": "",
+      "iterations": [],
+      "speed": "standard"
+    },
+    "modelUsage": {
+      "claude-sonnet-4-6": {
+        "inputTokens": 15,
+        "outputTokens": 2796,
+        "cacheReadInputTokens": 197816,
+        "cacheCreationInputTokens": 33926,
+        "webSearchRequests": 0,
+        "costUSD": 0.38092049999999994,
+        "contextWindow": 200000,
+        "maxOutputTokens": 32000
+      }
+    },
+    "permission_denials": [],
+    "fast_mode_state": "off",
+    "uuid": "fd5e7f13-10cb-411d-b786-767d5f27bac0"
+  },
+  "durationMs": 66881,
+  "tokensIn": 15,
+  "tokensOut": 2796,
+  "toolCalls": 14,
+  "costUsd": 0.38092049999999994,
+  "timestamp": "2026-03-05T22:50:47.173Z"
+}

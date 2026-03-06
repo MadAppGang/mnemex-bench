@@ -1,0 +1,59 @@
+{
+  "scenarioId": 9,
+  "repo": "fastmcp",
+  "condition": "skill-doc",
+  "title": "Feature: resource description param",
+  "task": "Add a `description` parameter to the `@mcp.resource` decorator that gets included in the resource's MCP metadata.",
+  "output": "The `description` parameter is already fully implemented in the `@mcp.resource` decorator and is included in the resource's MCP metadata. Here's the complete chain:\n\n1. **Decorator** (`server.py:2040`): `description: str | None = None` parameter exists\n2. **Resource creation** (`resource.py:388`): `description=description or inspect.getdoc(fn)` — uses provided description or falls back to function docstring\n3. **MCP metadata** (`resource.py:288`): `to_mcp_resource()` passes `description=self.description` to `SDKResource`\n4. **Templates** (`template.py:499`, `243`): Same pattern for `ResourceTemplate` via `to_mcp_template()`\n\nTests already cover this:\n- `tests/server/test_server.py:486` — `test_resource_decorator_with_description` verifies the decorator parameter is set\n- `tests/client/test_client.py:766` — verifies `resource.description` is visible at the MCP client level\n\nNo changes are needed — this feature is complete.",
+  "claudeJson": {
+    "type": "result",
+    "subtype": "success",
+    "is_error": false,
+    "duration_ms": 137943,
+    "duration_api_ms": 134474,
+    "num_turns": 23,
+    "result": "The `description` parameter is already fully implemented in the `@mcp.resource` decorator and is included in the resource's MCP metadata. Here's the complete chain:\n\n1. **Decorator** (`server.py:2040`): `description: str | None = None` parameter exists\n2. **Resource creation** (`resource.py:388`): `description=description or inspect.getdoc(fn)` — uses provided description or falls back to function docstring\n3. **MCP metadata** (`resource.py:288`): `to_mcp_resource()` passes `description=self.description` to `SDKResource`\n4. **Templates** (`template.py:499`, `243`): Same pattern for `ResourceTemplate` via `to_mcp_template()`\n\nTests already cover this:\n- `tests/server/test_server.py:486` — `test_resource_decorator_with_description` verifies the decorator parameter is set\n- `tests/client/test_client.py:766` — verifies `resource.description` is visible at the MCP client level\n\nNo changes are needed — this feature is complete.",
+    "stop_reason": "end_turn",
+    "session_id": "82ea9412-ac3b-48f8-8b4b-75d40c2fba79",
+    "total_cost_usd": 0.75544475,
+    "usage": {
+      "input_tokens": 26,
+      "cache_creation_input_tokens": 42105,
+      "cache_read_input_tokens": 577467,
+      "output_tokens": 8137,
+      "server_tool_use": {
+        "web_search_requests": 0,
+        "web_fetch_requests": 0
+      },
+      "service_tier": "standard",
+      "cache_creation": {
+        "ephemeral_1h_input_tokens": 0,
+        "ephemeral_5m_input_tokens": 42105
+      },
+      "inference_geo": "",
+      "iterations": [],
+      "speed": "standard"
+    },
+    "modelUsage": {
+      "claude-sonnet-4-6": {
+        "inputTokens": 26,
+        "outputTokens": 8137,
+        "cacheReadInputTokens": 577467,
+        "cacheCreationInputTokens": 42105,
+        "webSearchRequests": 0,
+        "costUSD": 0.75544475,
+        "contextWindow": 200000,
+        "maxOutputTokens": 32000
+      }
+    },
+    "permission_denials": [],
+    "fast_mode_state": "off",
+    "uuid": "de53dd5b-171b-4fd2-8591-92a477ac4d75"
+  },
+  "durationMs": 141689,
+  "tokensIn": 26,
+  "tokensOut": 8137,
+  "toolCalls": 23,
+  "costUsd": 0.75544475,
+  "timestamp": "2026-03-05T23:44:17.769Z"
+}

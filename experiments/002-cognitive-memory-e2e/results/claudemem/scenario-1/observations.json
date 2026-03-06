@@ -1,0 +1,59 @@
+{
+  "scenarioId": 1,
+  "repo": "claudemem",
+  "condition": "observations",
+  "title": "Bug: --agent flag ordering",
+  "task": "The `--agent` flag doesn't seem to work when placed after the command name (e.g., `claudemem search --agent`). Investigate why and explain the root cause. Do NOT make any code changes.",
+  "output": "Now I have a complete picture. Let me synthesize the findings.\n\n---\n\n## Root Cause Analysis\n\n**The `--agent` flag actually IS detected regardless of position** — `src/cli.ts:188` uses `args.includes(\"--agent\")`, which scans the entire array and is position-independent:\n\n```typescript\n// src/cli.ts:188-191\nif (args.includes(\"--agent\")) {\n    agentMode = true;\n    args = args.filter((a) => a !== \"--agent\");\n}\n```\n\nSo `claudemem search --agent \"query\"` and `claudemem --agent search \"query\"` both set `agentMode = true` and produce identical behavior.\n\n**The real root cause of the perceived failure** is what happens when `--agent` is the only post-command argument with no query:\n\n```\nclaudemem search --agent\n                 └── stripped by filter → args = [\"search\"]\n                                          handleSearch([])\n                                          query = \"\" → ERROR\n```\n\n`handleSearch([])` is called with an empty argument list. At `src/cli.ts:1385-1388`, the missing-query error is raised:\n\n```typescript\nif (!query) {\n    console.error(\"Error: No search query provided.\");\n    console.error('Usage: claudemem search \"your query\"');\n    process.exit(1);\n}\n```\n\nThis path uses `console.error` **unconditionally** — it does not check `agentMode`. So even though `agentMode` IS `true`, the error output looks exactly the same as without `--agent`, which makes the flag appear to have had no effect.\n\n**Why it seems positional**: The documented usage is always `claudemem --agent <cmd>` (e.g., `src/cli.ts:130`, all examples in help text). When a user tests `claudemem search --agent` without a query, they see a raw `console.error` and conclude agent mode didn't activate. But this is the same result they'd get with `claudemem --agent search` (no query) — the behavior is identical for both orderings; the confusion is the missing query, not the flag position.\n\n**The one genuine positional bug** is on a related flag: the `--watch` alias at `src/cli.ts:199` uses `args[0] === \"--watch\"` (positional check), so `claudemem index --watch` would NOT trigger the alias. But `--agent` does not have this problem — it uses `includes()` throughout.",
+  "claudeJson": {
+    "type": "result",
+    "subtype": "success",
+    "is_error": false,
+    "duration_ms": 978268,
+    "duration_api_ms": 971019,
+    "num_turns": 41,
+    "result": "Now I have a complete picture. Let me synthesize the findings.\n\n---\n\n## Root Cause Analysis\n\n**The `--agent` flag actually IS detected regardless of position** — `src/cli.ts:188` uses `args.includes(\"--agent\")`, which scans the entire array and is position-independent:\n\n```typescript\n// src/cli.ts:188-191\nif (args.includes(\"--agent\")) {\n    agentMode = true;\n    args = args.filter((a) => a !== \"--agent\");\n}\n```\n\nSo `claudemem search --agent \"query\"` and `claudemem --agent search \"query\"` both set `agentMode = true` and produce identical behavior.\n\n**The real root cause of the perceived failure** is what happens when `--agent` is the only post-command argument with no query:\n\n```\nclaudemem search --agent\n                 └── stripped by filter → args = [\"search\"]\n                                          handleSearch([])\n                                          query = \"\" → ERROR\n```\n\n`handleSearch([])` is called with an empty argument list. At `src/cli.ts:1385-1388`, the missing-query error is raised:\n\n```typescript\nif (!query) {\n    console.error(\"Error: No search query provided.\");\n    console.error('Usage: claudemem search \"your query\"');\n    process.exit(1);\n}\n```\n\nThis path uses `console.error` **unconditionally** — it does not check `agentMode`. So even though `agentMode` IS `true`, the error output looks exactly the same as without `--agent`, which makes the flag appear to have had no effect.\n\n**Why it seems positional**: The documented usage is always `claudemem --agent <cmd>` (e.g., `src/cli.ts:130`, all examples in help text). When a user tests `claudemem search --agent` without a query, they see a raw `console.error` and conclude agent mode didn't activate. But this is the same result they'd get with `claudemem --agent search` (no query) — the behavior is identical for both orderings; the confusion is the missing query, not the flag position.\n\n**The one genuine positional bug** is on a related flag: the `--watch` alias at `src/cli.ts:199` uses `args[0] === \"--watch\"` (positional check), so `claudemem index --watch` would NOT trigger the alias. But `--agent` does not have this problem — it uses `includes()` throughout.",
+    "stop_reason": "end_turn",
+    "session_id": "afc594a1-db2a-41ab-80c6-65fc72a93f27",
+    "total_cost_usd": 2.55216275,
+    "usage": {
+      "input_tokens": 45,
+      "cache_creation_input_tokens": 75195,
+      "cache_read_input_tokens": 1566088,
+      "output_tokens": 51957,
+      "server_tool_use": {
+        "web_search_requests": 0,
+        "web_fetch_requests": 0
+      },
+      "service_tier": "standard",
+      "cache_creation": {
+        "ephemeral_1h_input_tokens": 0,
+        "ephemeral_5m_input_tokens": 75195
+      },
+      "inference_geo": "",
+      "iterations": [],
+      "speed": "standard"
+    },
+    "modelUsage": {
+      "claude-sonnet-4-6": {
+        "inputTokens": 45,
+        "outputTokens": 51957,
+        "cacheReadInputTokens": 1566088,
+        "cacheCreationInputTokens": 75195,
+        "webSearchRequests": 0,
+        "costUSD": 2.55216275,
+        "contextWindow": 200000,
+        "maxOutputTokens": 32000
+      }
+    },
+    "permission_denials": [],
+    "fast_mode_state": "off",
+    "uuid": "f5ad5537-7360-421c-a5a9-dd95ea0fea49"
+  },
+  "durationMs": 984063,
+  "tokensIn": 45,
+  "tokensOut": 51957,
+  "toolCalls": 41,
+  "costUsd": 2.55216275,
+  "timestamp": "2026-03-05T22:40:01.965Z"
+}

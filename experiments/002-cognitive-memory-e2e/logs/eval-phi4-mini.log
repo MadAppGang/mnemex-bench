@@ -1,0 +1,81 @@
+`torch_dtype` is deprecated! Use `dtype` instead!
+This model config has set a `rope_parameters['original_max_position_embeddings']` field, to be used together with `max_position_embeddings` to determine a scaling factor. Please set the `factor` field of `rope_parameters`with this ratio instead -- we recommend the use of this field over `original_max_position_embeddings`, as it is compatible with most model architectures.
+Loaded 50 queries (1.0)
+Models to evaluate: phi4-mini
+
+Loading phi4-mini...
+  Base: microsoft/Phi-4-mini-instruct
+  Adapter: jackrudenko/claudemem-expansion-phi4-mini
+  Device: mps, dtype: torch.float16
+Fetching 2 files:   0%|          | 0/2 [00:00<?, ?it/s]Fetching 2 files:  50%|█████     | 1/2 [08:24<08:24, 504.92s/it]Fetching 2 files: 100%|██████████| 2/2 [08:27<00:00, 209.17s/it]Fetching 2 files: 100%|██████████| 2/2 [08:27<00:00, 253.53s/it]
+Loading weights:   0%|          | 0/194 [00:00<?, ?it/s]Loading weights:   1%|          | 1/194 [00:00<01:31,  2.10it/s]Loading weights:  22%|██▏       | 42/194 [00:00<00:01, 95.98it/s]Loading weights:  36%|███▌      | 70/194 [00:00<00:00, 137.97it/s]Loading weights:  53%|█████▎    | 103/194 [00:00<00:00, 185.20it/s]Loading weights:  68%|██████▊   | 131/194 [00:01<00:00, 126.68it/s]Loading weights: 100%|██████████| 194/194 [00:01<00:00, 164.51it/s]
+  Model loaded and merged on mps
+
+============================================================
+Benchmarking: phi4-mini-FT (3.8B, fine-tuned)
+============================================================
+  [1/50] "useEffect cleanup..." → fmt=1.00 total=0.81 3676ms
+  [2/50] "handleSubmit function..." → fmt=1.00 total=0.80 3435ms
+  [3/50] "SearchBar component..." → fmt=1.00 total=0.77 3572ms
+  [4/50] "createEmbeddingsClient..." → fmt=1.00 total=0.75 2961ms
+  [5/50] "parseParameterSize..." → fmt=1.00 total=0.77 2914ms
+  [6/50] "buildCombinedIndex..." → fmt=1.00 total=0.75 3979ms
+  [7/50] "cosineSimilarity helper..." → fmt=1.00 total=0.76 4972ms
+  [8/50] "QueryGenerator class..." → fmt=1.00 total=0.78 2848ms
+  [9/50] "aggregateRetrievalResults..." → fmt=1.00 total=0.73 2348ms
+  [10/50] "LocalLLMClient constructor..." → fmt=1.00 total=0.72 2532ms
+  [11/50] "fix TypeError cannot read property of un..." → fmt=1.00 total=0.71 3067ms
+  [12/50] "resolve ECONNREFUSED localhost..." → fmt=1.00 total=0.80 3411ms
+  [13/50] "module not found cannot resolve import..." → fmt=1.00 total=0.78 2700ms
+  [14/50] "CORS origin not allowed headers..." → fmt=1.00 total=0.67 14576ms
+  [15/50] "out of memory heap allocation failed..." → fmt=1.00 total=0.72 2793ms
+  [16/50] "database connection timeout pool exhaust..." → fmt=1.00 total=0.61 3253ms
+  [17/50] "promise rejected unhandled async error..." → fmt=1.00 total=0.81 2944ms
+  [18/50] "circular dependency detected import cycl..." → fmt=1.00 total=0.68 2749ms
+  [19/50] "type error argument not assignable to pa..." → fmt=1.00 total=0.79 3298ms
+  [20/50] "permission denied EACCES file access..." → fmt=1.00 total=0.80 3864ms
+  [21/50] "authentication middleware..." → fmt=1.00 total=0.75 5583ms
+  [22/50] "rate limiting implementation..." → fmt=1.00 total=0.70 2728ms
+  [23/50] "caching strategy invalidation..." → fmt=0.33 total=0.24 13932ms
+  [24/50] "retry logic exponential backoff..." → fmt=1.00 total=0.80 4427ms
+  [25/50] "connection pooling database..." → fmt=1.00 total=0.68 3260ms
+  [26/50] "event driven architecture pub sub..." → fmt=1.00 total=0.67 2879ms
+  [27/50] "dependency injection service container..." → fmt=1.00 total=0.81 3246ms
+  [28/50] "pagination cursor offset limit..." → fmt=1.00 total=0.75 3570ms
+  [29/50] "graceful shutdown signal handling..." → fmt=1.00 total=0.68 3937ms
+  [30/50] "streaming response server sent events..." → fmt=1.00 total=0.72 4217ms
+  [31/50] "React context vs Redux state management..." → fmt=1.00 total=0.73 4848ms
+  [32/50] "Express middleware chain next function..." → fmt=1.00 total=0.77 2565ms
+  [33/50] "Prisma ORM query findMany where..." → fmt=1.00 total=0.80 2495ms
+  [34/50] "Next.js server component data fetching..." → fmt=1.00 total=0.82 2508ms
+  [35/50] "Zod schema validation parse transform..." → fmt=1.00 total=0.80 4275ms
+  [36/50] "tRPC router procedure mutation..." → fmt=1.00 total=0.81 2440ms
+  [37/50] "Tailwind responsive breakpoints utilitie..." → fmt=1.00 total=0.70 2260ms
+  [38/50] "Jest mock module spyOn testing..." → fmt=1.00 total=0.79 3261ms
+  [39/50] "Docker compose multi service networking..." → fmt=1.00 total=0.64 5011ms
+  [40/50] "GitHub Actions CI workflow matrix..." → fmt=1.00 total=0.70 6805ms
+  [41/50] "find unused imports dead code..." → fmt=1.00 total=0.79 2408ms
+  [42/50] "detect circular dependencies modules..." → fmt=1.00 total=0.69 3336ms
+  [43/50] "dead code detection unreachable..." → fmt=1.00 total=0.73 2206ms
+  [44/50] "security vulnerability SQL injection..." → fmt=1.00 total=0.69 3497ms
+  [45/50] "code duplication similar functions refac..." → fmt=1.00 total=0.77 3969ms
+  [46/50] "performance bottleneck N+1 query..." → fmt=1.00 total=0.68 4330ms
+  [47/50] "missing error handling try catch..." → fmt=0.33 total=0.18 13939ms
+  [48/50] "type safety any assertion unsafe cast..." → fmt=1.00 total=0.80 4019ms
+  [49/50] "memory leak event listener cleanup..." → fmt=1.00 total=0.78 4685ms
+  [50/50] "race condition async concurrent access..." → fmt=1.00 total=0.74 4285ms
+
+  Results: 50 ok, 0 failed
+  Avg: format=0.973 kw=0.823 sem=0.960 hyde=0.474 speed=4136ms total=0.724
+  Saved: /Users/jack/mag/claudemem/experiments/query-expansion/results/finetuned/phi4-mini-ft.json
+
+============================================================
+Benchmark Complete (739s total)
+============================================================
+
+Model                 Format     Lex     Vec    HyDE    Speed   Total
+----------------------------------------------------------------------
+phi4-mini-FT           0.973   0.823   0.960   0.474    4136ms   0.724
+
+Run report.ts for full comparison:
+  bun run experiments/query-expansion/bench/report.ts

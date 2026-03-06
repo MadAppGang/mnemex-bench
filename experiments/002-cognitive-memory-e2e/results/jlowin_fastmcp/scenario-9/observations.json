@@ -1,0 +1,59 @@
+{
+  "scenarioId": 9,
+  "repo": "fastmcp",
+  "condition": "observations",
+  "title": "Feature: resource description param",
+  "task": "Add a `description` parameter to the `@mcp.resource` decorator that gets included in the resource's MCP metadata.",
+  "output": "The `description` parameter is already fully implemented in `@mcp.resource`:\n\n- Decorator signature: `server.py:2040`\n- Passed to `ResourceTemplate.from_function`: `server.py:2143`\n- Passed to `Resource.from_function`: `server.py:2160`\n- `FunctionResource.from_function` uses it (falls back to docstring if `None`): `resource.py:388`\n- Included in MCP metadata via `to_mcp_resource`: `resource.py:288`\n\nThis feature is already fully implemented. You can use it like:\n\n```python\n@mcp.resource(\"resource://my-data\", description=\"Provides current data snapshot\")\ndef get_data() -> str:\n    return \"...\"\n```\n\nIf `description` is not provided, it falls back to the function's docstring automatically (`resource.py:388`: `description or inspect.getdoc(fn)`).",
+  "claudeJson": {
+    "type": "result",
+    "subtype": "success",
+    "is_error": false,
+    "duration_ms": 31731,
+    "duration_api_ms": 30678,
+    "num_turns": 9,
+    "result": "The `description` parameter is already fully implemented in `@mcp.resource`:\n\n- Decorator signature: `server.py:2040`\n- Passed to `ResourceTemplate.from_function`: `server.py:2143`\n- Passed to `Resource.from_function`: `server.py:2160`\n- `FunctionResource.from_function` uses it (falls back to docstring if `None`): `resource.py:388`\n- Included in MCP metadata via `to_mcp_resource`: `resource.py:288`\n\nThis feature is already fully implemented. You can use it like:\n\n```python\n@mcp.resource(\"resource://my-data\", description=\"Provides current data snapshot\")\ndef get_data() -> str:\n    return \"...\"\n```\n\nIf `description` is not provided, it falls back to the function's docstring automatically (`resource.py:388`: `description or inspect.getdoc(fn)`).",
+    "stop_reason": "end_turn",
+    "session_id": "19903b7e-ffce-4c4a-a520-b486104b9c1a",
+    "total_cost_usd": 0.23573475000000002,
+    "usage": {
+      "input_tokens": 11,
+      "cache_creation_input_tokens": 23837,
+      "cache_read_input_tokens": 92547,
+      "output_tokens": 1617,
+      "server_tool_use": {
+        "web_search_requests": 0,
+        "web_fetch_requests": 0
+      },
+      "service_tier": "standard",
+      "cache_creation": {
+        "ephemeral_1h_input_tokens": 0,
+        "ephemeral_5m_input_tokens": 23837
+      },
+      "inference_geo": "",
+      "iterations": [],
+      "speed": "standard"
+    },
+    "modelUsage": {
+      "claude-sonnet-4-6": {
+        "inputTokens": 11,
+        "outputTokens": 1617,
+        "cacheReadInputTokens": 92547,
+        "cacheCreationInputTokens": 23837,
+        "webSearchRequests": 0,
+        "costUSD": 0.23573475000000002,
+        "contextWindow": 200000,
+        "maxOutputTokens": 32000
+      }
+    },
+    "permission_denials": [],
+    "fast_mode_state": "off",
+    "uuid": "0dc5aedb-7aed-4449-b411-5d4dc5da6b8b"
+  },
+  "durationMs": 35926,
+  "tokensIn": 11,
+  "tokensOut": 1617,
+  "toolCalls": 9,
+  "costUsd": 0.23573475000000002,
+  "timestamp": "2026-03-05T23:44:56.006Z"
+}

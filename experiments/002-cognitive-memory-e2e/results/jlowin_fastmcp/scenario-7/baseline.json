@@ -1,0 +1,59 @@
+{
+  "scenarioId": 7,
+  "repo": "fastmcp",
+  "condition": "baseline",
+  "title": "Feature: middleware pipeline",
+  "task": "How do I add middleware to a FastMCP server? What's the middleware pipeline and execution order? Do NOT make any code changes.",
+  "output": "Here's a complete breakdown:\n\n---\n\n## Adding Middleware\n\n**At construction time** — pass a list to `FastMCP`:\n\n```python\nfrom fastmcp import FastMCP\nfrom fastmcp.server.middleware import Middleware\n\nmcp = FastMCP(\"MyServer\", middleware=[MyMiddleware(), AnotherMiddleware()])\n```\n\n**After construction** — via `add_middleware`:\n\n```python\nmcp.add_middleware(MyMiddleware())\n```\n\nMiddleware is stored as `self.middleware: list[Middleware]` on the server (`server.py:273`).\n\n---\n\n## Writing a Middleware\n\nSubclass `Middleware` and override whichever hook methods you need:\n\n```python\nfrom fastmcp.server.middleware import Middleware, MiddlewareContext, CallNext\n\nclass MyMiddleware(Middleware):\n    async def on_call_tool(self, context, call_next):\n        print(f\"Before tool: {context.message.name}\")\n        result = await call_next(context)\n        print(f\"After tool\")\n        return result\n```\n\nAvailable hook methods (`middleware.py:128–205`):\n\n| Hook | Trigger |\n|---|---|\n| `on_message` | Every message (requests + notifications) |\n| `on_request` | Every request |\n| `on_notification` | Every notification |\n| `on_initialize` | `initialize` |\n| `on_call_tool` | `tools/call` |\n| `on_read_resource` | `resources/read` |\n| `on_get_prompt` | `prompts/get` |\n| `on_list_tools` | `tools/list` |\n| `on_list_resources` | `resources/list` |\n| `on_list_resource_templates` | `resources/templates/list` |\n| `on_list_prompts` | `prompts/list` |\n\nAll hooks pass through to `call_next` by default — only override what you need.\n\n---\n\n## Execution Order\n\n### Within a single middleware (per-request hook chain)\n\nFor each message, `_dispatch_handler` (`middleware.py:94`) builds this chain by wrapping handlers outermost-first:\n\n```\non_message → on_request/on_notification → on_call_tool (etc.) → actual handler\n```\n\nSo `on_message` runs first, then the type-level hook, then the method-specific hook. Each must call `call_next` to proceed.\n\n### Across multiple middleware (pipeline order)\n\n`_apply_middleware` (`server.py:651–660`) iterates `self.middleware` **in reverse** when building the chain:\n\n```python\nfor mw in reversed(self.middleware):\n    chain = partial(mw, call_next=chain)\n```\n\nThis means the **first middleware in the list is outermost** — it runs first on the way in and last on the way out:\n\n```\nmiddleware=[A, B, C]\n\nRequest:  A → B → C → handler\nResponse: C → B → A\n```\n\n---\n\n## Built-in Middleware\n\nSeveral are available under `fastmcp.server.middleware.*`:\n\n- `logging.py` — `BaseLoggingMiddleware` with structured/plain logging, payload capture\n- `rate_limiting.py` — rate limiter\n- `error_handling.py` — error handling/transformation\n- `timing.py` — request timing\n- `caching.py` — response caching\n- `tool_injection.py` — inject dependencies into tool calls",
+  "claudeJson": {
+    "type": "result",
+    "subtype": "success",
+    "is_error": false,
+    "duration_ms": 47551,
+    "duration_api_ms": 46152,
+    "num_turns": 9,
+    "result": "Here's a complete breakdown:\n\n---\n\n## Adding Middleware\n\n**At construction time** — pass a list to `FastMCP`:\n\n```python\nfrom fastmcp import FastMCP\nfrom fastmcp.server.middleware import Middleware\n\nmcp = FastMCP(\"MyServer\", middleware=[MyMiddleware(), AnotherMiddleware()])\n```\n\n**After construction** — via `add_middleware`:\n\n```python\nmcp.add_middleware(MyMiddleware())\n```\n\nMiddleware is stored as `self.middleware: list[Middleware]` on the server (`server.py:273`).\n\n---\n\n## Writing a Middleware\n\nSubclass `Middleware` and override whichever hook methods you need:\n\n```python\nfrom fastmcp.server.middleware import Middleware, MiddlewareContext, CallNext\n\nclass MyMiddleware(Middleware):\n    async def on_call_tool(self, context, call_next):\n        print(f\"Before tool: {context.message.name}\")\n        result = await call_next(context)\n        print(f\"After tool\")\n        return result\n```\n\nAvailable hook methods (`middleware.py:128–205`):\n\n| Hook | Trigger |\n|---|---|\n| `on_message` | Every message (requests + notifications) |\n| `on_request` | Every request |\n| `on_notification` | Every notification |\n| `on_initialize` | `initialize` |\n| `on_call_tool` | `tools/call` |\n| `on_read_resource` | `resources/read` |\n| `on_get_prompt` | `prompts/get` |\n| `on_list_tools` | `tools/list` |\n| `on_list_resources` | `resources/list` |\n| `on_list_resource_templates` | `resources/templates/list` |\n| `on_list_prompts` | `prompts/list` |\n\nAll hooks pass through to `call_next` by default — only override what you need.\n\n---\n\n## Execution Order\n\n### Within a single middleware (per-request hook chain)\n\nFor each message, `_dispatch_handler` (`middleware.py:94`) builds this chain by wrapping handlers outermost-first:\n\n```\non_message → on_request/on_notification → on_call_tool (etc.) → actual handler\n```\n\nSo `on_message` runs first, then the type-level hook, then the method-specific hook. Each must call `call_next` to proceed.\n\n### Across multiple middleware (pipeline order)\n\n`_apply_middleware` (`server.py:651–660`) iterates `self.middleware` **in reverse** when building the chain:\n\n```python\nfor mw in reversed(self.middleware):\n    chain = partial(mw, call_next=chain)\n```\n\nThis means the **first middleware in the list is outermost** — it runs first on the way in and last on the way out:\n\n```\nmiddleware=[A, B, C]\n\nRequest:  A → B → C → handler\nResponse: C → B → A\n```\n\n---\n\n## Built-in Middleware\n\nSeveral are available under `fastmcp.server.middleware.*`:\n\n- `logging.py` — `BaseLoggingMiddleware` with structured/plain logging, payload capture\n- `rate_limiting.py` — rate limiter\n- `error_handling.py` — error handling/transformation\n- `timing.py` — request timing\n- `caching.py` — response caching\n- `tool_injection.py` — inject dependencies into tool calls",
+    "stop_reason": "end_turn",
+    "session_id": "1ac0ce5f-2a2b-4e73-a09a-8d1d9020e1ef",
+    "total_cost_usd": 0.24465125000000004,
+    "usage": {
+      "input_tokens": 11,
+      "cache_creation_input_tokens": 22411,
+      "cache_read_input_tokens": 87755,
+      "output_tokens": 2426,
+      "server_tool_use": {
+        "web_search_requests": 0,
+        "web_fetch_requests": 0
+      },
+      "service_tier": "standard",
+      "cache_creation": {
+        "ephemeral_1h_input_tokens": 0,
+        "ephemeral_5m_input_tokens": 22411
+      },
+      "inference_geo": "",
+      "iterations": [],
+      "speed": "standard"
+    },
+    "modelUsage": {
+      "claude-sonnet-4-6": {
+        "inputTokens": 11,
+        "outputTokens": 2426,
+        "cacheReadInputTokens": 87755,
+        "cacheCreationInputTokens": 22411,
+        "webSearchRequests": 0,
+        "costUSD": 0.24465125000000004,
+        "contextWindow": 200000,
+        "maxOutputTokens": 32000
+      }
+    },
+    "permission_denials": [],
+    "fast_mode_state": "off",
+    "uuid": "2a006575-307a-47f8-a778-2660227a7f05"
+  },
+  "durationMs": 51714,
+  "tokensIn": 11,
+  "tokensOut": 2426,
+  "toolCalls": 9,
+  "costUsd": 0.24465125000000004,
+  "timestamp": "2026-03-05T23:36:20.299Z"
+}

@@ -1,0 +1,81 @@
+`torch_dtype` is deprecated! Use `dtype` instead!
+Loaded 50 queries (1.0)
+Models to evaluate: qwen3.5-9b
+
+Loading qwen3.5-9b...
+  Base: Qwen/Qwen3.5-9B
+  Adapter: jackrudenko/claudemem-expansion-qwen3.5-9b
+  Device: mps, dtype: torch.float16
+Fetching 4 files:   0%|          | 0/4 [00:00<?, ?it/s]Fetching 4 files:  25%|██▌       | 1/4 [17:38<52:56, 1058.95s/it]Fetching 4 files:  50%|█████     | 2/4 [18:10<15:09, 454.87s/it] Fetching 4 files: 100%|██████████| 4/4 [18:10<00:00, 272.74s/it]
+The fast path is not available because one of the required library is not installed. Falling back to torch implementation. To install follow https://github.com/fla-org/flash-linear-attention#installation and https://github.com/Dao-AILab/causal-conv1d
+Loading weights:   0%|          | 0/427 [00:00<?, ?it/s]Loading weights:   0%|          | 1/427 [00:13<1:32:49, 13.07s/it]Loading weights:   0%|          | 2/427 [00:13<40:05,  5.66s/it]  Loading weights:  25%|██▍       | 105/427 [00:13<00:21, 15.13it/s]Loading weights:  34%|███▍      | 146/427 [00:14<00:14, 19.06it/s]Loading weights:  40%|███▉      | 170/427 [00:15<00:12, 20.57it/s]Loading weights:  44%|████▎     | 186/427 [00:16<00:11, 20.60it/s]Loading weights:  47%|████▋     | 200/427 [00:17<00:10, 21.20it/s]Loading weights:  49%|████▊     | 208/427 [00:17<00:10, 21.20it/s]Loading weights:  52%|█████▏    | 221/427 [00:17<00:07, 26.13it/s]Loading weights:  54%|█████▎    | 229/427 [00:17<00:07, 25.27it/s]Loading weights:  56%|█████▌    | 239/427 [00:18<00:07, 25.63it/s]Loading weights:  59%|█████▉    | 252/427 [00:18<00:05, 33.16it/s]Loading weights:  61%|██████    | 259/427 [00:19<00:08, 20.87it/s]Loading weights:  64%|██████▍   | 274/427 [00:19<00:05, 29.62it/s]Loading weights:  66%|██████▌   | 281/427 [00:19<00:05, 26.08it/s]Loading weights:  68%|██████▊   | 292/427 [00:20<00:05, 26.41it/s]Loading weights:  71%|███████▏  | 305/427 [00:20<00:03, 35.70it/s]Loading weights:  73%|███████▎  | 312/427 [00:21<00:05, 22.88it/s]Loading weights:  77%|███████▋  | 327/427 [00:21<00:03, 31.51it/s]Loading weights:  78%|███████▊  | 333/427 [00:21<00:03, 24.58it/s]Loading weights:  81%|████████  | 345/427 [00:22<00:03, 26.20it/s]Loading weights:  84%|████████▍ | 358/427 [00:22<00:01, 35.92it/s]Loading weights:  85%|████████▌ | 365/427 [00:22<00:02, 23.30it/s]Loading weights:  89%|████████▉ | 380/427 [00:23<00:01, 32.31it/s]Loading weights:  90%|█████████ | 386/427 [00:23<00:01, 27.66it/s]Loading weights:  93%|█████████▎| 398/427 [00:24<00:01, 25.57it/s]Loading weights:  96%|█████████▋| 411/427 [00:24<00:00, 34.18it/s]Loading weights:  98%|█████████▊| 417/427 [00:24<00:00, 25.90it/s]Loading weights:  99%|█████████▉| 422/427 [00:24<00:00, 26.23it/s]Loading weights: 100%|██████████| 427/427 [00:24<00:00, 17.19it/s]
+  Model loaded and merged on mps
+
+============================================================
+Benchmarking: qwen3.5-9b-FT (9B, fine-tuned)
+============================================================
+  [1/50] "useEffect cleanup..." → fmt=0.00 total=0.00 71329ms
+  [2/50] "handleSubmit function..." → fmt=1.00 total=0.69 55703ms
+  [3/50] "SearchBar component..." → fmt=1.00 total=0.73 34982ms
+  [4/50] "createEmbeddingsClient..." → fmt=1.00 total=0.76 39348ms
+  [5/50] "parseParameterSize..." → fmt=1.00 total=0.71 30023ms
+  [6/50] "buildCombinedIndex..." → fmt=1.00 total=0.71 31684ms
+  [7/50] "cosineSimilarity helper..." → fmt=1.00 total=0.74 32660ms
+  [8/50] "QueryGenerator class..." → fmt=1.00 total=0.76 30030ms
+  [9/50] "aggregateRetrievalResults..." → fmt=1.00 total=0.76 51677ms
+  [10/50] "LocalLLMClient constructor..." → fmt=1.00 total=0.72 37724ms
+  [11/50] "fix TypeError cannot read property of un..." → fmt=1.00 total=0.78 28129ms
+  [12/50] "resolve ECONNREFUSED localhost..." → fmt=1.00 total=0.74 36100ms
+  [13/50] "module not found cannot resolve import..." → fmt=0.00 total=0.00 50147ms
+  [14/50] "CORS origin not allowed headers..." → fmt=1.00 total=0.74 42007ms
+  [15/50] "out of memory heap allocation failed..." → fmt=1.00 total=0.74 33937ms
+  [16/50] "database connection timeout pool exhaust..." → fmt=0.00 total=0.00 66936ms
+  [17/50] "promise rejected unhandled async error..." → fmt=1.00 total=0.74 37627ms
+  [18/50] "circular dependency detected import cycl..." → fmt=0.00 total=0.00 58017ms
+  [19/50] "type error argument not assignable to pa..." → fmt=1.00 total=0.77 29312ms
+  [20/50] "permission denied EACCES file access..." → fmt=1.00 total=0.76 33712ms
+  [21/50] "authentication middleware..." → fmt=1.00 total=0.77 49704ms
+  [22/50] "rate limiting implementation..." → fmt=1.00 total=0.78 39267ms
+  [23/50] "caching strategy invalidation..." → fmt=1.00 total=0.68 30073ms
+  [24/50] "retry logic exponential backoff..." → fmt=1.00 total=0.74 32518ms
+  [25/50] "connection pooling database..." → fmt=0.00 total=0.00 49889ms
+  [26/50] "event driven architecture pub sub..." → fmt=0.00 total=0.00 49829ms
+  [27/50] "dependency injection service container..." → fmt=0.00 total=0.00 49945ms
+  [28/50] "pagination cursor offset limit..." → fmt=1.00 total=0.70 27339ms
+  [29/50] "graceful shutdown signal handling..." → fmt=0.00 total=0.00 50151ms
+  [30/50] "streaming response server sent events..." → fmt=1.00 total=0.77 31338ms
+  [31/50] "React context vs Redux state management..." → fmt=0.33 total=0.13 51341ms
+  [32/50] "Express middleware chain next function..." → fmt=0.00 total=0.00 50617ms
+  [33/50] "Prisma ORM query findMany where..." → fmt=1.00 total=0.77 32843ms
+  [34/50] "Next.js server component data fetching..." → fmt=1.00 total=0.71 29911ms
+  [35/50] "Zod schema validation parse transform..." → fmt=1.00 total=0.76 29589ms
+  [36/50] "tRPC router procedure mutation..." → fmt=1.00 total=0.77 31146ms
+  [37/50] "Tailwind responsive breakpoints utilitie..." → fmt=1.00 total=0.71 38358ms
+  [38/50] "Jest mock module spyOn testing..." → fmt=0.00 total=0.00 53560ms
+  [39/50] "Docker compose multi service networking..." → fmt=1.00 total=0.70 37976ms
+  [40/50] "GitHub Actions CI workflow matrix..." → fmt=1.00 total=0.71 34667ms
+  [41/50] "find unused imports dead code..." → fmt=1.00 total=0.67 29814ms
+  [42/50] "detect circular dependencies modules..." → fmt=0.00 total=0.00 52203ms
+  [43/50] "dead code detection unreachable..." → fmt=1.00 total=0.75 31080ms
+  [44/50] "security vulnerability SQL injection..." → fmt=0.00 total=0.00 50764ms
+  [45/50] "code duplication similar functions refac..." → fmt=1.00 total=0.70 33479ms
+  [46/50] "performance bottleneck N+1 query..." → fmt=1.00 total=0.76 36510ms
+  [47/50] "missing error handling try catch..." → fmt=1.00 total=0.77 33029ms
+  [48/50] "type safety any assertion unsafe cast..." → fmt=1.00 total=0.74 40649ms
+  [49/50] "memory leak event listener cleanup..." → fmt=0.00 total=0.00 55240ms
+  [50/50] "race condition async concurrent access..." → fmt=1.00 total=0.77 28987ms
+
+  Results: 50 ok, 0 failed
+  Avg: format=0.727 kw=0.668 sem=0.720 hyde=0.444 speed=40458ms total=0.534
+  Saved: /Users/jack/mag/claudemem/experiments/query-expansion/results/finetuned/qwen3.5-9b-ft.json
+
+============================================================
+Benchmark Complete (3247s total)
+============================================================
+
+Model                 Format     Lex     Vec    HyDE    Speed   Total
+----------------------------------------------------------------------
+qwen3.5-9b-FT          0.727   0.668   0.720   0.444   40458ms   0.534
+
+Run report.ts for full comparison:
+  bun run experiments/query-expansion/bench/report.ts

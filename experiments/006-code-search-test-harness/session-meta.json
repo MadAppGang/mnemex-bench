@@ -1,0 +1,10 @@
+{
+  "sessionId": "dev-research-code-search-test-harness-20260306-021745-38ab28a4",
+  "createdAt": "2026-03-06T02:17:45Z",
+  "topic": "Testing harness for code search: datasets, benchmarks, eval frameworks for query routing/expansion/reranking",
+  "status": "in_progress",
+  "modelStrategy": "openrouter",
+  "externalModel": "google/gemini-3-pro-preview",
+  "iterations": { "exploration": 0, "synthesis": 0, "maxExploration": 5, "maxSynthesis": 3 },
+  "convergence": { "achieved": false, "consecutiveMatches": 0, "targetMatches": 3 }
+}

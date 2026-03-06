@@ -1,0 +1,59 @@
+{
+  "scenarioId": 13,
+  "repo": "claudemem",
+  "condition": "baseline",
+  "title": "Feature: add reindex command",
+  "task": "Add a `reindex` CLI command that forces a full re-index of the project (equivalent to `claudemem index --force`). It should accept the same options as `index` but always set force=true.",
+  "output": "Done. Here's what was added:\n\n**`src/cli.ts`:**\n\n1. **Switch case** (line ~277): `case \"reindex\"` calls `handleIndex([\"--force\", ...args.slice(1)])` — prepends `--force` and passes all other args through unchanged.\n\n2. **Compact help** (line ~127): Added `reindex` to the commands list.\n\n3. **Full help** (line ~6366): Added `reindex [path]` entry with description \"Force full re-index (equivalent to index --force)\".\n\nThe implementation is minimal — `reindex` simply delegates to the existing `handleIndex` with `--force` injected, so it inherits all `index` options (`--no-llm`, `--wait`, `--concurrency=`, path arg, etc.) automatically.",
+  "claudeJson": {
+    "type": "result",
+    "subtype": "success",
+    "is_error": false,
+    "duration_ms": 76506,
+    "duration_api_ms": 72380,
+    "num_turns": 22,
+    "result": "Done. Here's what was added:\n\n**`src/cli.ts`:**\n\n1. **Switch case** (line ~277): `case \"reindex\"` calls `handleIndex([\"--force\", ...args.slice(1)])` — prepends `--force` and passes all other args through unchanged.\n\n2. **Compact help** (line ~127): Added `reindex` to the commands list.\n\n3. **Full help** (line ~6366): Added `reindex [path]` entry with description \"Force full re-index (equivalent to index --force)\".\n\nThe implementation is minimal — `reindex` simply delegates to the existing `handleIndex` with `--force` injected, so it inherits all `index` options (`--no-llm`, `--wait`, `--concurrency=`, path arg, etc.) automatically.",
+    "stop_reason": "end_turn",
+    "session_id": "2b9fcc5c-17f4-44c8-8500-f11f87388b3e",
+    "total_cost_usd": 0.40309449999999997,
+    "usage": {
+      "input_tokens": 28,
+      "cache_creation_input_tokens": 22542,
+      "cache_read_input_tokens": 319034,
+      "output_tokens": 4102,
+      "server_tool_use": {
+        "web_search_requests": 0,
+        "web_fetch_requests": 0
+      },
+      "service_tier": "standard",
+      "cache_creation": {
+        "ephemeral_1h_input_tokens": 0,
+        "ephemeral_5m_input_tokens": 22542
+      },
+      "inference_geo": "",
+      "iterations": [],
+      "speed": "standard"
+    },
+    "modelUsage": {
+      "claude-sonnet-4-6": {
+        "inputTokens": 28,
+        "outputTokens": 4102,
+        "cacheReadInputTokens": 319034,
+        "cacheCreationInputTokens": 22542,
+        "webSearchRequests": 0,
+        "costUSD": 0.40309449999999997,
+        "contextWindow": 200000,
+        "maxOutputTokens": 32000
+      }
+    },
+    "permission_denials": [],
+    "fast_mode_state": "off",
+    "uuid": "9d5002ae-a315-4685-9035-04141a118d81"
+  },
+  "durationMs": 80699,
+  "tokensIn": 28,
+  "tokensOut": 4102,
+  "toolCalls": 22,
+  "costUsd": 0.40309449999999997,
+  "timestamp": "2026-03-05T23:26:52.296Z"
+}

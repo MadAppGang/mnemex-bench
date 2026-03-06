@@ -1,0 +1,59 @@
+{
+  "scenarioId": 15,
+  "repo": "fastmcp",
+  "condition": "no-index",
+  "title": "Architecture: server composition",
+  "task": "How does FastMCP's server mounting/composition system work? Explain how you can compose multiple MCP servers together and how requests are routed between them. Do NOT make any code changes.",
+  "output": "Now I have a thorough picture of the system. Here's how it works:\n\n---\n\n## FastMCP Server Composition\n\n### Core Concept: Providers\n\nEvery `FastMCP` instance has a `_providers: list[Provider]` list. Providers are objects that supply tools, resources, resource templates, and prompts dynamically. When a request comes in, the server checks its own local managers first, then walks the provider list in registration order.\n\n### `mount()` — The Primary Composition API\n\n```python\nparent.mount(child_server, namespace=\"child\")\n```\n\n`mount()` (`server.py:2560`) wraps the child server in a `FastMCPProvider` and appends it to `_providers`. Optionally, it also wraps that in a `TransformingProvider` if a namespace or tool renames are given.\n\n### How Requests Are Routed\n\nFor every operation (tool call, resource read, prompt render), the parent server:\n\n1. **Checks local managers first** — tools/resources/prompts registered directly on the parent always win.\n2. **Walks `_providers` in order** — first provider to return a non-`None` result wins (for lookups) or all are aggregated (for list operations).\n\nFor example, tool call routing (`server.py:1437–1452`):\n- Tries `_tool_manager` (local tools)\n- Then iterates `_providers`, calling `provider.get_tool(name)`\n\n### `FastMCPProvider` — Wrapping a Child Server\n\n`FastMCPProvider` (`server/providers/fastmcp_provider.py`) wraps a child `FastMCP` instance and implements the `Provider` interface. Key behaviors:\n\n- **Listing** (`list_tools`, `list_resources`, etc.): calls the child's `_list_*_middleware()` methods, which run the child's middleware chain. Results are wrapped in `FastMCPProviderTool/Resource/Prompt` classes.\n- **Execution**: The wrapped component classes delegate back to the child server's middleware. E.g., `FastMCPProviderTool.run()` calls `child_server._call_tool_middleware(original_name, args)`. This ensures the child's middleware stack is invoked, not just the raw function.\n- **Lifespan**: `FastMCPProvider.lifespan()` runs the child's user-defined lifespan context manager when the parent starts.\n\n### `TransformingProvider` — Namespacing\n\n`TransformingProvider` (`server/providers/transforming.py`) wraps any `Provider` and renames components:\n\n| Component type | Transformation |\n|---|---|\n| Tools | `name` → `namespace_name` (or explicit rename via `tool_names`) |\n| Prompts | `name` → `namespace_name` |\n| Resources | `proto://path` → `proto://namespace/path` |\n| Resource templates | same URI transformation |\n\nLookups reverse the transformation before delegating to the wrapped provider. This is transparent — the child server always sees its own original names.\n\n### The Full Stack (example)\n\n```\nparent.mount(child, namespace=\"svc\")\n\nRequest: call_tool(\"svc_greet\", {...})\n  → parent: not in local _tool_manager\n  → parent: walks _providers\n    → TransformingProvider.get_tool(\"svc_greet\")\n      → reverses: \"greet\"\n      → FastMCPProvider.get_tool(\"greet\")\n        → calls child._list_tools_middleware()\n        → returns FastMCPProviderTool wrapping child + \"greet\"\n  → parent executes the tool\n    → FastMCPProviderTool.run(args)\n      → child._call_tool_middleware(\"greet\", args)  ← child middleware runs\n```\n\n### `mount()` vs `import_server()`\n\n`import_server()` is deprecated — it statically copied components from child to parent at import time. `mount()` establishes a **live, dynamic** connection: changes to the child server after mounting are immediately reflected through the parent.\n\n### `as_proxy` / `FastMCP.as_proxy()`\n\nIf you mount a server that communicates over a network (e.g., an HTTP MCP server), `FastMCP.as_proxy(server)` converts it to a proxy that forwards requests over the wire. This is separate from the composition mechanism — the proxy is just another `FastMCP`-compatible server that can be mounted normally.",
+  "claudeJson": {
+    "type": "result",
+    "subtype": "success",
+    "is_error": false,
+    "duration_ms": 45230,
+    "duration_api_ms": 44715,
+    "num_turns": 9,
+    "result": "Now I have a thorough picture of the system. Here's how it works:\n\n---\n\n## FastMCP Server Composition\n\n### Core Concept: Providers\n\nEvery `FastMCP` instance has a `_providers: list[Provider]` list. Providers are objects that supply tools, resources, resource templates, and prompts dynamically. When a request comes in, the server checks its own local managers first, then walks the provider list in registration order.\n\n### `mount()` — The Primary Composition API\n\n```python\nparent.mount(child_server, namespace=\"child\")\n```\n\n`mount()` (`server.py:2560`) wraps the child server in a `FastMCPProvider` and appends it to `_providers`. Optionally, it also wraps that in a `TransformingProvider` if a namespace or tool renames are given.\n\n### How Requests Are Routed\n\nFor every operation (tool call, resource read, prompt render), the parent server:\n\n1. **Checks local managers first** — tools/resources/prompts registered directly on the parent always win.\n2. **Walks `_providers` in order** — first provider to return a non-`None` result wins (for lookups) or all are aggregated (for list operations).\n\nFor example, tool call routing (`server.py:1437–1452`):\n- Tries `_tool_manager` (local tools)\n- Then iterates `_providers`, calling `provider.get_tool(name)`\n\n### `FastMCPProvider` — Wrapping a Child Server\n\n`FastMCPProvider` (`server/providers/fastmcp_provider.py`) wraps a child `FastMCP` instance and implements the `Provider` interface. Key behaviors:\n\n- **Listing** (`list_tools`, `list_resources`, etc.): calls the child's `_list_*_middleware()` methods, which run the child's middleware chain. Results are wrapped in `FastMCPProviderTool/Resource/Prompt` classes.\n- **Execution**: The wrapped component classes delegate back to the child server's middleware. E.g., `FastMCPProviderTool.run()` calls `child_server._call_tool_middleware(original_name, args)`. This ensures the child's middleware stack is invoked, not just the raw function.\n- **Lifespan**: `FastMCPProvider.lifespan()` runs the child's user-defined lifespan context manager when the parent starts.\n\n### `TransformingProvider` — Namespacing\n\n`TransformingProvider` (`server/providers/transforming.py`) wraps any `Provider` and renames components:\n\n| Component type | Transformation |\n|---|---|\n| Tools | `name` → `namespace_name` (or explicit rename via `tool_names`) |\n| Prompts | `name` → `namespace_name` |\n| Resources | `proto://path` → `proto://namespace/path` |\n| Resource templates | same URI transformation |\n\nLookups reverse the transformation before delegating to the wrapped provider. This is transparent — the child server always sees its own original names.\n\n### The Full Stack (example)\n\n```\nparent.mount(child, namespace=\"svc\")\n\nRequest: call_tool(\"svc_greet\", {...})\n  → parent: not in local _tool_manager\n  → parent: walks _providers\n    → TransformingProvider.get_tool(\"svc_greet\")\n      → reverses: \"greet\"\n      → FastMCPProvider.get_tool(\"greet\")\n        → calls child._list_tools_middleware()\n        → returns FastMCPProviderTool wrapping child + \"greet\"\n  → parent executes the tool\n    → FastMCPProviderTool.run(args)\n      → child._call_tool_middleware(\"greet\", args)  ← child middleware runs\n```\n\n### `mount()` vs `import_server()`\n\n`import_server()` is deprecated — it statically copied components from child to parent at import time. `mount()` establishes a **live, dynamic** connection: changes to the child server after mounting are immediately reflected through the parent.\n\n### `as_proxy` / `FastMCP.as_proxy()`\n\nIf you mount a server that communicates over a network (e.g., an HTTP MCP server), `FastMCP.as_proxy(server)` converts it to a proxy that forwards requests over the wire. This is separate from the composition mechanism — the proxy is just another `FastMCP`-compatible server that can be mounted normally.",
+    "stop_reason": "end_turn",
+    "session_id": "ca2087f0-4a1f-4471-b6be-de22e6e43c15",
+    "total_cost_usd": 0.3460725,
+    "usage": {
+      "input_tokens": 10,
+      "cache_creation_input_tokens": 38606,
+      "cache_read_input_tokens": 105670,
+      "output_tokens": 2076,
+      "server_tool_use": {
+        "web_search_requests": 0,
+        "web_fetch_requests": 0
+      },
+      "service_tier": "standard",
+      "cache_creation": {
+        "ephemeral_1h_input_tokens": 0,
+        "ephemeral_5m_input_tokens": 38606
+      },
+      "inference_geo": "",
+      "iterations": [],
+      "speed": "standard"
+    },
+    "modelUsage": {
+      "claude-sonnet-4-6": {
+        "inputTokens": 10,
+        "outputTokens": 2076,
+        "cacheReadInputTokens": 105670,
+        "cacheCreationInputTokens": 38606,
+        "webSearchRequests": 0,
+        "costUSD": 0.3460725,
+        "contextWindow": 200000,
+        "maxOutputTokens": 32000
+      }
+    },
+    "permission_denials": [],
+    "fast_mode_state": "off",
+    "uuid": "ed4a37d0-b9cf-4a1c-a479-10d3c6891386"
+  },
+  "durationMs": 49792,
+  "tokensIn": 10,
+  "tokensOut": 2076,
+  "toolCalls": 9,
+  "costUsd": 0.3460725,
+  "timestamp": "2026-03-05T23:55:17.493Z"
+}

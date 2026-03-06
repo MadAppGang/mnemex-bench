@@ -1,0 +1,59 @@
+{
+  "scenarioId": 10,
+  "repo": "fastmcp",
+  "condition": "skill-doc",
+  "title": "Debug: OpenAPI conversion limits",
+  "task": "The OpenAPI experimental feature sometimes fails to convert endpoints. What are the known limitations? Do NOT make any code changes.",
+  "output": "Based on my review of the source code, here are the known limitations of the OpenAPI conversion feature:\n\n## Known Limitations\n\n### Reference Handling\n- **External/remote `$ref` not supported** — only local references starting with `#/` are supported. Any reference like `./other.yaml#/...` or `https://...` will raise a `ValueError`. All schema definitions must be self-contained within the OpenAPI document (`parser.py:161-163`, `schemas.py:102-107`).\n\n### Request Body Handling\n- **Only the first content type is used** for request bodies — if a request body defines multiple content types (e.g., both `application/json` and `application/xml`), only the first one is processed (`schemas.py:242`).\n- **Top-level `$ref` body schemas** are handled as a single `body` parameter rather than being inlined as individual properties (`schemas.py:352-356`).\n\n### Response / Output Schema\n- **Only the primary success response is used** — responses are resolved with priority order 200 > 201 > 202 > 204 > 207 > any other 2xx. Error responses and non-2xx schemas are ignored (`parser.py:422-435`).\n- **Non-object response schemas are wrapped** — if a response schema is not an `object` (e.g., an array or primitive), it gets wrapped under a `result` key to comply with MCP's requirement that output schemas be objects (`schemas.py:553-561`).\n\n### Parameter Handling\n- **Name collision disambiguation** — when a path/query/header parameter has the same name as a request body property, the non-body parameter is renamed to `<name>__<location>` (e.g., `id__path`). This changes the tool's argument names from the original API.\n- **Cookie parameters** are parsed but may not be forwarded correctly depending on the HTTP client configuration.\n\n### Schema Conversion\n- **OpenAPI 3.0 `nullable` field** is converted to a JSON Schema type union (`[\"type\", \"null\"]`), but only at the direct property level — deeply nested `nullable` on schemas without a `type`, `anyOf`, `oneOf`, or `allOf` may not be handled (`json_schema_converter.py:150-183`).\n- **OpenAPI-specific fields are stripped**: `discriminator`, `readOnly`, `writeOnly`, `xml`, `externalDocs`, and `deprecated` are removed during conversion and not available to MCP consumers.\n- **`oneOf` is converted to `anyOf`** by default, which changes strict/exclusive union semantics.\n\n### Spec Version\n- **Only OpenAPI 3.0.x and 3.1.x** are supported. Swagger 2.0 specs will fail validation (`parser.py:66-101`).\n\n### General\n- **Operations that fail to parse are skipped silently** (logged at ERROR level) rather than causing a hard failure, so a partially-converted server is possible without obvious indication.\n- **The feature itself is described as best for prototyping**, not production — the docs explicitly note LLMs perform significantly better with hand-crafted MCP servers than auto-converted OpenAPI ones.",
+  "claudeJson": {
+    "type": "result",
+    "subtype": "success",
+    "is_error": false,
+    "duration_ms": 49615,
+    "duration_api_ms": 46975,
+    "num_turns": 16,
+    "result": "Based on my review of the source code, here are the known limitations of the OpenAPI conversion feature:\n\n## Known Limitations\n\n### Reference Handling\n- **External/remote `$ref` not supported** — only local references starting with `#/` are supported. Any reference like `./other.yaml#/...` or `https://...` will raise a `ValueError`. All schema definitions must be self-contained within the OpenAPI document (`parser.py:161-163`, `schemas.py:102-107`).\n\n### Request Body Handling\n- **Only the first content type is used** for request bodies — if a request body defines multiple content types (e.g., both `application/json` and `application/xml`), only the first one is processed (`schemas.py:242`).\n- **Top-level `$ref` body schemas** are handled as a single `body` parameter rather than being inlined as individual properties (`schemas.py:352-356`).\n\n### Response / Output Schema\n- **Only the primary success response is used** — responses are resolved with priority order 200 > 201 > 202 > 204 > 207 > any other 2xx. Error responses and non-2xx schemas are ignored (`parser.py:422-435`).\n- **Non-object response schemas are wrapped** — if a response schema is not an `object` (e.g., an array or primitive), it gets wrapped under a `result` key to comply with MCP's requirement that output schemas be objects (`schemas.py:553-561`).\n\n### Parameter Handling\n- **Name collision disambiguation** — when a path/query/header parameter has the same name as a request body property, the non-body parameter is renamed to `<name>__<location>` (e.g., `id__path`). This changes the tool's argument names from the original API.\n- **Cookie parameters** are parsed but may not be forwarded correctly depending on the HTTP client configuration.\n\n### Schema Conversion\n- **OpenAPI 3.0 `nullable` field** is converted to a JSON Schema type union (`[\"type\", \"null\"]`), but only at the direct property level — deeply nested `nullable` on schemas without a `type`, `anyOf`, `oneOf`, or `allOf` may not be handled (`json_schema_converter.py:150-183`).\n- **OpenAPI-specific fields are stripped**: `discriminator`, `readOnly`, `writeOnly`, `xml`, `externalDocs`, and `deprecated` are removed during conversion and not available to MCP consumers.\n- **`oneOf` is converted to `anyOf`** by default, which changes strict/exclusive union semantics.\n\n### Spec Version\n- **Only OpenAPI 3.0.x and 3.1.x** are supported. Swagger 2.0 specs will fail validation (`parser.py:66-101`).\n\n### General\n- **Operations that fail to parse are skipped silently** (logged at ERROR level) rather than causing a hard failure, so a partially-converted server is possible without obvious indication.\n- **The feature itself is described as best for prototyping**, not production — the docs explicitly note LLMs perform significantly better with hand-crafted MCP servers than auto-converted OpenAPI ones.",
+    "stop_reason": "end_turn",
+    "session_id": "98731c78-b5b6-4350-a18e-358f8f0a5eb2",
+    "total_cost_usd": 0.46556125000000004,
+    "usage": {
+      "input_tokens": 14,
+      "cache_creation_input_tokens": 50881,
+      "cache_read_input_tokens": 173270,
+      "output_tokens": 2434,
+      "server_tool_use": {
+        "web_search_requests": 0,
+        "web_fetch_requests": 0
+      },
+      "service_tier": "standard",
+      "cache_creation": {
+        "ephemeral_1h_input_tokens": 0,
+        "ephemeral_5m_input_tokens": 50881
+      },
+      "inference_geo": "",
+      "iterations": [],
+      "speed": "standard"
+    },
+    "modelUsage": {
+      "claude-sonnet-4-6": {
+        "inputTokens": 14,
+        "outputTokens": 2434,
+        "cacheReadInputTokens": 173270,
+        "cacheCreationInputTokens": 50881,
+        "webSearchRequests": 0,
+        "costUSD": 0.46556125000000004,
+        "contextWindow": 200000,
+        "maxOutputTokens": 32000
+      }
+    },
+    "permission_denials": [],
+    "fast_mode_state": "off",
+    "uuid": "e89fa660-ebec-47aa-92c3-db30e3b143a7"
+  },
+  "durationMs": 53868,
+  "tokensIn": 14,
+  "tokensOut": 2434,
+  "toolCalls": 16,
+  "costUsd": 0.46556125000000004,
+  "timestamp": "2026-03-05T23:47:35.146Z"
+}

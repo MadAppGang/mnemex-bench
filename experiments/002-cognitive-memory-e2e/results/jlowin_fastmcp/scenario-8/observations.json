@@ -1,0 +1,59 @@
+{
+  "scenarioId": 8,
+  "repo": "fastmcp",
+  "condition": "observations",
+  "title": "Architecture: resource templates",
+  "task": "How does FastMCP handle resource templates? Explain the template resolution mechanism. Do NOT make any code changes.",
+  "output": "Here's how FastMCP handles resource templates and resolves them:\n\n---\n\n## Resource Template Overview\n\nA **resource template** is a URI pattern with `{parameter}` placeholders that generates resources dynamically at read time, rather than being pre-registered with a fixed URI.\n\n---\n\n## Registration\n\nWhen you decorate a function with `@mcp.resource(\"weather://{city}/current\")`, the `ResourceManager.add_resource_or_template_from_fn` method detects that:\n- The URI contains `{` / `}`, **or**\n- The function has non-Context parameters\n\nIf either is true, it registers a `FunctionResourceTemplate` instead of a static `Resource`. Templates are stored in `_templates: dict[str, ResourceTemplate]`, keyed by their URI template string (e.g., `\"weather://{city}/current\"`).\n\n### Validation at registration time (`template.py:416–539`)\n\n`FunctionResourceTemplate.from_function` enforces:\n- **Required** function params must be a subset of **path** params (`{var}`)\n- **Query** params (`{?var}`) must be **optional** (have defaults)\n- All URI params must appear as function arguments (unless `**kwargs` is present)\n- No `*args` allowed\n- Lambda functions require an explicit name\n\n---\n\n## URI Matching — `match_uri_template` (`template.py:66–94`)\n\nWhen a client requests a URI, the manager iterates its `_templates` and calls `match_uri_template(uri, template_pattern)`. This two-step process:\n\n1. **Path matching** via `build_regex` (`template.py:40–63`):\n   - Strips the query-param syntax (`{?var1,var2}`) from the template\n   - Converts `{var}` → named capture group `(?P<var>[^/]+)` (single segment)\n   - Converts `{var*}` → `(?P<var>.+)` (multi-segment wildcard)\n   - Compiles a full `^...$` regex and runs it against the URI path\n\n2. **Query param extraction** (`template.py:84–92`):\n   - Splits URI on `?`\n   - For any `{?param1,param2}` in the template, extracts those names from the query string via `parse_qs`\n   - Merges them into the params dict (first value wins if multiple)\n\nReturns `dict[str, str] | None` — `None` if no match.\n\n---\n\n## Resolution Flow\n\n**`ResourceManager.read_resource`** (`resource_manager.py:290–334`):\n\n1. Check `_resources` (concrete, static resources) first — exact URI key lookup\n2. If not found, iterate `_templates`: call `match_uri_template(uri, key)` for each\n3. On a match, call `template.create_resource(uri, params)` → ephemeral `Resource`\n4. Call `resource._read()` on the ephemeral resource → returns `ResourceContent`\n\n**`FunctionResourceTemplate._read`** (`template.py:306–329`) optimizes this: for function-based templates, it skips ephemeral resource creation entirely and calls `self.read(arguments=params)` directly.\n\n---\n\n## Type Coercion for Query Parameters\n\nBecause query parameters arrive as raw strings from the URI, `FunctionResourceTemplate.read` (`template.py:350–379`) inspects the function signature and coerces string values to `int`, `float`, or `bool` based on type annotations before calling the function. `validate_call` (from Pydantic) wraps the function for additional runtime coercion on the path params.\n\n---\n\n## Summary Flow\n\n```\nClient requests \"weather://london/current?units=celsius\"\n         │\n         ▼\nResourceManager.read_resource(uri)\n  → no exact match in _resources\n  → iterate _templates:\n      key = \"weather://{city}/current{?units}\"\n      match_uri_template → {\"city\": \"london\", \"units\": \"celsius\"}\n         │\n         ▼\nFunctionResourceTemplate._read(uri, params)\n  → type coerce params (str→int/float/bool as needed)\n  → call fn(city=\"london\", units=\"celsius\")\n  → convert result → ResourceContent\n```",
+  "claudeJson": {
+    "type": "result",
+    "subtype": "success",
+    "is_error": false,
+    "duration_ms": 32468,
+    "duration_api_ms": 31983,
+    "num_turns": 5,
+    "result": "Here's how FastMCP handles resource templates and resolves them:\n\n---\n\n## Resource Template Overview\n\nA **resource template** is a URI pattern with `{parameter}` placeholders that generates resources dynamically at read time, rather than being pre-registered with a fixed URI.\n\n---\n\n## Registration\n\nWhen you decorate a function with `@mcp.resource(\"weather://{city}/current\")`, the `ResourceManager.add_resource_or_template_from_fn` method detects that:\n- The URI contains `{` / `}`, **or**\n- The function has non-Context parameters\n\nIf either is true, it registers a `FunctionResourceTemplate` instead of a static `Resource`. Templates are stored in `_templates: dict[str, ResourceTemplate]`, keyed by their URI template string (e.g., `\"weather://{city}/current\"`).\n\n### Validation at registration time (`template.py:416–539`)\n\n`FunctionResourceTemplate.from_function` enforces:\n- **Required** function params must be a subset of **path** params (`{var}`)\n- **Query** params (`{?var}`) must be **optional** (have defaults)\n- All URI params must appear as function arguments (unless `**kwargs` is present)\n- No `*args` allowed\n- Lambda functions require an explicit name\n\n---\n\n## URI Matching — `match_uri_template` (`template.py:66–94`)\n\nWhen a client requests a URI, the manager iterates its `_templates` and calls `match_uri_template(uri, template_pattern)`. This two-step process:\n\n1. **Path matching** via `build_regex` (`template.py:40–63`):\n   - Strips the query-param syntax (`{?var1,var2}`) from the template\n   - Converts `{var}` → named capture group `(?P<var>[^/]+)` (single segment)\n   - Converts `{var*}` → `(?P<var>.+)` (multi-segment wildcard)\n   - Compiles a full `^...$` regex and runs it against the URI path\n\n2. **Query param extraction** (`template.py:84–92`):\n   - Splits URI on `?`\n   - For any `{?param1,param2}` in the template, extracts those names from the query string via `parse_qs`\n   - Merges them into the params dict (first value wins if multiple)\n\nReturns `dict[str, str] | None` — `None` if no match.\n\n---\n\n## Resolution Flow\n\n**`ResourceManager.read_resource`** (`resource_manager.py:290–334`):\n\n1. Check `_resources` (concrete, static resources) first — exact URI key lookup\n2. If not found, iterate `_templates`: call `match_uri_template(uri, key)` for each\n3. On a match, call `template.create_resource(uri, params)` → ephemeral `Resource`\n4. Call `resource._read()` on the ephemeral resource → returns `ResourceContent`\n\n**`FunctionResourceTemplate._read`** (`template.py:306–329`) optimizes this: for function-based templates, it skips ephemeral resource creation entirely and calls `self.read(arguments=params)` directly.\n\n---\n\n## Type Coercion for Query Parameters\n\nBecause query parameters arrive as raw strings from the URI, `FunctionResourceTemplate.read` (`template.py:350–379`) inspects the function signature and coerces string values to `int`, `float`, or `bool` based on type annotations before calling the function. `validate_call` (from Pydantic) wraps the function for additional runtime coercion on the path params.\n\n---\n\n## Summary Flow\n\n```\nClient requests \"weather://london/current?units=celsius\"\n         │\n         ▼\nResourceManager.read_resource(uri)\n  → no exact match in _resources\n  → iterate _templates:\n      key = \"weather://{city}/current{?units}\"\n      match_uri_template → {\"city\": \"london\", \"units\": \"celsius\"}\n         │\n         ▼\nFunctionResourceTemplate._read(uri, params)\n  → type coerce params (str→int/float/bool as needed)\n  → call fn(city=\"london\", units=\"celsius\")\n  → convert result → ResourceContent\n```",
+    "stop_reason": "end_turn",
+    "session_id": "cf8d55b0-d4b1-4e3c-96b4-67092f5198bb",
+    "total_cost_usd": 0.2020885,
+    "usage": {
+      "input_tokens": 8,
+      "cache_creation_input_tokens": 23798,
+      "cache_read_input_tokens": 33872,
+      "output_tokens": 1455,
+      "server_tool_use": {
+        "web_search_requests": 0,
+        "web_fetch_requests": 0
+      },
+      "service_tier": "standard",
+      "cache_creation": {
+        "ephemeral_1h_input_tokens": 0,
+        "ephemeral_5m_input_tokens": 23798
+      },
+      "inference_geo": "",
+      "iterations": [],
+      "speed": "standard"
+    },
+    "modelUsage": {
+      "claude-sonnet-4-6": {
+        "inputTokens": 8,
+        "outputTokens": 1455,
+        "cacheReadInputTokens": 33872,
+        "cacheCreationInputTokens": 23798,
+        "webSearchRequests": 0,
+        "costUSD": 0.2020885,
+        "contextWindow": 200000,
+        "maxOutputTokens": 32000
+      }
+    },
+    "permission_denials": [],
+    "fast_mode_state": "off",
+    "uuid": "abc8b9e3-3b47-4b35-a3e1-a5a3376bedf3"
+  },
+  "durationMs": 36915,
+  "tokensIn": 8,
+  "tokensOut": 1455,
+  "toolCalls": 5,
+  "costUsd": 0.2020885,
+  "timestamp": "2026-03-05T23:40:11.483Z"
+}

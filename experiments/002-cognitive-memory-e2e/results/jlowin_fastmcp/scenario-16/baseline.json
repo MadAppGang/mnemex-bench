@@ -1,0 +1,59 @@
+{
+  "scenarioId": 16,
+  "repo": "fastmcp",
+  "condition": "baseline",
+  "title": "Feature: add tool timeout",
+  "task": "Add a `timeout` parameter to the `@mcp.tool` decorator that raises a TimeoutError if the tool function takes longer than the specified number of seconds.",
+  "output": "The implementation looks correct. Here's a summary of the changes made:\n\n## Changes\n\n### `src/fastmcp/tools/tool.py`\n- Added `import asyncio`\n- Added `timeout: float | None = None` field to `FunctionTool`\n- Added `timeout` parameter to `Tool.from_function()` and `FunctionTool.from_function()`\n- Updated `FunctionTool.run()` to wrap execution with `asyncio.wait_for()` when `timeout` is set\n\n### `src/fastmcp/server/server.py`\n- Added `timeout: float | None = None` to all three overloads of `@mcp.tool` and the implementation\n- Passes `timeout` through to `Tool.from_function()` and the `partial()` fallback\n\n### `tests/tools/test_tool.py`\n- Added `TestToolTimeout` class with tests covering:\n  - Async tool completes within timeout\n  - Async tool raises `TimeoutError` when it exceeds timeout\n  - Sync tool completes within timeout\n  - `timeout` value is stored on the tool object\n  - Default `timeout` is `None`\n  - Decorator usage with `@mcp.tool(timeout=...)` raises `TimeoutError`\n\n**Note:** The timeout uses `asyncio.wait_for()` and works correctly for async tool functions. For synchronous functions that block the event loop, the timeout cannot interrupt mid-execution (a fundamental Python/asyncio limitation), but will fire once the event loop regains control.",
+  "claudeJson": {
+    "type": "result",
+    "subtype": "success",
+    "is_error": false,
+    "duration_ms": 197915,
+    "duration_api_ms": 195966,
+    "num_turns": 34,
+    "result": "The implementation looks correct. Here's a summary of the changes made:\n\n## Changes\n\n### `src/fastmcp/tools/tool.py`\n- Added `import asyncio`\n- Added `timeout: float | None = None` field to `FunctionTool`\n- Added `timeout` parameter to `Tool.from_function()` and `FunctionTool.from_function()`\n- Updated `FunctionTool.run()` to wrap execution with `asyncio.wait_for()` when `timeout` is set\n\n### `src/fastmcp/server/server.py`\n- Added `timeout: float | None = None` to all three overloads of `@mcp.tool` and the implementation\n- Passes `timeout` through to `Tool.from_function()` and the `partial()` fallback\n\n### `tests/tools/test_tool.py`\n- Added `TestToolTimeout` class with tests covering:\n  - Async tool completes within timeout\n  - Async tool raises `TimeoutError` when it exceeds timeout\n  - Sync tool completes within timeout\n  - `timeout` value is stored on the tool object\n  - Default `timeout` is `None`\n  - Decorator usage with `@mcp.tool(timeout=...)` raises `TimeoutError`\n\n**Note:** The timeout uses `asyncio.wait_for()` and works correctly for async tool functions. For synchronous functions that block the event loop, the timeout cannot interrupt mid-execution (a fundamental Python/asyncio limitation), but will fire once the event loop regains control.",
+    "stop_reason": "end_turn",
+    "session_id": "4786e014-1096-4c77-b089-eb10381db0d1",
+    "total_cost_usd": 1.3705552500000002,
+    "usage": {
+      "input_tokens": 39,
+      "cache_creation_input_tokens": 57461,
+      "cache_read_input_tokens": 1327608,
+      "output_tokens": 13897,
+      "server_tool_use": {
+        "web_search_requests": 0,
+        "web_fetch_requests": 0
+      },
+      "service_tier": "standard",
+      "cache_creation": {
+        "ephemeral_1h_input_tokens": 0,
+        "ephemeral_5m_input_tokens": 57461
+      },
+      "inference_geo": "",
+      "iterations": [],
+      "speed": "standard"
+    },
+    "modelUsage": {
+      "claude-sonnet-4-6": {
+        "inputTokens": 39,
+        "outputTokens": 13897,
+        "cacheReadInputTokens": 1327608,
+        "cacheCreationInputTokens": 57461,
+        "webSearchRequests": 0,
+        "costUSD": 1.3705552500000002,
+        "contextWindow": 200000,
+        "maxOutputTokens": 32000
+      }
+    },
+    "permission_denials": [],
+    "fast_mode_state": "off",
+    "uuid": "333a13fe-02f3-44f2-95b0-96e7fd2e80a4"
+  },
+  "durationMs": 201760,
+  "tokensIn": 39,
+  "tokensOut": 13897,
+  "toolCalls": 34,
+  "costUsd": 1.3705552500000002,
+  "timestamp": "2026-03-06T00:08:29.436Z"
+}

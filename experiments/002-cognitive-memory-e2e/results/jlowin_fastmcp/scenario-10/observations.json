@@ -1,0 +1,59 @@
+{
+  "scenarioId": 10,
+  "repo": "fastmcp",
+  "condition": "observations",
+  "title": "Debug: OpenAPI conversion limits",
+  "task": "The OpenAPI experimental feature sometimes fails to convert endpoints. What are the known limitations? Do NOT make any code changes.",
+  "output": "Here are the known limitations found in the code, based on reading the implementation directly:\n\n---\n\n### External `$ref` references (`schemas.py:102-107`, `parser.py:163`)\nAny `$ref` that doesn't start with `#/` (i.e., external file or URL references like `\"./models.yaml#/Foo\"`) raises a `ValueError` that propagates up and causes the entire endpoint to fail conversion. All schema definitions must be inlined in the same OpenAPI document.\n\n### Cookie parameters silently dropped (`director.py:114-125`, `models.py:13`)\nThe parser correctly identifies and maps `cookie` parameters, but `RequestDirector._unflatten_arguments` only handles `path`, `query`, `header`, and `body`. Cookie-located parameters hit the `else: logger.warning(...)` branch and are never included in the outgoing request.\n\n### Request body always sent as JSON (`director.py:60-68`)\n`RequestDirector.build()` unconditionally uses `httpx.Request(..., json=json_body)`. Endpoints that only accept `multipart/form-data` or `application/x-www-form-urlencoded` will receive requests with `Content-Type: application/json`, causing failures.\n\n### Only the first content type of request body is used (`schemas.py:242`)\nWhen a request body defines multiple content types, `next(iter(route.request_body.content_schema))` takes whichever comes first. If a spec lists `application/xml` before `application/json`, the XML schema is used for the flat parameter model.\n\n### `allOf` in request body only merges `properties` and `required` (`schemas.py:255-278`)\nWhen a request body schema uses `allOf`, sub-schema `properties` and `required` fields are merged into a flat object — but all other keywords (`additionalProperties`, constraints, etc.) in those sub-schemas are discarded.\n\n### Only the primary success response is extracted (`parser.py:414-435`)\nThe parser picks one success response in priority order: 200 → 201 → 202 → 204 → 207 → any 2xx. All error responses (4xx, 5xx) and `default` responses are completely ignored — no error response schema is available.\n\n### Non-property/non-object request bodies use the schema title as the parameter name (`schemas.py:371-385`)\nFor bodies that aren't objects with `properties` (e.g., bare arrays or primitives), the flat parameter name is derived from `schema.title.lower()`, with a fallback to `\"body_data\"`. This can produce unintuitive parameter names.\n\n### `_replace_ref_with_defs` has a mutual-exclusion bug for complex schemas (`schemas.py:96-128`)\nThe function uses an `if $ref / elif properties / elif items` chain. If a schema has a top-level `$ref` and also contains `properties` (unusual but valid), only the `$ref` is rewritten and nested property schemas are not recursed into, potentially leaving unconverted `#/components/schemas/` refs.\n\n### OpenAPI 2.0 / Swagger not supported (`parser.py:63-86`)\nOnly `3.0.x` and `3.1.x` are handled. Non-3.x versions are passed to the OpenAPI 3.1 `model_validate()` and will raise a `ValidationError`.\n\n### No streaming support\nStreaming API responses are not handled — noted as a planned future enhancement in the README.",
+  "claudeJson": {
+    "type": "result",
+    "subtype": "success",
+    "is_error": false,
+    "duration_ms": 98393,
+    "duration_api_ms": 96351,
+    "num_turns": 18,
+    "result": "Here are the known limitations found in the code, based on reading the implementation directly:\n\n---\n\n### External `$ref` references (`schemas.py:102-107`, `parser.py:163`)\nAny `$ref` that doesn't start with `#/` (i.e., external file or URL references like `\"./models.yaml#/Foo\"`) raises a `ValueError` that propagates up and causes the entire endpoint to fail conversion. All schema definitions must be inlined in the same OpenAPI document.\n\n### Cookie parameters silently dropped (`director.py:114-125`, `models.py:13`)\nThe parser correctly identifies and maps `cookie` parameters, but `RequestDirector._unflatten_arguments` only handles `path`, `query`, `header`, and `body`. Cookie-located parameters hit the `else: logger.warning(...)` branch and are never included in the outgoing request.\n\n### Request body always sent as JSON (`director.py:60-68`)\n`RequestDirector.build()` unconditionally uses `httpx.Request(..., json=json_body)`. Endpoints that only accept `multipart/form-data` or `application/x-www-form-urlencoded` will receive requests with `Content-Type: application/json`, causing failures.\n\n### Only the first content type of request body is used (`schemas.py:242`)\nWhen a request body defines multiple content types, `next(iter(route.request_body.content_schema))` takes whichever comes first. If a spec lists `application/xml` before `application/json`, the XML schema is used for the flat parameter model.\n\n### `allOf` in request body only merges `properties` and `required` (`schemas.py:255-278`)\nWhen a request body schema uses `allOf`, sub-schema `properties` and `required` fields are merged into a flat object — but all other keywords (`additionalProperties`, constraints, etc.) in those sub-schemas are discarded.\n\n### Only the primary success response is extracted (`parser.py:414-435`)\nThe parser picks one success response in priority order: 200 → 201 → 202 → 204 → 207 → any 2xx. All error responses (4xx, 5xx) and `default` responses are completely ignored — no error response schema is available.\n\n### Non-property/non-object request bodies use the schema title as the parameter name (`schemas.py:371-385`)\nFor bodies that aren't objects with `properties` (e.g., bare arrays or primitives), the flat parameter name is derived from `schema.title.lower()`, with a fallback to `\"body_data\"`. This can produce unintuitive parameter names.\n\n### `_replace_ref_with_defs` has a mutual-exclusion bug for complex schemas (`schemas.py:96-128`)\nThe function uses an `if $ref / elif properties / elif items` chain. If a schema has a top-level `$ref` and also contains `properties` (unusual but valid), only the `$ref` is rewritten and nested property schemas are not recursed into, potentially leaving unconverted `#/components/schemas/` refs.\n\n### OpenAPI 2.0 / Swagger not supported (`parser.py:63-86`)\nOnly `3.0.x` and `3.1.x` are handled. Non-3.x versions are passed to the OpenAPI 3.1 `model_validate()` and will raise a `ValidationError`.\n\n### No streaming support\nStreaming API responses are not handled — noted as a planned future enhancement in the README.",
+    "stop_reason": "end_turn",
+    "session_id": "00b32f4d-ce11-454b-928e-dc3c054bff19",
+    "total_cost_usd": 0.546044,
+    "usage": {
+      "input_tokens": 16,
+      "cache_creation_input_tokens": 53096,
+      "cache_read_input_tokens": 163928,
+      "output_tokens": 5286,
+      "server_tool_use": {
+        "web_search_requests": 0,
+        "web_fetch_requests": 0
+      },
+      "service_tier": "standard",
+      "cache_creation": {
+        "ephemeral_1h_input_tokens": 0,
+        "ephemeral_5m_input_tokens": 53096
+      },
+      "inference_geo": "",
+      "iterations": [],
+      "speed": "standard"
+    },
+    "modelUsage": {
+      "claude-sonnet-4-6": {
+        "inputTokens": 16,
+        "outputTokens": 5286,
+        "cacheReadInputTokens": 163928,
+        "cacheCreationInputTokens": 53096,
+        "webSearchRequests": 0,
+        "costUSD": 0.546044,
+        "contextWindow": 200000,
+        "maxOutputTokens": 32000
+      }
+    },
+    "permission_denials": [],
+    "fast_mode_state": "off",
+    "uuid": "7136416a-ae4b-426a-be8d-916880b8a590"
+  },
+  "durationMs": 103275,
+  "tokensIn": 16,
+  "tokensOut": 5286,
+  "toolCalls": 18,
+  "costUsd": 0.546044,
+  "timestamp": "2026-03-05T23:49:21.866Z"
+}

@@ -1,0 +1,59 @@
+{
+  "scenarioId": 10,
+  "repo": "fastmcp",
+  "condition": "baseline",
+  "title": "Debug: OpenAPI conversion limits",
+  "task": "The OpenAPI experimental feature sometimes fails to convert endpoints. What are the known limitations? Do NOT make any code changes.",
+  "output": "Now I have a clear picture. Here are the known limitations of the OpenAPI feature (note: it was promoted out of `experimental` in v2.14 — `fastmcp.experimental.server.openapi` and `fastmcp.experimental.utilities.openapi` are now just deprecated shims):\n\n---\n\n## Known OpenAPI Conversion Limitations\n\n### 1. External / Remote `$ref` not supported\nOnly local references starting with `#/` are supported. Any `$ref` pointing to an external file or URL (e.g., `./other.yaml#/...`, `https://...`) raises a `ValueError` and causes the entire endpoint (or the spec) to fail. All schema definitions must live inside the same OpenAPI document.  \n_Source: `schemas.py:102-107`, `parser.py:162-163`_\n\n### 2. Only OpenAPI 3.0.x and 3.1.x are supported\nThe parser dispatches on `openapi_dict[\"openapi\"]`; anything that doesn't start with `\"3.0\"` is treated as 3.1. Swagger 2.0 specs are silently routed to the 3.1 parser and will likely fail `ValidationError`.  \n_Source: `parser.py:66-101`_\n\n### 3. Endpoints with no paths are silently skipped\nIf a spec has no `paths` at all, the parser returns an empty list with just a warning log — no error is raised.  \n_Source: `parser.py:663-665`_\n\n### 4. Non-JSON response content types lose structured output schema\nFor output schema extraction, `application/json` and a few `application/vnd.api+json`-style types are preferred. Non-JSON content types (e.g., `text/plain`, `application/octet-stream`) fall back to the first available content type with a debug log, which may produce an unusable output schema.  \n_Source: `schemas.py:505-526`_\n\n### 5. Request body schema flattening loses non-`properties` body shapes\nWhen a request body uses an `allOf` with no `properties`, the body properties are merged in. But if a body schema is a bare `$ref` with no inline properties, it becomes a single `body` parameter. Bodies that are arrays or primitive types get their schema `title` used as the parameter name (falling back to `body_data`), which may be unexpected.  \n_Source: `schemas.py:349-385`_\n\n### 6. Parameter schema extraction silently drops failed parameters\nIf any individual parameter fails to extract (e.g., a bad reference), it's logged as an error and skipped — not surfaced as a failure. The endpoint is still registered, just with fewer parameters.  \n_Source: `parser.py:329-335`_\n\n### 7. Schema pre-calculation failures produce empty schemas\nIf `_combine_schemas_and_map_params` fails during parsing, the route is registered with an empty `{\"type\": \"object\", \"properties\": {}}` schema and an empty parameter map — silently producing a broken tool.  \n_Source: `parser.py:784-793`_\n\n### 8. `clean_schema_for_display` strips composition keywords\n`allOf`, `anyOf`, `oneOf`, and `not` are stripped when schemas are cleaned for LLM display, which can remove semantically meaningful constraints (e.g., nullable unions, discriminated unions).  \n_Source: `schemas.py:23-31`_\n\n### 9. Unknown parameter locations default to `query`\nIf a parameter has a `param_in` value other than `path`, `query`, `header`, or `cookie`, it silently falls back to `query`.  \n_Source: `parser.py:146-151`_",
+  "claudeJson": {
+    "type": "result",
+    "subtype": "success",
+    "is_error": false,
+    "duration_ms": 47553,
+    "duration_api_ms": 44613,
+    "num_turns": 16,
+    "result": "Now I have a clear picture. Here are the known limitations of the OpenAPI feature (note: it was promoted out of `experimental` in v2.14 — `fastmcp.experimental.server.openapi` and `fastmcp.experimental.utilities.openapi` are now just deprecated shims):\n\n---\n\n## Known OpenAPI Conversion Limitations\n\n### 1. External / Remote `$ref` not supported\nOnly local references starting with `#/` are supported. Any `$ref` pointing to an external file or URL (e.g., `./other.yaml#/...`, `https://...`) raises a `ValueError` and causes the entire endpoint (or the spec) to fail. All schema definitions must live inside the same OpenAPI document.  \n_Source: `schemas.py:102-107`, `parser.py:162-163`_\n\n### 2. Only OpenAPI 3.0.x and 3.1.x are supported\nThe parser dispatches on `openapi_dict[\"openapi\"]`; anything that doesn't start with `\"3.0\"` is treated as 3.1. Swagger 2.0 specs are silently routed to the 3.1 parser and will likely fail `ValidationError`.  \n_Source: `parser.py:66-101`_\n\n### 3. Endpoints with no paths are silently skipped\nIf a spec has no `paths` at all, the parser returns an empty list with just a warning log — no error is raised.  \n_Source: `parser.py:663-665`_\n\n### 4. Non-JSON response content types lose structured output schema\nFor output schema extraction, `application/json` and a few `application/vnd.api+json`-style types are preferred. Non-JSON content types (e.g., `text/plain`, `application/octet-stream`) fall back to the first available content type with a debug log, which may produce an unusable output schema.  \n_Source: `schemas.py:505-526`_\n\n### 5. Request body schema flattening loses non-`properties` body shapes\nWhen a request body uses an `allOf` with no `properties`, the body properties are merged in. But if a body schema is a bare `$ref` with no inline properties, it becomes a single `body` parameter. Bodies that are arrays or primitive types get their schema `title` used as the parameter name (falling back to `body_data`), which may be unexpected.  \n_Source: `schemas.py:349-385`_\n\n### 6. Parameter schema extraction silently drops failed parameters\nIf any individual parameter fails to extract (e.g., a bad reference), it's logged as an error and skipped — not surfaced as a failure. The endpoint is still registered, just with fewer parameters.  \n_Source: `parser.py:329-335`_\n\n### 7. Schema pre-calculation failures produce empty schemas\nIf `_combine_schemas_and_map_params` fails during parsing, the route is registered with an empty `{\"type\": \"object\", \"properties\": {}}` schema and an empty parameter map — silently producing a broken tool.  \n_Source: `parser.py:784-793`_\n\n### 8. `clean_schema_for_display` strips composition keywords\n`allOf`, `anyOf`, `oneOf`, and `not` are stripped when schemas are cleaned for LLM display, which can remove semantically meaningful constraints (e.g., nullable unions, discriminated unions).  \n_Source: `schemas.py:23-31`_\n\n### 9. Unknown parameter locations default to `query`\nIf a parameter has a `param_in` value other than `path`, `query`, `header`, or `cookie`, it silently falls back to `query`.  \n_Source: `parser.py:146-151`_",
+    "stop_reason": "end_turn",
+    "session_id": "72de7a25-294a-484b-adea-f5d0098bc0d4",
+    "total_cost_usd": 0.36586299999999994,
+    "usage": {
+      "input_tokens": 49,
+      "cache_creation_input_tokens": 39630,
+      "cache_read_input_tokens": 123111,
+      "output_tokens": 2255,
+      "server_tool_use": {
+        "web_search_requests": 0,
+        "web_fetch_requests": 0
+      },
+      "service_tier": "standard",
+      "cache_creation": {
+        "ephemeral_1h_input_tokens": 0,
+        "ephemeral_5m_input_tokens": 39630
+      },
+      "inference_geo": "",
+      "iterations": [],
+      "speed": "standard"
+    },
+    "modelUsage": {
+      "claude-sonnet-4-6": {
+        "inputTokens": 49,
+        "outputTokens": 2255,
+        "cacheReadInputTokens": 123111,
+        "cacheCreationInputTokens": 39630,
+        "webSearchRequests": 0,
+        "costUSD": 0.36586299999999994,
+        "contextWindow": 200000,
+        "maxOutputTokens": 32000
+      }
+    },
+    "permission_denials": [],
+    "fast_mode_state": "off",
+    "uuid": "50f1d74c-a02a-45ec-a474-bb70154c06ab"
+  },
+  "durationMs": 51735,
+  "tokensIn": 49,
+  "tokensOut": 2255,
+  "toolCalls": 16,
+  "costUsd": 0.36586299999999994,
+  "timestamp": "2026-03-05T23:46:40.327Z"
+}

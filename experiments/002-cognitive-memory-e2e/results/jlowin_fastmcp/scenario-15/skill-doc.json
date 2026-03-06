@@ -1,0 +1,59 @@
+{
+  "scenarioId": 15,
+  "repo": "fastmcp",
+  "condition": "skill-doc",
+  "title": "Architecture: server composition",
+  "task": "How does FastMCP's server mounting/composition system work? Explain how you can compose multiple MCP servers together and how requests are routed between them. Do NOT make any code changes.",
+  "output": "I now have a thorough understanding of the system. Here's how FastMCP's server composition works:\n\n---\n\n## FastMCP Server Mounting / Composition\n\n### The Two Approaches (and one deprecated)\n\n**`mount()` — dynamic composition (current)**\n\n```python\napp.mount(server=weather_app, namespace=\"weather\")\n```\n\nThis creates a **live, dynamic link** between servers. The mounted server is wrapped in a `FastMCPProvider` and appended to the parent's `_providers` list. Requests are forwarded to the child server at runtime, so any changes to the child are immediately visible through the parent. The child's lifespan and middleware chain are both honored.\n\n**`import_server()` — static copy (deprecated)**\n\n```python\nawait app.import_server(server=weather_app, prefix=\"weather\")\n```\n\nA **one-time snapshot**: tools, resources, and prompts are copied directly into the parent's managers at import time. Future changes to the child are not reflected. The child's lifespan is not run. This is fully deprecated in favor of `mount()`.\n\n---\n\n### The Provider Stack\n\nThe parent server maintains `self._providers: list[Provider]`. Each `mount()` call appends a new provider to this list.\n\nWhen the parent looks up a tool, resource, or prompt, the resolution order is:\n\n1. **Local managers** (tools/resources/prompts registered directly on the parent) — checked first.\n2. **Providers in order** — iterated in registration order; the first provider that returns a non-`None` result wins.\n\nThis means statically-registered components always take precedence over mounted servers, and earlier-mounted servers shadow later ones on name conflicts.\n\n---\n\n### How `mount()` Works Internally\n\n```\napp.mount(sub_app, namespace=\"weather\")\n```\n\n1. A `FastMCPProvider(sub_app)` is created — it wraps the child server.\n2. If a `namespace` (or `tool_names`) is specified, the provider is wrapped in a `TransformingProvider` via `.with_transforms(namespace=..., tool_renames=...)`.\n3. The final provider is appended to `self._providers`.\n\n---\n\n### Name/URI Transformation (Namespacing)\n\n`TransformingProvider` applies naming rules on the way out (listing/getting) and reverses them on the way in (looking up to execute):\n\n| Component | Transformation |\n|-----------|---------------|\n| Tools | `tool_name` → `namespace_tool_name` |\n| Prompts | `prompt_name` → `namespace_prompt_name` |\n| Resources | `proto://path` → `proto://namespace/path` |\n| Templates | `proto://path/{id}` → `proto://namespace/path/{id}` |\n\nYou can also pass `tool_names={\"original\": \"custom\"}` to `mount()` for per-tool overrides that bypass namespace prefixing.\n\n---\n\n### Request Routing\n\nWhen a client calls a tool like `weather_get_forecast`:\n\n1. Parent server's `get_tool(\"weather_get_forecast\")` checks local tools (not found).\n2. Iterates `_providers`; reaches the `TransformingProvider`.\n3. `TransformingProvider._reverse_tool_name(\"weather_get_forecast\")` strips the prefix → `\"get_forecast\"`.\n4. Delegates to the inner `FastMCPProvider.get_tool(\"get_forecast\")`.\n5. `FastMCPProvider` calls `sub_app._list_tools_middleware()` to find the tool, wraps it in a `FastMCPProviderTool`.\n6. `FastMCPProviderTool.run()` calls `sub_app._call_tool_middleware(\"get_forecast\", args)` — running the child's full middleware chain.\n\nThe same reverse-transform + delegate pattern applies for resources, templates, and prompts.\n\n---\n\n### Lifecycle and Middleware\n\nWhen the parent server starts, it calls `provider.lifespan()` for each provider. For `FastMCPProvider`, this runs the child server's user-defined `_lifespan`. The child's middleware is also invoked for every request, since `FastMCPProviderTool/Resource/Prompt` all delegate to `sub_app._call_tool_middleware()` / `_read_resource_middleware()` / etc.\n\n---\n\n### Nested Composition\n\nMounting is recursive — a mounted server can itself have mounted servers. The provider chain fans out as a tree, and name transformations compose correctly layer by layer (outer namespace wraps inner namespace in the `TransformingProvider` stack).",
+  "claudeJson": {
+    "type": "result",
+    "subtype": "success",
+    "is_error": false,
+    "duration_ms": 52530,
+    "duration_api_ms": 50935,
+    "num_turns": 13,
+    "result": "I now have a thorough understanding of the system. Here's how FastMCP's server composition works:\n\n---\n\n## FastMCP Server Mounting / Composition\n\n### The Two Approaches (and one deprecated)\n\n**`mount()` — dynamic composition (current)**\n\n```python\napp.mount(server=weather_app, namespace=\"weather\")\n```\n\nThis creates a **live, dynamic link** between servers. The mounted server is wrapped in a `FastMCPProvider` and appended to the parent's `_providers` list. Requests are forwarded to the child server at runtime, so any changes to the child are immediately visible through the parent. The child's lifespan and middleware chain are both honored.\n\n**`import_server()` — static copy (deprecated)**\n\n```python\nawait app.import_server(server=weather_app, prefix=\"weather\")\n```\n\nA **one-time snapshot**: tools, resources, and prompts are copied directly into the parent's managers at import time. Future changes to the child are not reflected. The child's lifespan is not run. This is fully deprecated in favor of `mount()`.\n\n---\n\n### The Provider Stack\n\nThe parent server maintains `self._providers: list[Provider]`. Each `mount()` call appends a new provider to this list.\n\nWhen the parent looks up a tool, resource, or prompt, the resolution order is:\n\n1. **Local managers** (tools/resources/prompts registered directly on the parent) — checked first.\n2. **Providers in order** — iterated in registration order; the first provider that returns a non-`None` result wins.\n\nThis means statically-registered components always take precedence over mounted servers, and earlier-mounted servers shadow later ones on name conflicts.\n\n---\n\n### How `mount()` Works Internally\n\n```\napp.mount(sub_app, namespace=\"weather\")\n```\n\n1. A `FastMCPProvider(sub_app)` is created — it wraps the child server.\n2. If a `namespace` (or `tool_names`) is specified, the provider is wrapped in a `TransformingProvider` via `.with_transforms(namespace=..., tool_renames=...)`.\n3. The final provider is appended to `self._providers`.\n\n---\n\n### Name/URI Transformation (Namespacing)\n\n`TransformingProvider` applies naming rules on the way out (listing/getting) and reverses them on the way in (looking up to execute):\n\n| Component | Transformation |\n|-----------|---------------|\n| Tools | `tool_name` → `namespace_tool_name` |\n| Prompts | `prompt_name` → `namespace_prompt_name` |\n| Resources | `proto://path` → `proto://namespace/path` |\n| Templates | `proto://path/{id}` → `proto://namespace/path/{id}` |\n\nYou can also pass `tool_names={\"original\": \"custom\"}` to `mount()` for per-tool overrides that bypass namespace prefixing.\n\n---\n\n### Request Routing\n\nWhen a client calls a tool like `weather_get_forecast`:\n\n1. Parent server's `get_tool(\"weather_get_forecast\")` checks local tools (not found).\n2. Iterates `_providers`; reaches the `TransformingProvider`.\n3. `TransformingProvider._reverse_tool_name(\"weather_get_forecast\")` strips the prefix → `\"get_forecast\"`.\n4. Delegates to the inner `FastMCPProvider.get_tool(\"get_forecast\")`.\n5. `FastMCPProvider` calls `sub_app._list_tools_middleware()` to find the tool, wraps it in a `FastMCPProviderTool`.\n6. `FastMCPProviderTool.run()` calls `sub_app._call_tool_middleware(\"get_forecast\", args)` — running the child's full middleware chain.\n\nThe same reverse-transform + delegate pattern applies for resources, templates, and prompts.\n\n---\n\n### Lifecycle and Middleware\n\nWhen the parent server starts, it calls `provider.lifespan()` for each provider. For `FastMCPProvider`, this runs the child server's user-defined `_lifespan`. The child's middleware is also invoked for every request, since `FastMCPProviderTool/Resource/Prompt` all delegate to `sub_app._call_tool_middleware()` / `_read_resource_middleware()` / etc.\n\n---\n\n### Nested Composition\n\nMounting is recursive — a mounted server can itself have mounted servers. The provider chain fans out as a tree, and name transformations compose correctly layer by layer (outer namespace wraps inner namespace in the `TransformingProvider` stack).",
+    "stop_reason": "end_turn",
+    "session_id": "bf450e75-b50f-4358-86f5-04dc73511153",
+    "total_cost_usd": 0.40254875,
+    "usage": {
+      "input_tokens": 1425,
+      "cache_creation_input_tokens": 41031,
+      "cache_read_input_tokens": 140710,
+      "output_tokens": 2745,
+      "server_tool_use": {
+        "web_search_requests": 0,
+        "web_fetch_requests": 0
+      },
+      "service_tier": "standard",
+      "cache_creation": {
+        "ephemeral_1h_input_tokens": 0,
+        "ephemeral_5m_input_tokens": 41031
+      },
+      "inference_geo": "",
+      "iterations": [],
+      "speed": "standard"
+    },
+    "modelUsage": {
+      "claude-sonnet-4-6": {
+        "inputTokens": 1425,
+        "outputTokens": 2745,
+        "cacheReadInputTokens": 140710,
+        "cacheCreationInputTokens": 41031,
+        "webSearchRequests": 0,
+        "costUSD": 0.40254875,
+        "contextWindow": 200000,
+        "maxOutputTokens": 32000
+      }
+    },
+    "permission_denials": [],
+    "fast_mode_state": "off",
+    "uuid": "114af46e-3a3d-4c49-ab97-79390c553e54"
+  },
+  "durationMs": 57084,
+  "tokensIn": 1425,
+  "tokensOut": 2745,
+  "toolCalls": 13,
+  "costUsd": 0.40254875,
+  "timestamp": "2026-03-05T23:57:29.691Z"
+}

@@ -1,0 +1,59 @@
+{
+  "scenarioId": 6,
+  "repo": "fastmcp",
+  "condition": "no-index",
+  "title": "Bug: tool error handling",
+  "task": "The FastMCP server doesn't seem to handle tool errors gracefully — when a tool raises an exception, the client gets an opaque error. Find where error handling happens and explain the flow. Do NOT make any code changes.",
+  "output": "Now I have a complete picture. Here's the error handling flow:\n\n---\n\n## Tool Error Handling Flow\n\n### 1. Tool execution — `server.py:1462`\n\nThe outermost handler is `_call_tool_mcp` → middleware chain → `_call_tool` (`server.py:1425`). Inside `_call_tool`, the tool function is awaited and errors are caught:\n\n```\ntool fn raises Exception\n    └─ caught in _call_tool (server.py:1462-1475)\n         ├─ ValidationError / PydanticValidationError → re-raised as-is\n         ├─ ToolError → re-raised as-is (already the right type)\n         └─ any other Exception → wrapped into ToolError\n              ├─ if mask_error_details=True  → \"Error calling tool 'X'\"  (no original message)\n              └─ if mask_error_details=False → \"Error calling tool 'X': <original message>\"\n```\n\n### 2. `ToolManager.call_tool` — `tool_manager.py:161-170`\n\nThere's an equivalent guard in `ToolManager` itself (same pattern), but the server-level `_call_tool` is the active path when requests come through the server.\n\n### 3. Back in `_call_tool_mcp` — `server.py:1299-1302`\n\n`DisabledError` and `NotFoundError` are re-raised as `NotFoundError`. A `ToolError` propagating from `_call_tool` is **not caught here** — it bubbles up to the MCP SDK.\n\n### 4. MCP SDK handles the `ToolError`\n\nThe MCP SDK's `call_tool` decorator (which wraps `_call_tool_mcp`) converts uncaught exceptions to `CallToolResult` with `isError=True` and the exception message as a `TextContent` block. This is the MCP-spec-defined way to signal tool-level errors (distinct from protocol-level errors).\n\n---\n\n### The \"opaque error\" problem\n\nThe behavior hinges on `mask_error_details` (`settings.py:261`). When it's `True` (opt-in), the original exception message is stripped and the client just sees `\"Error calling tool 'X'\"`. When `False` (the default), the message is included. Either way, the error ultimately reaches the client as `isError=True` in a `CallToolResult` — but **the client receiving an opaque error is likely seeing** `mask_error_details=True` in effect, or the tool raised an exception with no useful message.\n\nThe key files:\n- `src/fastmcp/server/server.py:1462` — primary catch/wrap point\n- `src/fastmcp/tools/tool_manager.py:161` — secondary catch/wrap\n- `src/fastmcp/exceptions.py:18` — `ToolError` definition\n- `src/fastmcp/settings.py:261` — `mask_error_details` doc",
+  "claudeJson": {
+    "type": "result",
+    "subtype": "success",
+    "is_error": false,
+    "duration_ms": 48957,
+    "duration_api_ms": 46769,
+    "num_turns": 13,
+    "result": "Now I have a complete picture. Here's the error handling flow:\n\n---\n\n## Tool Error Handling Flow\n\n### 1. Tool execution — `server.py:1462`\n\nThe outermost handler is `_call_tool_mcp` → middleware chain → `_call_tool` (`server.py:1425`). Inside `_call_tool`, the tool function is awaited and errors are caught:\n\n```\ntool fn raises Exception\n    └─ caught in _call_tool (server.py:1462-1475)\n         ├─ ValidationError / PydanticValidationError → re-raised as-is\n         ├─ ToolError → re-raised as-is (already the right type)\n         └─ any other Exception → wrapped into ToolError\n              ├─ if mask_error_details=True  → \"Error calling tool 'X'\"  (no original message)\n              └─ if mask_error_details=False → \"Error calling tool 'X': <original message>\"\n```\n\n### 2. `ToolManager.call_tool` — `tool_manager.py:161-170`\n\nThere's an equivalent guard in `ToolManager` itself (same pattern), but the server-level `_call_tool` is the active path when requests come through the server.\n\n### 3. Back in `_call_tool_mcp` — `server.py:1299-1302`\n\n`DisabledError` and `NotFoundError` are re-raised as `NotFoundError`. A `ToolError` propagating from `_call_tool` is **not caught here** — it bubbles up to the MCP SDK.\n\n### 4. MCP SDK handles the `ToolError`\n\nThe MCP SDK's `call_tool` decorator (which wraps `_call_tool_mcp`) converts uncaught exceptions to `CallToolResult` with `isError=True` and the exception message as a `TextContent` block. This is the MCP-spec-defined way to signal tool-level errors (distinct from protocol-level errors).\n\n---\n\n### The \"opaque error\" problem\n\nThe behavior hinges on `mask_error_details` (`settings.py:261`). When it's `True` (opt-in), the original exception message is stripped and the client just sees `\"Error calling tool 'X'\"`. When `False` (the default), the message is included. Either way, the error ultimately reaches the client as `isError=True` in a `CallToolResult` — but **the client receiving an opaque error is likely seeing** `mask_error_details=True` in effect, or the tool raised an exception with no useful message.\n\nThe key files:\n- `src/fastmcp/server/server.py:1462` — primary catch/wrap point\n- `src/fastmcp/tools/tool_manager.py:161` — secondary catch/wrap\n- `src/fastmcp/exceptions.py:18` — `ToolError` definition\n- `src/fastmcp/settings.py:261` — `mask_error_details` doc",
+    "stop_reason": "end_turn",
+    "session_id": "fb267fad-cc0b-4e65-b0b7-ab416f70c1aa",
+    "total_cost_usd": 0.23498700000000003,
+    "usage": {
+      "input_tokens": 12,
+      "cache_creation_input_tokens": 20494,
+      "cache_read_input_tokens": 97629,
+      "output_tokens": 2321,
+      "server_tool_use": {
+        "web_search_requests": 0,
+        "web_fetch_requests": 0
+      },
+      "service_tier": "standard",
+      "cache_creation": {
+        "ephemeral_1h_input_tokens": 0,
+        "ephemeral_5m_input_tokens": 20494
+      },
+      "inference_geo": "",
+      "iterations": [],
+      "speed": "standard"
+    },
+    "modelUsage": {
+      "claude-sonnet-4-6": {
+        "inputTokens": 12,
+        "outputTokens": 2321,
+        "cacheReadInputTokens": 97629,
+        "cacheCreationInputTokens": 20494,
+        "webSearchRequests": 0,
+        "costUSD": 0.23498700000000003,
+        "contextWindow": 200000,
+        "maxOutputTokens": 32000
+      }
+    },
+    "permission_denials": [],
+    "fast_mode_state": "off",
+    "uuid": "05c9e8ae-aa5f-469c-86ae-7523b7ee66bc"
+  },
+  "durationMs": 53829,
+  "tokensIn": 12,
+  "tokensOut": 2321,
+  "toolCalls": 13,
+  "costUsd": 0.23498700000000003,
+  "timestamp": "2026-03-05T23:30:12.468Z"
+}

@@ -1,0 +1,59 @@
+{
+  "scenarioId": 9,
+  "repo": "fastmcp",
+  "condition": "no-index",
+  "title": "Feature: resource description param",
+  "task": "Add a `description` parameter to the `@mcp.resource` decorator that gets included in the resource's MCP metadata.",
+  "output": "The `description` parameter is already fully implemented. Looking at the full chain:\n\n1. **`FastMCPComponent`** (`components.py:44`) — `description: str | None` field\n2. **`@mcp.resource` decorator** (`server.py:2040`) — accepts `description` param\n3. **`FunctionResource.from_function()`** (`resource.py:388`) — uses `description or inspect.getdoc(fn)` (falls back to docstring)\n4. **`Resource.to_mcp_resource()`** (`resource.py:288`) — includes `description` in the `SDKResource` output\n\nThe feature is already complete. You can use it like:\n\n```python\n@mcp.resource(\"resource://my-data\", description=\"Returns the current dataset\")\ndef get_data() -> str:\n    return \"...\"\n```\n\nIf `description` is not provided, it falls back to the function's docstring automatically. The description is included in the MCP metadata via `to_mcp_resource()`.",
+  "claudeJson": {
+    "type": "result",
+    "subtype": "success",
+    "is_error": false,
+    "duration_ms": 38971,
+    "duration_api_ms": 38150,
+    "num_turns": 10,
+    "result": "The `description` parameter is already fully implemented. Looking at the full chain:\n\n1. **`FastMCPComponent`** (`components.py:44`) — `description: str | None` field\n2. **`@mcp.resource` decorator** (`server.py:2040`) — accepts `description` param\n3. **`FunctionResource.from_function()`** (`resource.py:388`) — uses `description or inspect.getdoc(fn)` (falls back to docstring)\n4. **`Resource.to_mcp_resource()`** (`resource.py:288`) — includes `description` in the `SDKResource` output\n\nThe feature is already complete. You can use it like:\n\n```python\n@mcp.resource(\"resource://my-data\", description=\"Returns the current dataset\")\ndef get_data() -> str:\n    return \"...\"\n```\n\nIf `description` is not provided, it falls back to the function's docstring automatically. The description is included in the MCP metadata via `to_mcp_resource()`.",
+    "stop_reason": "end_turn",
+    "session_id": "2e89bb35-ca39-4d10-b033-fb4fa6bbf00b",
+    "total_cost_usd": 0.25534125,
+    "usage": {
+      "input_tokens": 11,
+      "cache_creation_input_tokens": 24929,
+      "cache_read_input_tokens": 97310,
+      "output_tokens": 2033,
+      "server_tool_use": {
+        "web_search_requests": 0,
+        "web_fetch_requests": 0
+      },
+      "service_tier": "standard",
+      "cache_creation": {
+        "ephemeral_1h_input_tokens": 0,
+        "ephemeral_5m_input_tokens": 24929
+      },
+      "inference_geo": "",
+      "iterations": [],
+      "speed": "standard"
+    },
+    "modelUsage": {
+      "claude-sonnet-4-6": {
+        "inputTokens": 11,
+        "outputTokens": 2033,
+        "cacheReadInputTokens": 97310,
+        "cacheCreationInputTokens": 24929,
+        "webSearchRequests": 0,
+        "costUSD": 0.25534125,
+        "contextWindow": 200000,
+        "maxOutputTokens": 32000
+      }
+    },
+    "permission_denials": [],
+    "fast_mode_state": "off",
+    "uuid": "bbf01a94-426f-40cf-b2e8-188791bb4bd5"
+  },
+  "durationMs": 44930,
+  "tokensIn": 11,
+  "tokensOut": 2033,
+  "toolCalls": 10,
+  "costUsd": 0.25534125,
+  "timestamp": "2026-03-05T23:40:56.891Z"
+}

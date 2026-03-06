@@ -1,0 +1,59 @@
+{
+  "scenarioId": 14,
+  "repo": "fastmcp",
+  "condition": "baseline",
+  "title": "Architecture: context dependency injection",
+  "task": "How does FastMCP handle Context dependency injection in tool and resource functions? Explain how a tool function receives the Context object and what's available on it. Do NOT make any code changes.",
+  "output": "Here's a complete explanation of how FastMCP handles Context dependency injection:\n\n---\n\n## Detection: Type-hint inspection at call time\n\n`resolve_dependencies()` in `dependencies.py:223` is an async context manager called by the tool/resource wrapper. It delegates to `_find_kwarg_by_type()` (`dependencies.py:71`) which inspects the function's type hints via `get_type_hints()` + `inspect.signature()`. Any parameter annotated as `Context` (including union types and `Annotated[..., Context]`) is identified by name — **the parameter name doesn't matter, only the type annotation does**.\n\n## Schema stripping: `without_injected_parameters()`\n\n`dependencies.py:97` — Before a tool is registered, `without_injected_parameters(fn)` creates a wrapper whose `__signature__` excludes both `Context` parameters and any Docket `Depends()` parameters. This wrapper is what Pydantic uses for JSON schema generation, so clients never see server-injected params in the tool's input schema.\n\n## Storage: `ContextVar`\n\n`context.py:77`:\n```python\n_current_context: ContextVar[Context | None] = ContextVar(\"context\", default=None)\n```\nThe `Context` object is stored in a `ContextVar`, so each async task has its own isolated context. `set_context()` (`context.py:108`) or `Context.__aenter__` sets it; `get_context()` (`dependencies.py:271`) retrieves it. The context is established by the server before invoking any tool/resource/prompt handler.\n\n## Injection flow\n\nWhen a tool is called:\n1. `without_injected_parameters(fn)` (the wrapper) is invoked with only user args\n2. It calls `resolve_dependencies(fn, user_kwargs)`\n3. `resolve_dependencies` filters out any dependency parameter names from user args (security: prevents callers from spoofing injected values)\n4. Resolves Docket `Depends()` dependencies\n5. Calls `get_context()` and injects it under the discovered parameter name\n6. Calls the original function with the merged kwargs\n\n## Two injection styles\n\n**Type-annotation style** (legacy, implicit):\n```python\n@mcp.tool\nasync def my_tool(x: int, ctx: Context) -> str:\n    ...\n```\n\n**Dependency style** (explicit, using `CurrentContext()`):\n```python\nfrom fastmcp.server.dependencies import CurrentContext\n\n@mcp.tool\nasync def my_tool(x: int, ctx: Context = CurrentContext()) -> str:\n    ...\n```\nBoth work; the first is detected by type, the second is a Docket-style `Dependency` subclass that calls `get_context()` on resolution.\n\n---\n\n## What's available on `Context`\n\n**Identity / session info:**\n- `ctx.request_id` — unique ID for the current MCP request\n- `ctx.session_id` — stable session ID across all transports (works for in-memory, HTTP, SSE)\n- `ctx.client_id` — client ID from request metadata, if present\n- `ctx.request_context` — raw `RequestContext[ServerSession, Any, Request]`, or `None` before MCP session is established\n- `ctx.session` — the underlying `ServerSession`\n- `ctx.fastmcp` — the `FastMCP` server instance\n\n**Logging to client** (sends MCP log notifications):\n- `await ctx.log(message, level, logger_name, extra)`\n- `await ctx.debug/info/warning/error(message, ...)`\n\n**Progress:**\n- `await ctx.report_progress(progress, total=None, message=None)`\n\n**Resource/prompt access:**\n- `await ctx.read_resource(uri)` → `list[ResourceContent]`\n- `await ctx.list_resources()` → `list[SDKResource]`\n- `await ctx.list_prompts()` → `list[SDKPrompt]`\n- `await ctx.get_prompt(name, arguments)` → `GetPromptResult`\n\n**Client notifications:**\n- `await ctx.send_tool_list_changed()`\n- `await ctx.send_resource_list_changed()`\n- `await ctx.send_prompt_list_changed()`\n- `await ctx.list_roots()` — list client-indicated filesystem roots\n\n**LLM sampling:**\n- `await ctx.sample_step(messages, *, system_prompt, temperature, max_tokens, model_preferences, tools, tool_choice, execute_tools)` → `SampleStep` (single LLM call with optional tool execution)\n\n**State management** (per-request, inherited by nested contexts via deep copy):\n- `ctx.set_state(key, value)`\n- `ctx.get_state(key)`\n\n**Transport:**\n- `await ctx.close_sse_stream()` — gracefully closes the HTTP connection so the client reconnects (useful for long-running tasks to avoid load balancer timeouts; no-op without StreamableHTTP + EventStore)",
+  "claudeJson": {
+    "type": "result",
+    "subtype": "success",
+    "is_error": false,
+    "duration_ms": 59644,
+    "duration_api_ms": 58981,
+    "num_turns": 10,
+    "result": "Here's a complete explanation of how FastMCP handles Context dependency injection:\n\n---\n\n## Detection: Type-hint inspection at call time\n\n`resolve_dependencies()` in `dependencies.py:223` is an async context manager called by the tool/resource wrapper. It delegates to `_find_kwarg_by_type()` (`dependencies.py:71`) which inspects the function's type hints via `get_type_hints()` + `inspect.signature()`. Any parameter annotated as `Context` (including union types and `Annotated[..., Context]`) is identified by name — **the parameter name doesn't matter, only the type annotation does**.\n\n## Schema stripping: `without_injected_parameters()`\n\n`dependencies.py:97` — Before a tool is registered, `without_injected_parameters(fn)` creates a wrapper whose `__signature__` excludes both `Context` parameters and any Docket `Depends()` parameters. This wrapper is what Pydantic uses for JSON schema generation, so clients never see server-injected params in the tool's input schema.\n\n## Storage: `ContextVar`\n\n`context.py:77`:\n```python\n_current_context: ContextVar[Context | None] = ContextVar(\"context\", default=None)\n```\nThe `Context` object is stored in a `ContextVar`, so each async task has its own isolated context. `set_context()` (`context.py:108`) or `Context.__aenter__` sets it; `get_context()` (`dependencies.py:271`) retrieves it. The context is established by the server before invoking any tool/resource/prompt handler.\n\n## Injection flow\n\nWhen a tool is called:\n1. `without_injected_parameters(fn)` (the wrapper) is invoked with only user args\n2. It calls `resolve_dependencies(fn, user_kwargs)`\n3. `resolve_dependencies` filters out any dependency parameter names from user args (security: prevents callers from spoofing injected values)\n4. Resolves Docket `Depends()` dependencies\n5. Calls `get_context()` and injects it under the discovered parameter name\n6. Calls the original function with the merged kwargs\n\n## Two injection styles\n\n**Type-annotation style** (legacy, implicit):\n```python\n@mcp.tool\nasync def my_tool(x: int, ctx: Context) -> str:\n    ...\n```\n\n**Dependency style** (explicit, using `CurrentContext()`):\n```python\nfrom fastmcp.server.dependencies import CurrentContext\n\n@mcp.tool\nasync def my_tool(x: int, ctx: Context = CurrentContext()) -> str:\n    ...\n```\nBoth work; the first is detected by type, the second is a Docket-style `Dependency` subclass that calls `get_context()` on resolution.\n\n---\n\n## What's available on `Context`\n\n**Identity / session info:**\n- `ctx.request_id` — unique ID for the current MCP request\n- `ctx.session_id` — stable session ID across all transports (works for in-memory, HTTP, SSE)\n- `ctx.client_id` — client ID from request metadata, if present\n- `ctx.request_context` — raw `RequestContext[ServerSession, Any, Request]`, or `None` before MCP session is established\n- `ctx.session` — the underlying `ServerSession`\n- `ctx.fastmcp` — the `FastMCP` server instance\n\n**Logging to client** (sends MCP log notifications):\n- `await ctx.log(message, level, logger_name, extra)`\n- `await ctx.debug/info/warning/error(message, ...)`\n\n**Progress:**\n- `await ctx.report_progress(progress, total=None, message=None)`\n\n**Resource/prompt access:**\n- `await ctx.read_resource(uri)` → `list[ResourceContent]`\n- `await ctx.list_resources()` → `list[SDKResource]`\n- `await ctx.list_prompts()` → `list[SDKPrompt]`\n- `await ctx.get_prompt(name, arguments)` → `GetPromptResult`\n\n**Client notifications:**\n- `await ctx.send_tool_list_changed()`\n- `await ctx.send_resource_list_changed()`\n- `await ctx.send_prompt_list_changed()`\n- `await ctx.list_roots()` — list client-indicated filesystem roots\n\n**LLM sampling:**\n- `await ctx.sample_step(messages, *, system_prompt, temperature, max_tokens, model_preferences, tools, tool_choice, execute_tools)` → `SampleStep` (single LLM call with optional tool execution)\n\n**State management** (per-request, inherited by nested contexts via deep copy):\n- `ctx.set_state(key, value)`\n- `ctx.get_state(key)`\n\n**Transport:**\n- `await ctx.close_sse_stream()` — gracefully closes the HTTP connection so the client reconnects (useful for long-running tasks to avoid load balancer timeouts; no-op without StreamableHTTP + EventStore)",
+    "stop_reason": "end_turn",
+    "session_id": "2f36da0d-61d8-4cdc-bb75-55ba81cca248",
+    "total_cost_usd": 0.32852125,
+    "usage": {
+      "input_tokens": 11,
+      "cache_creation_input_tokens": 31799,
+      "cache_read_input_tokens": 104295,
+      "output_tokens": 3103,
+      "server_tool_use": {
+        "web_search_requests": 0,
+        "web_fetch_requests": 0
+      },
+      "service_tier": "standard",
+      "cache_creation": {
+        "ephemeral_1h_input_tokens": 0,
+        "ephemeral_5m_input_tokens": 31799
+      },
+      "inference_geo": "",
+      "iterations": [],
+      "speed": "standard"
+    },
+    "modelUsage": {
+      "claude-sonnet-4-6": {
+        "inputTokens": 11,
+        "outputTokens": 3103,
+        "cacheReadInputTokens": 104295,
+        "cacheCreationInputTokens": 31799,
+        "webSearchRequests": 0,
+        "costUSD": 0.32852125,
+        "contextWindow": 200000,
+        "maxOutputTokens": 32000
+      }
+    },
+    "permission_denials": [],
+    "fast_mode_state": "off",
+    "uuid": "98168612-a439-4f8d-86b6-97c8859c2332"
+  },
+  "durationMs": 63346,
+  "tokensIn": 11,
+  "tokensOut": 3103,
+  "toolCalls": 10,
+  "costUsd": 0.32852125,
+  "timestamp": "2026-03-05T23:51:43.983Z"
+}

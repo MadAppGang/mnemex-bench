@@ -1,0 +1,59 @@
+{
+  "scenarioId": 7,
+  "repo": "fastmcp",
+  "condition": "no-index",
+  "title": "Feature: middleware pipeline",
+  "task": "How do I add middleware to a FastMCP server? What's the middleware pipeline and execution order? Do NOT make any code changes.",
+  "output": "Here's a complete picture of the FastMCP middleware system:\n\n---\n\n## Adding Middleware\n\n**At construction time:**\n```python\nmcp = FastMCP(\"MyServer\", middleware=[MyMiddleware()])\n```\n\n**After construction:**\n```python\nmcp.add_middleware(MyMiddleware())\n```\n\n---\n\n## Writing a Middleware\n\nSubclass `fastmcp.server.middleware.Middleware` and override only the hooks you need:\n\n```python\nfrom fastmcp.server.middleware import Middleware, MiddlewareContext, CallNext\n\nclass MyMiddleware(Middleware):\n    async def on_call_tool(self, context, call_next):\n        # before\n        result = await call_next(context)\n        # after\n        return result\n```\n\nAll hooks default to `await call_next(context)`, so you only override what you care about.\n\n### Available hooks (from `middleware.py:100-124`):\n\n| Hook | MCP method |\n|---|---|\n| `on_message` | all messages |\n| `on_request` | all requests |\n| `on_notification` | all notifications |\n| `on_initialize` | `initialize` |\n| `on_call_tool` | `tools/call` |\n| `on_read_resource` | `resources/read` |\n| `on_get_prompt` | `prompts/get` |\n| `on_list_tools` | `tools/list` |\n| `on_list_resources` | `resources/list` |\n| `on_list_resource_templates` | `resources/templates/list` |\n| `on_list_prompts` | `prompts/list` |\n\n---\n\n## Pipeline & Execution Order\n\n### Hook dispatch order (per middleware, `middleware.py:94-126`):\n\nFor every message, `_dispatch_handler` builds a nested chain:\n```\non_message → on_request/on_notification → on_<specific_method>\n```\nSo `on_message` wraps `on_request`, which wraps `on_call_tool`. Each calls `call_next` to proceed.\n\n### Middleware list order (`server.py:651-660`):\n\n```python\nfor mw in reversed(self.middleware):\n    chain = partial(mw, call_next=chain)\n```\n\nThe list is iterated **in reverse**, so the **first middleware added runs outermost** (first in, first to execute pre-logic, last to see the response). Given `[A, B, C]`:\n\n```\nA.on_message\n  → B.on_message\n    → C.on_message\n      → A.on_request\n        → B.on_request\n          → C.on_request\n            → actual handler\n```\n\n---\n\n## Built-in Middleware\n\nLocated in `src/fastmcp/server/middleware/`:\n- `logging.py` — request/response logging\n- `timing.py` — execution timing\n- `error_handling.py` — error normalization\n- `rate_limiting.py` — rate limiting\n- `caching.py` — response caching\n- `tool_injection.py` — dynamic tool injection",
+  "claudeJson": {
+    "type": "result",
+    "subtype": "success",
+    "is_error": false,
+    "duration_ms": 31613,
+    "duration_api_ms": 30797,
+    "num_turns": 9,
+    "result": "Here's a complete picture of the FastMCP middleware system:\n\n---\n\n## Adding Middleware\n\n**At construction time:**\n```python\nmcp = FastMCP(\"MyServer\", middleware=[MyMiddleware()])\n```\n\n**After construction:**\n```python\nmcp.add_middleware(MyMiddleware())\n```\n\n---\n\n## Writing a Middleware\n\nSubclass `fastmcp.server.middleware.Middleware` and override only the hooks you need:\n\n```python\nfrom fastmcp.server.middleware import Middleware, MiddlewareContext, CallNext\n\nclass MyMiddleware(Middleware):\n    async def on_call_tool(self, context, call_next):\n        # before\n        result = await call_next(context)\n        # after\n        return result\n```\n\nAll hooks default to `await call_next(context)`, so you only override what you care about.\n\n### Available hooks (from `middleware.py:100-124`):\n\n| Hook | MCP method |\n|---|---|\n| `on_message` | all messages |\n| `on_request` | all requests |\n| `on_notification` | all notifications |\n| `on_initialize` | `initialize` |\n| `on_call_tool` | `tools/call` |\n| `on_read_resource` | `resources/read` |\n| `on_get_prompt` | `prompts/get` |\n| `on_list_tools` | `tools/list` |\n| `on_list_resources` | `resources/list` |\n| `on_list_resource_templates` | `resources/templates/list` |\n| `on_list_prompts` | `prompts/list` |\n\n---\n\n## Pipeline & Execution Order\n\n### Hook dispatch order (per middleware, `middleware.py:94-126`):\n\nFor every message, `_dispatch_handler` builds a nested chain:\n```\non_message → on_request/on_notification → on_<specific_method>\n```\nSo `on_message` wraps `on_request`, which wraps `on_call_tool`. Each calls `call_next` to proceed.\n\n### Middleware list order (`server.py:651-660`):\n\n```python\nfor mw in reversed(self.middleware):\n    chain = partial(mw, call_next=chain)\n```\n\nThe list is iterated **in reverse**, so the **first middleware added runs outermost** (first in, first to execute pre-logic, last to see the response). Given `[A, B, C]`:\n\n```\nA.on_message\n  → B.on_message\n    → C.on_message\n      → A.on_request\n        → B.on_request\n          → C.on_request\n            → actual handler\n```\n\n---\n\n## Built-in Middleware\n\nLocated in `src/fastmcp/server/middleware/`:\n- `logging.py` — request/response logging\n- `timing.py` — execution timing\n- `error_handling.py` — error normalization\n- `rate_limiting.py` — rate limiting\n- `caching.py` — response caching\n- `tool_injection.py` — dynamic tool injection",
+    "stop_reason": "end_turn",
+    "session_id": "c6cccb39-ad54-4aa7-a92a-2850b46a05fa",
+    "total_cost_usd": 0.22503425,
+    "usage": {
+      "input_tokens": 10,
+      "cache_creation_input_tokens": 23957,
+      "cache_read_input_tokens": 66006,
+      "output_tokens": 1690,
+      "server_tool_use": {
+        "web_search_requests": 0,
+        "web_fetch_requests": 0
+      },
+      "service_tier": "standard",
+      "cache_creation": {
+        "ephemeral_1h_input_tokens": 0,
+        "ephemeral_5m_input_tokens": 23957
+      },
+      "inference_geo": "",
+      "iterations": [],
+      "speed": "standard"
+    },
+    "modelUsage": {
+      "claude-sonnet-4-6": {
+        "inputTokens": 10,
+        "outputTokens": 1690,
+        "cacheReadInputTokens": 66006,
+        "cacheCreationInputTokens": 23957,
+        "webSearchRequests": 0,
+        "costUSD": 0.22503425,
+        "contextWindow": 200000,
+        "maxOutputTokens": 32000
+      }
+    },
+    "permission_denials": [],
+    "fast_mode_state": "off",
+    "uuid": "8f42b9f6-9c68-4f8a-afb6-9d0678ecb811"
+  },
+  "durationMs": 35808,
+  "tokensIn": 10,
+  "tokensOut": 1690,
+  "toolCalls": 9,
+  "costUsd": 0.22503425,
+  "timestamp": "2026-03-05T23:35:28.144Z"
+}

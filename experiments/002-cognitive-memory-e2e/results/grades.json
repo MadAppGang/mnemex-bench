@@ -1,0 +1,81 @@
+[
+  {"scenarioId":1,"repo":"claudemem","condition":"no-index","score":2,"notes":"Correctly identifies includes() is position-independent, real issue is handleSearch strips --agent from query leaving no query arg"},
+  {"scenarioId":1,"repo":"claudemem","condition":"baseline","score":2,"notes":"Same correct analysis - includes() position-independent, handleSearch empty-query error path ignores agentMode"},
+  {"scenarioId":1,"repo":"claudemem","condition":"skill-doc","score":1,"notes":"Points at flagIndices not including --agent in handleSearch args - but --agent is stripped before dispatch so this path doesn't occur. Slightly off root cause."},
+  {"scenarioId":1,"repo":"claudemem","condition":"observations","score":2,"notes":"Correct - includes() position-independent, handleSearch error path ignores agentMode"},
+
+  {"scenarioId":2,"repo":"claudemem","condition":"no-index","score":2,"notes":"Implemented: --format flag parsing, CSV with proper escaping, help text"},
+  {"scenarioId":2,"repo":"claudemem","condition":"baseline","score":2,"notes":"Implemented: flag parsing, CSV RFC 4180-compliant, help text"},
+  {"scenarioId":2,"repo":"claudemem","condition":"skill-doc","score":2,"notes":"Implemented: flag parsing, CSV escaping, help text"},
+  {"scenarioId":2,"repo":"claudemem","condition":"observations","score":2,"notes":"Implemented: flag parsing, CSV output, help text"},
+
+  {"scenarioId":3,"repo":"claudemem","condition":"no-index","score":2,"notes":"Complete: vector+BM25 parallel, RRF fusion, type weights, normalization"},
+  {"scenarioId":3,"repo":"claudemem","condition":"baseline","score":2,"notes":"Complete: two retrieval legs, RRF, type weights per use case, normalization"},
+  {"scenarioId":3,"repo":"claudemem","condition":"skill-doc","score":2,"notes":"Complete: hybrid search, RRF with type weights, test downranking, normalization"},
+  {"scenarioId":3,"repo":"claudemem","condition":"observations","score":2,"notes":"Complete: two-signal retrieval, type-aware RRF, normalization"},
+
+  {"scenarioId":4,"repo":"claudemem","condition":"no-index","score":2,"notes":"Finds real bug: code_unit vs code_chunk type mismatch in searchCodeUnits, plus FTS and vector silent failures"},
+  {"scenarioId":4,"repo":"claudemem","condition":"baseline","score":2,"notes":"3 causes: summary-only crowding, FTS silent failures, vector skipped when no queryVector"},
+  {"scenarioId":4,"repo":"claudemem","condition":"skill-doc","score":2,"notes":"Correct: summary-only filtering as primary, FTS/vector silent failures"},
+  {"scenarioId":4,"repo":"claudemem","condition":"observations","score":2,"notes":"Correct: ftsIndexReady not reset after clear(), summary-only filtering"},
+
+  {"scenarioId":5,"repo":"claudemem","condition":"no-index","score":2,"notes":"Complete pipeline trace with all phases and file references"},
+  {"scenarioId":5,"repo":"claudemem","condition":"baseline","score":2,"notes":"Complete trace with function names, locations, and data flow"},
+  {"scenarioId":5,"repo":"claudemem","condition":"skill-doc","score":2,"notes":"Complete trace with step-by-step table format"},
+  {"scenarioId":5,"repo":"claudemem","condition":"observations","score":2,"notes":"Complete trace with CLI entry through LanceDB storage"},
+
+  {"scenarioId":6,"repo":"jlowin_fastmcp","condition":"no-index","score":2,"notes":"Complete: _call_tool → _execute_tool → middleware → MCP SDK, identifies mask_error_details"},
+  {"scenarioId":6,"repo":"jlowin_fastmcp","condition":"baseline","score":2,"notes":"Complete: _execute_tool → ErrorHandlingMiddleware → MCP SDK, good table of exception handling"},
+  {"scenarioId":6,"repo":"jlowin_fastmcp","condition":"skill-doc","score":2,"notes":"Complete: 3 layers clearly identified, exception type table"},
+  {"scenarioId":6,"repo":"jlowin_fastmcp","condition":"observations","score":2,"notes":"Complete: 3 layers, identifies mask_error_details and raise_on_error as key levers"},
+
+  {"scenarioId":7,"repo":"jlowin_fastmcp","condition":"no-index","score":2,"notes":"Correct: two ways to add, first=outermost execution order, hook types, built-in middleware list"},
+  {"scenarioId":7,"repo":"jlowin_fastmcp","condition":"baseline","score":2,"notes":"Correct: execution order, hook dispatch, MiddlewareContext fields, built-in middleware"},
+  {"scenarioId":7,"repo":"jlowin_fastmcp","condition":"skill-doc","score":2,"notes":"Correct: execution order, hooks, MiddlewareContext, built-in middleware"},
+  {"scenarioId":7,"repo":"jlowin_fastmcp","condition":"observations","score":2,"notes":"Correct: two ways to add, first=outermost, hooks, built-in middleware"},
+
+  {"scenarioId":8,"repo":"jlowin_fastmcp","condition":"no-index","score":2,"notes":"Complete: registration, URI matching with regex, resolution order, parameter extraction"},
+  {"scenarioId":8,"repo":"jlowin_fastmcp","condition":"baseline","score":2,"notes":"Complete: template registration, match_uri_template, resolution order, type coercion"},
+  {"scenarioId":8,"repo":"jlowin_fastmcp","condition":"skill-doc","score":2,"notes":"Complete: registration, URI matching, resolution order, execution, validation"},
+  {"scenarioId":8,"repo":"jlowin_fastmcp","condition":"observations","score":2,"notes":"Complete: registration, URI matching, resolution order, parameter injection"},
+
+  {"scenarioId":9,"repo":"jlowin_fastmcp","condition":"no-index","score":2,"notes":"Correctly identifies feature already exists, traces full chain"},
+  {"scenarioId":9,"repo":"jlowin_fastmcp","condition":"baseline","score":2,"notes":"Correctly identifies already implemented, traces decorator→from_function→to_mcp_resource"},
+  {"scenarioId":9,"repo":"jlowin_fastmcp","condition":"skill-doc","score":2,"notes":"Correctly identifies already implemented with full chain"},
+  {"scenarioId":9,"repo":"jlowin_fastmcp","condition":"observations","score":2,"notes":"Correctly identifies already implemented with specific line numbers"},
+
+  {"scenarioId":10,"repo":"jlowin_fastmcp","condition":"no-index","score":2,"notes":"Good list: external refs, single success response, parameter handling, schema quirks"},
+  {"scenarioId":10,"repo":"jlowin_fastmcp","condition":"baseline","score":2,"notes":"Good list with file refs, notes experimental→stable promotion in v2.14"},
+  {"scenarioId":10,"repo":"jlowin_fastmcp","condition":"skill-doc","score":2,"notes":"Good list: refs, request body, schema handling, general advisory"},
+  {"scenarioId":10,"repo":"jlowin_fastmcp","condition":"observations","score":2,"notes":"Good list including cookie params and director.py reference"},
+
+  {"scenarioId":11,"repo":"claudemem","condition":"no-index","score":2,"notes":"Complete: 5 providers with table, 3-step priority chain, env var fallback"},
+  {"scenarioId":11,"repo":"claudemem","condition":"baseline","score":2,"notes":"Complete: 5 providers, routing priority chain, local vs cloud classification"},
+  {"scenarioId":11,"repo":"claudemem","condition":"skill-doc","score":2,"notes":"Complete: 5 providers, 4 client classes, routing chain"},
+  {"scenarioId":11,"repo":"claudemem","condition":"observations","score":2,"notes":"Complete: 5 providers, routing priority, default model voyage-3.5-lite"},
+
+  {"scenarioId":12,"repo":"claudemem","condition":"no-index","score":2,"notes":"Complete: 6 extractors, file_summary + symbol_summary active, prompts, parallel execution"},
+  {"scenarioId":12,"repo":"claudemem","condition":"baseline","score":2,"notes":"Complete: what gets enriched, prompts, parallel execution, storage as document types"},
+  {"scenarioId":12,"repo":"claudemem","condition":"skill-doc","score":2,"notes":"Complete: 6 document types, enrichFiles flow, prompts, storage"},
+  {"scenarioId":12,"repo":"claudemem","condition":"observations","score":2,"notes":"Complete: file_summary + symbol_summary active, other 4 types defined but not wired"},
+
+  {"scenarioId":13,"repo":"claudemem","condition":"no-index","score":2,"notes":"Implemented: switch case, help text, examples section. Handles both cloud and local mode."},
+  {"scenarioId":13,"repo":"claudemem","condition":"baseline","score":2,"notes":"Implemented: switch case, compact help, full help"},
+  {"scenarioId":13,"repo":"claudemem","condition":"skill-doc","score":2,"notes":"Implemented: switch case + help text"},
+  {"scenarioId":13,"repo":"claudemem","condition":"observations","score":2,"notes":"Implemented: switch case + help, handles cloud/local mode"},
+
+  {"scenarioId":14,"repo":"jlowin_fastmcp","condition":"no-index","score":2,"notes":"Complete: type-hint detection, schema stripping, ContextVar, what Context provides"},
+  {"scenarioId":14,"repo":"jlowin_fastmcp","condition":"baseline","score":2,"notes":"Complete: resolve_dependencies, _find_kwarg_by_type, ContextVar, Context capabilities"},
+  {"scenarioId":14,"repo":"jlowin_fastmcp","condition":"skill-doc","score":2,"notes":"Complete: two mechanisms (type-hint and Depends()), ContextVar, Context API"},
+  {"scenarioId":14,"repo":"jlowin_fastmcp","condition":"observations","score":2,"notes":"Complete: two mechanisms (legacy type-hint and modern Depends/CurrentContext), ContextVar"},
+
+  {"scenarioId":15,"repo":"jlowin_fastmcp","condition":"no-index","score":2,"notes":"Complete: Provider pattern, mount() API, namespace prefixing, dynamic link"},
+  {"scenarioId":15,"repo":"jlowin_fastmcp","condition":"baseline","score":2,"notes":"Complete: mount() vs import_server() (deprecated), dynamic link, lifespans"},
+  {"scenarioId":15,"repo":"jlowin_fastmcp","condition":"skill-doc","score":2,"notes":"Complete: mount() vs import_server(), Provider pattern, request routing"},
+  {"scenarioId":15,"repo":"jlowin_fastmcp","condition":"observations","score":2,"notes":"Complete: mount() dynamic link, import_server() deprecated, Provider pattern"},
+
+  {"scenarioId":16,"repo":"jlowin_fastmcp","condition":"no-index","score":2,"notes":"Implemented: asyncio import, timeout field, asyncio.wait_for() in run(), @mcp.tool overloads"},
+  {"scenarioId":16,"repo":"jlowin_fastmcp","condition":"baseline","score":2,"notes":"Implemented: timeout field, asyncio.wait_for(), @mcp.tool decorator updated"},
+  {"scenarioId":16,"repo":"jlowin_fastmcp","condition":"skill-doc","score":2,"notes":"Implemented: timeout field, asyncio.wait_for(), notes timeout=None is transparent"},
+  {"scenarioId":16,"repo":"jlowin_fastmcp","condition":"observations","score":2,"notes":"Implemented: timeout field, asyncio.wait_for() for async tools"}
+]

@@ -1,0 +1,59 @@
+{
+  "scenarioId": 8,
+  "repo": "fastmcp",
+  "condition": "skill-doc",
+  "title": "Architecture: resource templates",
+  "task": "How does FastMCP handle resource templates? Explain the template resolution mechanism. Do NOT make any code changes.",
+  "output": "Here's how FastMCP handles resource templates:\n\n---\n\n## Resource Template System\n\n### 1. Registration (`@mcp.resource` with `{params}`)\n\nWhen you decorate a function with a URI containing `{...}` placeholders, `ResourceManager.add_resource_or_template_from_fn()` detects `{` in the URI and routes to template creation (`resource_manager.py:91-101`). Templates are stored in `_templates: dict[str, ResourceTemplate]`, keyed by their URI template string.\n\n### 2. Template Classes\n\n- **`ResourceTemplate`** — base class; abstract `create_resource()` / `read()`\n- **`FunctionResourceTemplate`** — concrete subclass holding the actual `fn`; this is what `@mcp.resource` always produces\n\n### 3. URI Template Parsing (RFC 6570)\n\nTwo syntax forms are supported (`template.py:40-94`):\n\n| Syntax | Example | Behavior |\n|--------|---------|----------|\n| `{var}` | `files://{path}` | matches one path segment (`[^/]+`) |\n| `{var*}` | `files://{path*}` | matches multiple segments (`.+`) |\n| `{?var1,var2}` | `data://{id}{?format,page}` | query parameters, extracted from `?` part of URI |\n\n`build_regex()` converts the URI template to a compiled regex with named capture groups. Query-param syntax is stripped before path matching.\n\n### 4. Resolution at Read Time\n\nWhen a client reads a URI, `ResourceManager.read_resource()` does:\n\n1. **Exact match first** — check `_resources` dict for a concrete resource with that URI (`resource_manager.py:306-315`)\n2. **Template scan** — iterate `_templates`, calling `match_uri_template(uri, template_key)` on each (`resource_manager.py:317-332`)\n3. **Parameter extraction** — `match_uri_template()` returns a `dict[str, str]` of extracted params, or `None` if no match\n4. **Resource instantiation** — on match, `template.create_resource(uri, params)` is called, building an ephemeral `Resource` bound to a closure over those params\n5. **Read** — the ephemeral resource's `_read()` is invoked immediately; for `FunctionResourceTemplate._read()`, this is optimized to call `read(arguments=params)` directly, skipping the ephemeral resource creation entirely (`template.py:306-329`)\n\n### 5. Type Coercion for Query Parameters\n\nSince URI parameters are always strings, `FunctionResourceTemplate.read()` inspects the function signature and coerces string values to `int`, `float`, or `bool` where the annotation demands it (`template.py:350-379`).\n\n### 6. Validation at Registration Time\n\n`FunctionResourceTemplate.from_function()` enforces several invariants (`template.py:417-539`):\n\n- **Required** function params must be path params (subset of `{var}`)\n- **Query params** (`{?var}`) must be **optional** (have default values)\n- All URI params must exist in the function signature (unless `**kwargs` is used)\n- `*args` are forbidden\n\n### 7. `get_resource` vs `read_resource`\n\n- `get_resource()` — calls `template.create_resource()` and returns the ephemeral `Resource` object (used by proxy/middleware layers)\n- `read_resource()` — internal server path; for `FunctionResourceTemplate` it calls `template._read()` directly, which skips ephemeral resource creation for efficiency",
+  "claudeJson": {
+    "type": "result",
+    "subtype": "success",
+    "is_error": false,
+    "duration_ms": 32884,
+    "duration_api_ms": 32569,
+    "num_turns": 6,
+    "result": "Here's how FastMCP handles resource templates:\n\n---\n\n## Resource Template System\n\n### 1. Registration (`@mcp.resource` with `{params}`)\n\nWhen you decorate a function with a URI containing `{...}` placeholders, `ResourceManager.add_resource_or_template_from_fn()` detects `{` in the URI and routes to template creation (`resource_manager.py:91-101`). Templates are stored in `_templates: dict[str, ResourceTemplate]`, keyed by their URI template string.\n\n### 2. Template Classes\n\n- **`ResourceTemplate`** — base class; abstract `create_resource()` / `read()`\n- **`FunctionResourceTemplate`** — concrete subclass holding the actual `fn`; this is what `@mcp.resource` always produces\n\n### 3. URI Template Parsing (RFC 6570)\n\nTwo syntax forms are supported (`template.py:40-94`):\n\n| Syntax | Example | Behavior |\n|--------|---------|----------|\n| `{var}` | `files://{path}` | matches one path segment (`[^/]+`) |\n| `{var*}` | `files://{path*}` | matches multiple segments (`.+`) |\n| `{?var1,var2}` | `data://{id}{?format,page}` | query parameters, extracted from `?` part of URI |\n\n`build_regex()` converts the URI template to a compiled regex with named capture groups. Query-param syntax is stripped before path matching.\n\n### 4. Resolution at Read Time\n\nWhen a client reads a URI, `ResourceManager.read_resource()` does:\n\n1. **Exact match first** — check `_resources` dict for a concrete resource with that URI (`resource_manager.py:306-315`)\n2. **Template scan** — iterate `_templates`, calling `match_uri_template(uri, template_key)` on each (`resource_manager.py:317-332`)\n3. **Parameter extraction** — `match_uri_template()` returns a `dict[str, str]` of extracted params, or `None` if no match\n4. **Resource instantiation** — on match, `template.create_resource(uri, params)` is called, building an ephemeral `Resource` bound to a closure over those params\n5. **Read** — the ephemeral resource's `_read()` is invoked immediately; for `FunctionResourceTemplate._read()`, this is optimized to call `read(arguments=params)` directly, skipping the ephemeral resource creation entirely (`template.py:306-329`)\n\n### 5. Type Coercion for Query Parameters\n\nSince URI parameters are always strings, `FunctionResourceTemplate.read()` inspects the function signature and coerces string values to `int`, `float`, or `bool` where the annotation demands it (`template.py:350-379`).\n\n### 6. Validation at Registration Time\n\n`FunctionResourceTemplate.from_function()` enforces several invariants (`template.py:417-539`):\n\n- **Required** function params must be path params (subset of `{var}`)\n- **Query params** (`{?var}`) must be **optional** (have default values)\n- All URI params must exist in the function signature (unless `**kwargs` is used)\n- `*args` are forbidden\n\n### 7. `get_resource` vs `read_resource`\n\n- `get_resource()` — calls `template.create_resource()` and returns the ephemeral `Resource` object (used by proxy/middleware layers)\n- `read_resource()` — internal server path; for `FunctionResourceTemplate` it calls `template._read()` directly, which skips ephemeral resource creation for efficiency",
+    "stop_reason": "end_turn",
+    "session_id": "63bb8c83-e03a-41d1-85d9-fe73542175c9",
+    "total_cost_usd": 0.22655725,
+    "usage": {
+      "input_tokens": 8,
+      "cache_creation_input_tokens": 27979,
+      "cache_read_input_tokens": 32197,
+      "output_tokens": 1422,
+      "server_tool_use": {
+        "web_search_requests": 0,
+        "web_fetch_requests": 0
+      },
+      "service_tier": "standard",
+      "cache_creation": {
+        "ephemeral_1h_input_tokens": 0,
+        "ephemeral_5m_input_tokens": 27979
+      },
+      "inference_geo": "",
+      "iterations": [],
+      "speed": "standard"
+    },
+    "modelUsage": {
+      "claude-sonnet-4-6": {
+        "inputTokens": 8,
+        "outputTokens": 1422,
+        "cacheReadInputTokens": 32197,
+        "cacheCreationInputTokens": 27979,
+        "webSearchRequests": 0,
+        "costUSD": 0.22655725,
+        "contextWindow": 200000,
+        "maxOutputTokens": 32000
+      }
+    },
+    "permission_denials": [],
+    "fast_mode_state": "off",
+    "uuid": "ce4b93d3-641a-4a74-b7fa-6fb018f7ad76"
+  },
+  "durationMs": 36695,
+  "tokensIn": 8,
+  "tokensOut": 1422,
+  "toolCalls": 6,
+  "costUsd": 0.22655725,
+  "timestamp": "2026-03-05T23:39:32.150Z"
+}

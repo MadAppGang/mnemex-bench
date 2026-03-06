@@ -1,0 +1,59 @@
+{
+  "scenarioId": 8,
+  "repo": "fastmcp",
+  "condition": "baseline",
+  "title": "Architecture: resource templates",
+  "task": "How does FastMCP handle resource templates? Explain the template resolution mechanism. Do NOT make any code changes.",
+  "output": "Here's how FastMCP's resource template resolution works:\n\n## Template Registration\n\nWhen you decorate a function with `@mcp.resource(\"prefix://{param}/path\")`, the `ResourceManager` detects curly braces in the URI and routes it to `add_template()` instead of `add_resource()`. Templates are stored in `_templates: dict[str, ResourceTemplate]`, keyed by their URI template string (e.g. `\"weather://{city}/current\"`).\n\n## URI Matching (`match_uri_template`)\n\nThe core of template resolution is `match_uri_template()` in `template.py:66`. When a client requests a concrete URI (e.g. `weather://london/current`), the manager iterates all registered templates and runs this function against each one. It works in two stages:\n\n1. **Path matching** (`build_regex`, line 40): Converts the URI template into a named-capture regex:\n   - `{var}` → `(?P<var>[^/]+)` — single path segment\n   - `{var*}` → `(?P<var>.+)` — multi-segment wildcard\n   - `{?var1,var2}` (query params) are stripped before path matching\n\n2. **Query parameter extraction** (line 85): If the URI has a query string and the template declares `{?var1,var2}`, those values are extracted from `parse_qs()` and merged into the params dict. URL-encoded values are decoded via `unquote`.\n\nReturns `None` on no match, or a `dict[str, str]` of extracted parameters.\n\n## Resolution Priority\n\n`read_resource()` (line 290) has a strict lookup order:\n\n1. **Concrete resources first** — exact URI match in `_resources`\n2. **Templates second** — linear scan of `_templates`, first match wins\n\n## From Match to Content\n\nOnce a match is found with its extracted params, the flow is:\n\n1. `template.create_resource(uri, params)` — for `FunctionResourceTemplate`, wraps the underlying function in a transient `Resource` object\n2. `resource._read()` is called, which routes through task/background-job checking before calling the actual function\n3. In `FunctionResourceTemplate.read()` (line 350), string params from the URI are **type-coerced** to `int`, `float`, or `bool` based on the function's type annotations before calling `fn(**kwargs)`\n\n## Validation at Registration Time\n\n`FunctionResourceTemplate.from_function()` (line 416) enforces at decoration time:\n- Required function params must be a subset of **path** params (not query params)\n- Query params in `{?...}` must be **optional** (have defaults)\n- All URI params must exist as function arguments (unless `**kwargs` is used)\n- Functions with `*args` are rejected\n\nThis means template misconfigurations are caught at startup, not at request time.",
+  "claudeJson": {
+    "type": "result",
+    "subtype": "success",
+    "is_error": false,
+    "duration_ms": 25013,
+    "duration_api_ms": 24626,
+    "num_turns": 5,
+    "result": "Here's how FastMCP's resource template resolution works:\n\n## Template Registration\n\nWhen you decorate a function with `@mcp.resource(\"prefix://{param}/path\")`, the `ResourceManager` detects curly braces in the URI and routes it to `add_template()` instead of `add_resource()`. Templates are stored in `_templates: dict[str, ResourceTemplate]`, keyed by their URI template string (e.g. `\"weather://{city}/current\"`).\n\n## URI Matching (`match_uri_template`)\n\nThe core of template resolution is `match_uri_template()` in `template.py:66`. When a client requests a concrete URI (e.g. `weather://london/current`), the manager iterates all registered templates and runs this function against each one. It works in two stages:\n\n1. **Path matching** (`build_regex`, line 40): Converts the URI template into a named-capture regex:\n   - `{var}` → `(?P<var>[^/]+)` — single path segment\n   - `{var*}` → `(?P<var>.+)` — multi-segment wildcard\n   - `{?var1,var2}` (query params) are stripped before path matching\n\n2. **Query parameter extraction** (line 85): If the URI has a query string and the template declares `{?var1,var2}`, those values are extracted from `parse_qs()` and merged into the params dict. URL-encoded values are decoded via `unquote`.\n\nReturns `None` on no match, or a `dict[str, str]` of extracted parameters.\n\n## Resolution Priority\n\n`read_resource()` (line 290) has a strict lookup order:\n\n1. **Concrete resources first** — exact URI match in `_resources`\n2. **Templates second** — linear scan of `_templates`, first match wins\n\n## From Match to Content\n\nOnce a match is found with its extracted params, the flow is:\n\n1. `template.create_resource(uri, params)` — for `FunctionResourceTemplate`, wraps the underlying function in a transient `Resource` object\n2. `resource._read()` is called, which routes through task/background-job checking before calling the actual function\n3. In `FunctionResourceTemplate.read()` (line 350), string params from the URI are **type-coerced** to `int`, `float`, or `bool` based on the function's type annotations before calling `fn(**kwargs)`\n\n## Validation at Registration Time\n\n`FunctionResourceTemplate.from_function()` (line 416) enforces at decoration time:\n- Required function params must be a subset of **path** params (not query params)\n- Query params in `{?...}` must be **optional** (have defaults)\n- All URI params must exist as function arguments (unless `**kwargs` is used)\n- Functions with `*args` are rejected\n\nThis means template misconfigurations are caught at startup, not at request time.",
+    "stop_reason": "end_turn",
+    "session_id": "94c24570-3ffe-427e-a8b9-cb9009538d25",
+    "total_cost_usd": 0.1945035,
+    "usage": {
+      "input_tokens": 8,
+      "cache_creation_input_tokens": 23790,
+      "cache_read_input_tokens": 33852,
+      "output_tokens": 1154,
+      "server_tool_use": {
+        "web_search_requests": 0,
+        "web_fetch_requests": 0
+      },
+      "service_tier": "standard",
+      "cache_creation": {
+        "ephemeral_1h_input_tokens": 0,
+        "ephemeral_5m_input_tokens": 23790
+      },
+      "inference_geo": "",
+      "iterations": [],
+      "speed": "standard"
+    },
+    "modelUsage": {
+      "claude-sonnet-4-6": {
+        "inputTokens": 8,
+        "outputTokens": 1154,
+        "cacheReadInputTokens": 33852,
+        "cacheCreationInputTokens": 23790,
+        "webSearchRequests": 0,
+        "costUSD": 0.1945035,
+        "contextWindow": 200000,
+        "maxOutputTokens": 32000
+      }
+    },
+    "permission_denials": [],
+    "fast_mode_state": "off",
+    "uuid": "28e8b5fb-ed53-4b45-9892-7669f94df803"
+  },
+  "durationMs": 28727,
+  "tokensIn": 8,
+  "tokensOut": 1154,
+  "toolCalls": 5,
+  "costUsd": 0.1945035,
+  "timestamp": "2026-03-05T23:38:54.760Z"
+}

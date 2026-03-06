@@ -1,0 +1,59 @@
+{
+  "scenarioId": 14,
+  "repo": "fastmcp",
+  "condition": "skill-doc",
+  "title": "Architecture: context dependency injection",
+  "task": "How does FastMCP handle Context dependency injection in tool and resource functions? Explain how a tool function receives the Context object and what's available on it. Do NOT make any code changes.",
+  "output": "Now I have a comprehensive picture. Here's how FastMCP handles Context dependency injection:\n\n---\n\n## Context Dependency Injection in FastMCP\n\n### How it gets injected\n\nThere are **two mechanisms**, both backed by a `ContextVar`:\n\n**1. Type-annotation detection (primary/legacy)**\n\nWhen a tool/resource/prompt function is registered, `without_injected_parameters()` (`dependencies.py:97`) scans the function's type hints using `_find_kwarg_by_type()` (`dependencies.py:71`). It looks for any parameter annotated with the `Context` type (including inside `Annotated[...]` or `Union[..., Context]`). The parameter name doesn't matter — only the type annotation.\n\nAt call time, `resolve_dependencies()` (`dependencies.py:224`) injects the live context into that kwarg:\n```python\ncontext_kwarg = _find_kwarg_by_type(fn, kwarg_type=Context)\nif context_kwarg and context_kwarg not in resolved_kwargs:\n    resolved_kwargs[context_kwarg] = get_context()\n```\n\n**2. `CurrentContext()` dependency default (modern)**\n\nThe `CurrentContext()` function (`dependencies.py:297`) returns a `_CurrentContext` dependency object. When used as a default value (`ctx: Context = CurrentContext()`), Docket's dependency resolution picks it up via `get_dependency_parameters()` and resolves it by calling `get_context()`.\n\nBoth paths ultimately call the same `get_context()` function.\n\n---\n\n### How the context is set\n\nThe `Context` object is a `@dataclass` (`context.py:117`) that is set into a `ContextVar` named `_current_context`. The server creates a `Context(fastmcp=server)` instance and activates it as an async context manager before dispatching a tool/resource/prompt call:\n\n```python\n# context.py:108\n@contextmanager\ndef set_context(context: Context) -> Generator[Context, None, None]:\n    token = _current_context.set(context)\n    ...\n```\n\n`Context.__aenter__` (`context.py:176`) sets both `_current_context` and `_current_server` ContextVars. `get_context()` reads from `_current_context`, raising `RuntimeError` if no context is active.\n\n---\n\n### Schema hiding\n\n`without_injected_parameters()` also creates a **wrapper function** with a stripped signature that excludes `Context` and `Depends()` parameters. This wrapper is what Pydantic's `TypeAdapter` uses for JSON schema generation and input validation — so `Context` never appears in the tool's exposed input schema.\n\n---\n\n### What's available on `Context`\n\n| Property / Method | Description |\n|---|---|\n| `ctx.request_id` | Unique ID for the current MCP request |\n| `ctx.session_id` | Session ID (works across all transports) |\n| `ctx.client_id` | Client identifier if provided |\n| `ctx.session` | Raw `ServerSession` for advanced use |\n| `ctx.request_context` | Underlying `RequestContext` (may be `None` before MCP session established) |\n| `ctx.fastmcp` | The `FastMCP` server instance |\n| `await ctx.report_progress(progress, total, message)` | Send progress notifications to client |\n| `await ctx.log(message, level, logger_name)` | Send a log message to the client |\n| `await ctx.debug/info/warning/error(message)` | Convenience log-level methods |\n| `await ctx.read_resource(uri)` | Read a resource by URI, returns `list[ResourceContent]` |\n| `await ctx.list_resources()` | List all resources on the server |\n| `await ctx.list_prompts()` | List all prompts |\n| `await ctx.get_prompt(name, arguments)` | Render a prompt |\n| `await ctx.list_roots()` | List client-declared roots |\n| `await ctx.send_tool_list_changed()` | Notify client of tool list change |\n| `await ctx.send_resource_list_changed()` | Notify client of resource list change |\n| `ctx.get_state(key)` / `ctx.set_state(key, value)` | Request-scoped state dictionary (inherited by nested contexts) |\n\nThe state dict (`ctx._state`) is copied from the parent context on `__aenter__`, so middleware and tools can share state within a request without leaking to parent contexts.",
+  "claudeJson": {
+    "type": "result",
+    "subtype": "success",
+    "is_error": false,
+    "duration_ms": 66800,
+    "duration_api_ms": 65106,
+    "num_turns": 14,
+    "result": "Now I have a comprehensive picture. Here's how FastMCP handles Context dependency injection:\n\n---\n\n## Context Dependency Injection in FastMCP\n\n### How it gets injected\n\nThere are **two mechanisms**, both backed by a `ContextVar`:\n\n**1. Type-annotation detection (primary/legacy)**\n\nWhen a tool/resource/prompt function is registered, `without_injected_parameters()` (`dependencies.py:97`) scans the function's type hints using `_find_kwarg_by_type()` (`dependencies.py:71`). It looks for any parameter annotated with the `Context` type (including inside `Annotated[...]` or `Union[..., Context]`). The parameter name doesn't matter — only the type annotation.\n\nAt call time, `resolve_dependencies()` (`dependencies.py:224`) injects the live context into that kwarg:\n```python\ncontext_kwarg = _find_kwarg_by_type(fn, kwarg_type=Context)\nif context_kwarg and context_kwarg not in resolved_kwargs:\n    resolved_kwargs[context_kwarg] = get_context()\n```\n\n**2. `CurrentContext()` dependency default (modern)**\n\nThe `CurrentContext()` function (`dependencies.py:297`) returns a `_CurrentContext` dependency object. When used as a default value (`ctx: Context = CurrentContext()`), Docket's dependency resolution picks it up via `get_dependency_parameters()` and resolves it by calling `get_context()`.\n\nBoth paths ultimately call the same `get_context()` function.\n\n---\n\n### How the context is set\n\nThe `Context` object is a `@dataclass` (`context.py:117`) that is set into a `ContextVar` named `_current_context`. The server creates a `Context(fastmcp=server)` instance and activates it as an async context manager before dispatching a tool/resource/prompt call:\n\n```python\n# context.py:108\n@contextmanager\ndef set_context(context: Context) -> Generator[Context, None, None]:\n    token = _current_context.set(context)\n    ...\n```\n\n`Context.__aenter__` (`context.py:176`) sets both `_current_context` and `_current_server` ContextVars. `get_context()` reads from `_current_context`, raising `RuntimeError` if no context is active.\n\n---\n\n### Schema hiding\n\n`without_injected_parameters()` also creates a **wrapper function** with a stripped signature that excludes `Context` and `Depends()` parameters. This wrapper is what Pydantic's `TypeAdapter` uses for JSON schema generation and input validation — so `Context` never appears in the tool's exposed input schema.\n\n---\n\n### What's available on `Context`\n\n| Property / Method | Description |\n|---|---|\n| `ctx.request_id` | Unique ID for the current MCP request |\n| `ctx.session_id` | Session ID (works across all transports) |\n| `ctx.client_id` | Client identifier if provided |\n| `ctx.session` | Raw `ServerSession` for advanced use |\n| `ctx.request_context` | Underlying `RequestContext` (may be `None` before MCP session established) |\n| `ctx.fastmcp` | The `FastMCP` server instance |\n| `await ctx.report_progress(progress, total, message)` | Send progress notifications to client |\n| `await ctx.log(message, level, logger_name)` | Send a log message to the client |\n| `await ctx.debug/info/warning/error(message)` | Convenience log-level methods |\n| `await ctx.read_resource(uri)` | Read a resource by URI, returns `list[ResourceContent]` |\n| `await ctx.list_resources()` | List all resources on the server |\n| `await ctx.list_prompts()` | List all prompts |\n| `await ctx.get_prompt(name, arguments)` | Render a prompt |\n| `await ctx.list_roots()` | List client-declared roots |\n| `await ctx.send_tool_list_changed()` | Notify client of tool list change |\n| `await ctx.send_resource_list_changed()` | Notify client of resource list change |\n| `ctx.get_state(key)` / `ctx.set_state(key, value)` | Request-scoped state dictionary (inherited by nested contexts) |\n\nThe state dict (`ctx._state`) is copied from the parent context on `__aenter__`, so middleware and tools can share state within a request without leaking to parent contexts.",
+    "stop_reason": "end_turn",
+    "session_id": "a0a1f810-514f-4d62-8b2c-c6bc16070c7f",
+    "total_cost_usd": 0.503909,
+    "usage": {
+      "input_tokens": 14,
+      "cache_creation_input_tokens": 49078,
+      "cache_read_input_tokens": 247003,
+      "output_tokens": 2944,
+      "server_tool_use": {
+        "web_search_requests": 0,
+        "web_fetch_requests": 0
+      },
+      "service_tier": "standard",
+      "cache_creation": {
+        "ephemeral_1h_input_tokens": 0,
+        "ephemeral_5m_input_tokens": 49078
+      },
+      "inference_geo": "",
+      "iterations": [],
+      "speed": "standard"
+    },
+    "modelUsage": {
+      "claude-sonnet-4-6": {
+        "inputTokens": 14,
+        "outputTokens": 2944,
+        "cacheReadInputTokens": 247003,
+        "cacheCreationInputTokens": 49078,
+        "webSearchRequests": 0,
+        "costUSD": 0.503909,
+        "contextWindow": 200000,
+        "maxOutputTokens": 32000
+      }
+    },
+    "permission_denials": [],
+    "fast_mode_state": "off",
+    "uuid": "e6d4c2bc-212d-4a73-800d-5fb6b91d6f53"
+  },
+  "durationMs": 70925,
+  "tokensIn": 14,
+  "tokensOut": 2944,
+  "toolCalls": 14,
+  "costUsd": 0.503909,
+  "timestamp": "2026-03-05T23:52:57.302Z"
+}

@@ -1,0 +1,59 @@
+{
+  "scenarioId": 9,
+  "repo": "fastmcp",
+  "condition": "baseline",
+  "title": "Feature: resource description param",
+  "task": "Add a `description` parameter to the `@mcp.resource` decorator that gets included in the resource's MCP metadata.",
+  "output": "The `description` parameter is already fully implemented. Here's the full picture:\n\n1. **Decorator signature** (`server.py:2040`): `description: str | None = None`\n2. **Base component** (`components.py:44`): `description: str | None` field inherited by all components\n3. **FunctionResource** (`resource.py:388`): `description=description or inspect.getdoc(fn)` — falls back to the docstring\n4. **MCP metadata** (`resource.py:288`): `description=overrides.get(\"description\", self.description)` included in `to_mcp_resource()`\n5. **Tests** (`test_server.py:486`): `test_resource_decorator_with_description` already covers this\n\nExample usage that already works:\n\n```python\n@mcp.resource(\"resource://data\", description=\"My resource description\")\ndef get_data() -> str:\n    return \"Hello, world!\"\n```\n\nOr via docstring (auto-extracted if no explicit `description`):\n\n```python\n@mcp.resource(\"resource://data\")\ndef get_data() -> str:\n    \"\"\"My resource description.\"\"\"\n    return \"Hello, world!\"\n```\n\nNo changes needed — this feature is already complete and tested.",
+  "claudeJson": {
+    "type": "result",
+    "subtype": "success",
+    "is_error": false,
+    "duration_ms": 54127,
+    "duration_api_ms": 53165,
+    "num_turns": 11,
+    "result": "The `description` parameter is already fully implemented. Here's the full picture:\n\n1. **Decorator signature** (`server.py:2040`): `description: str | None = None`\n2. **Base component** (`components.py:44`): `description: str | None` field inherited by all components\n3. **FunctionResource** (`resource.py:388`): `description=description or inspect.getdoc(fn)` — falls back to the docstring\n4. **MCP metadata** (`resource.py:288`): `description=overrides.get(\"description\", self.description)` included in `to_mcp_resource()`\n5. **Tests** (`test_server.py:486`): `test_resource_decorator_with_description` already covers this\n\nExample usage that already works:\n\n```python\n@mcp.resource(\"resource://data\", description=\"My resource description\")\ndef get_data() -> str:\n    return \"Hello, world!\"\n```\n\nOr via docstring (auto-extracted if no explicit `description`):\n\n```python\n@mcp.resource(\"resource://data\")\ndef get_data() -> str:\n    \"\"\"My resource description.\"\"\"\n    return \"Hello, world!\"\n```\n\nNo changes needed — this feature is already complete and tested.",
+    "stop_reason": "end_turn",
+    "session_id": "a3607fb3-fdf4-4f70-b912-73fe43e32d52",
+    "total_cost_usd": 0.29324975,
+    "usage": {
+      "input_tokens": 12,
+      "cache_creation_input_tokens": 25929,
+      "cache_read_input_tokens": 119917,
+      "output_tokens": 2847,
+      "server_tool_use": {
+        "web_search_requests": 0,
+        "web_fetch_requests": 0
+      },
+      "service_tier": "standard",
+      "cache_creation": {
+        "ephemeral_1h_input_tokens": 0,
+        "ephemeral_5m_input_tokens": 25929
+      },
+      "inference_geo": "",
+      "iterations": [],
+      "speed": "standard"
+    },
+    "modelUsage": {
+      "claude-sonnet-4-6": {
+        "inputTokens": 12,
+        "outputTokens": 2847,
+        "cacheReadInputTokens": 119917,
+        "cacheCreationInputTokens": 25929,
+        "webSearchRequests": 0,
+        "costUSD": 0.29324975,
+        "contextWindow": 200000,
+        "maxOutputTokens": 32000
+      }
+    },
+    "permission_denials": [],
+    "fast_mode_state": "off",
+    "uuid": "63931284-3a83-430a-87c7-a1cbaf8645be"
+  },
+  "durationMs": 57995,
+  "tokensIn": 12,
+  "tokensOut": 2847,
+  "toolCalls": 11,
+  "costUsd": 0.29324975,
+  "timestamp": "2026-03-05T23:41:55.337Z"
+}

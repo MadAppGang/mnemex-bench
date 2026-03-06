@@ -1,0 +1,59 @@
+{
+  "scenarioId": 7,
+  "repo": "fastmcp",
+  "condition": "observations",
+  "title": "Feature: middleware pipeline",
+  "task": "How do I add middleware to a FastMCP server? What's the middleware pipeline and execution order? Do NOT make any code changes.",
+  "output": "Here's how FastMCP middleware works:\n\n---\n\n## Adding Middleware\n\n**At construction:**\n```python\nmcp = FastMCP(\"MyServer\", middleware=[MyMiddleware(), AnotherMiddleware()])\n```\n\n**After construction:**\n```python\nmcp.add_middleware(MyMiddleware())\n```\n\n---\n\n## Writing Middleware\n\nSubclass `Middleware` from `fastmcp.server.middleware` and override only the hooks you need:\n\n```python\nfrom fastmcp.server.middleware import Middleware, MiddlewareContext, CallNext\n\nclass LoggingMiddleware(Middleware):\n    async def on_call_tool(self, context, call_next):\n        print(f\"Calling tool: {context.message.name}\")\n        result = await call_next(context)\n        print(f\"Done: {context.message.name}\")\n        return result\n```\n\n**Available hooks** (all default to `call_next` passthrough):\n- `on_message` — every message (broadest)\n- `on_request` / `on_notification` — by message type\n- `on_initialize`\n- `on_call_tool`, `on_list_tools`\n- `on_read_resource`, `on_list_resources`, `on_list_resource_templates`\n- `on_get_prompt`, `on_list_prompts`\n\n---\n\n## Execution Order & Pipeline\n\nThe chain is built by iterating `self.middleware` **in reverse** (`:658`), so the **first middleware in the list is outermost** — it runs first before the call and last after:\n\n```\nmiddleware = [A, B, C]\n\nRequest  →  A.on_message → B.on_message → C.on_message → handler\nResponse ←  A.on_message ← B.on_message ← C.on_message ← handler\n```\n\n**Within a single `Middleware` instance**, the dispatch chain is layered from innermost to outermost (`:96-126`):\n\n```\non_message\n  └─ on_request (or on_notification)\n       └─ on_call_tool (or other specific hook)\n            └─ call_next (actual handler)\n```\n\nSo `on_message` wraps `on_request`, which wraps the specific hook like `on_call_tool`. When you call `call_next` inside `on_call_tool`, you're invoking the next middleware's `on_message` (not jumping straight to the handler).",
+  "claudeJson": {
+    "type": "result",
+    "subtype": "success",
+    "is_error": false,
+    "duration_ms": 26366,
+    "duration_api_ms": 25557,
+    "num_turns": 8,
+    "result": "Here's how FastMCP middleware works:\n\n---\n\n## Adding Middleware\n\n**At construction:**\n```python\nmcp = FastMCP(\"MyServer\", middleware=[MyMiddleware(), AnotherMiddleware()])\n```\n\n**After construction:**\n```python\nmcp.add_middleware(MyMiddleware())\n```\n\n---\n\n## Writing Middleware\n\nSubclass `Middleware` from `fastmcp.server.middleware` and override only the hooks you need:\n\n```python\nfrom fastmcp.server.middleware import Middleware, MiddlewareContext, CallNext\n\nclass LoggingMiddleware(Middleware):\n    async def on_call_tool(self, context, call_next):\n        print(f\"Calling tool: {context.message.name}\")\n        result = await call_next(context)\n        print(f\"Done: {context.message.name}\")\n        return result\n```\n\n**Available hooks** (all default to `call_next` passthrough):\n- `on_message` — every message (broadest)\n- `on_request` / `on_notification` — by message type\n- `on_initialize`\n- `on_call_tool`, `on_list_tools`\n- `on_read_resource`, `on_list_resources`, `on_list_resource_templates`\n- `on_get_prompt`, `on_list_prompts`\n\n---\n\n## Execution Order & Pipeline\n\nThe chain is built by iterating `self.middleware` **in reverse** (`:658`), so the **first middleware in the list is outermost** — it runs first before the call and last after:\n\n```\nmiddleware = [A, B, C]\n\nRequest  →  A.on_message → B.on_message → C.on_message → handler\nResponse ←  A.on_message ← B.on_message ← C.on_message ← handler\n```\n\n**Within a single `Middleware` instance**, the dispatch chain is layered from innermost to outermost (`:96-126`):\n\n```\non_message\n  └─ on_request (or on_notification)\n       └─ on_call_tool (or other specific hook)\n            └─ call_next (actual handler)\n```\n\nSo `on_message` wraps `on_request`, which wraps the specific hook like `on_call_tool`. When you call `call_next` inside `on_call_tool`, you're invoking the next middleware's `on_message` (not jumping straight to the handler).",
+    "stop_reason": "end_turn",
+    "session_id": "19e56892-34af-46f5-99ee-b8bcc652ec2e",
+    "total_cost_usd": 0.18552450000000004,
+    "usage": {
+      "input_tokens": 9,
+      "cache_creation_input_tokens": 19814,
+      "cache_read_input_tokens": 52034,
+      "output_tokens": 1425,
+      "server_tool_use": {
+        "web_search_requests": 0,
+        "web_fetch_requests": 0
+      },
+      "service_tier": "standard",
+      "cache_creation": {
+        "ephemeral_1h_input_tokens": 0,
+        "ephemeral_5m_input_tokens": 19814
+      },
+      "inference_geo": "",
+      "iterations": [],
+      "speed": "standard"
+    },
+    "modelUsage": {
+      "claude-sonnet-4-6": {
+        "inputTokens": 9,
+        "outputTokens": 1425,
+        "cacheReadInputTokens": 52034,
+        "cacheCreationInputTokens": 19814,
+        "webSearchRequests": 0,
+        "costUSD": 0.18552450000000004,
+        "contextWindow": 200000,
+        "maxOutputTokens": 32000
+      }
+    },
+    "permission_denials": [],
+    "fast_mode_state": "off",
+    "uuid": "394d4e2b-22f2-4caf-a2df-32b143e45d87"
+  },
+  "durationMs": 30734,
+  "tokensIn": 9,
+  "tokensOut": 1425,
+  "toolCalls": 8,
+  "costUsd": 0.18552450000000004,
+  "timestamp": "2026-03-05T23:37:49.653Z"
+}

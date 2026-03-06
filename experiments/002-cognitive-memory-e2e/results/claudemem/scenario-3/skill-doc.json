@@ -1,0 +1,59 @@
+{
+  "scenarioId": 3,
+  "repo": "claudemem",
+  "condition": "skill-doc",
+  "title": "Architecture: search scoring",
+  "task": "How does the search scoring system work? Explain the fusion of vector and keyword results, and how document type weights affect ranking. Do NOT make any code changes.",
+  "output": "I now have the complete picture. Here's how the search scoring system works:\n\n---\n\n## Search Scoring System\n\n### 1. Two Search Signals: Vector + BM25\n\nEvery search runs **two parallel queries** against LanceDB:\n- **Vector search** — cosine/ANN similarity of the query embedding vs. stored embeddings\n- **BM25 full-text search** — keyword-frequency scoring (TF-IDF variant)\n\nBoth produce ranked lists of results.\n\n---\n\n### 2. Fusion via Reciprocal Rank Fusion (RRF)\n\nThe two ranked lists are merged using **RRF**, not by combining raw similarity scores. RRF only cares about *rank position*, which makes it robust to score-scale mismatches between vector and keyword systems.\n\nThere are two variants of RRF used:\n\n#### Plain RRF (`reciprocalRankFusion`) — used for code unit search\n```\nrrf_contribution = (source_weight × testWeight) / (k + rank + 1)\n```\nwhere `k = 60` (the standard RRF smoothing constant).\n\nA document's `fusedScore` is the **sum of its RRF contributions** from each list it appears in. Documents appearing in both lists get contributions from both and naturally rank higher.\n\n#### Type-Aware RRF (`typeAwareRRFFusion`) — used for enriched document search\n```\nrrf_contribution = (source_weight × typeWeight × testWeight) / (k + rank + 1)\n```\nThis multiplies in a **document type weight** per result, explained next.\n\nGlobal source weights (`store.ts:43-46`):\n- Vector: **0.6**\n- BM25: **0.4**\n\n---\n\n### 3. Document Type Weights\n\nType weights are the key lever for tuning relevance per use case. They're applied multiplicatively inside the RRF formula — a document type with weight `0.0` can never score, while one with `0.3` scores 3× higher than one with `0.1` at the same rank.\n\n**Use case presets** (`store.ts:1423-1463`):\n\n| Document Type | `fim` (code completion) | `search` (human) | `navigation` (agent) |\n|---|---|---|---|\n| `code_chunk` | **0.40** | 0.15 | 0.15 |\n| `usage_example` | 0.20 | 0.08 | — |\n| `symbol_summary` | 0.08 | **0.20** | **0.28** |\n| `file_summary` | — | **0.20** | **0.25** |\n| `idiom` | 0.12 | 0.12 | 0.08 |\n| `framework_doc` | 0.07 | 0.10 | 0.10 |\n| `api_reference` | 0.10 | 0.05 | 0.08 |\n| `session_observation` | 0.05 | **0.20** | 0.15 |\n| `anti_pattern` | — | 0.05 | — |\n| `best_practice` | 0.03 | 0.05 | 0.02 |\n\nUnknown types default to **0.1**. Custom weights can be passed at search time to override any preset.\n\n---\n\n### 4. Test File Handling\n\nA third multiplier, `testWeight`, is applied inside RRF:\n- `exclude` mode: test files are filtered out entirely before fusion\n- `downrank` mode: test files get `testWeight = 0.3` (constant `TEST_FILE_WEIGHT`), meaning their score contribution is reduced to 30%\n- Default: `testWeight = 1.0` (no effect)\n\n---\n\n### 5. Final Score Normalization\n\nAfter fusion, the raw `fusedScore` values are **normalized by the maximum score** in the result set, so the top result always gets `score = 1.0` and all others are in `[0, 1]`. This is what gets returned as `EnrichedSearchResult.score`.\n\n---\n\n### 6. Cloud + Local Overlay Merging\n\nWhen the cloud index and a local \"overlay\" (dirty/unsaved files) are both involved (`OverlayMerger`), each set is **independently min-max normalized** to `[0, 1]`, then they're concatenated and sorted by the normalized score. This prevents cloud scores (which could be on a different scale) from dominating.\n\n---\n\n### 7. Optional LLM Reranking (Enhanced Retriever)\n\nThe `EnhancedRetriever` adds an optional post-processing step on top:\n1. Fetch `initialLimit = 30` results via the hybrid RRF pipeline\n2. Pass them to `LLMReranker`, which scores each by relevance to the query\n3. Discard any with `rerankScore < minRerankScore` (default: 3)\n4. Return the top `finalLimit = 10`\n\nThis step is only active when an LLM client is configured.",
+  "claudeJson": {
+    "type": "result",
+    "subtype": "success",
+    "is_error": false,
+    "duration_ms": 87229,
+    "duration_api_ms": 84907,
+    "num_turns": 14,
+    "result": "I now have the complete picture. Here's how the search scoring system works:\n\n---\n\n## Search Scoring System\n\n### 1. Two Search Signals: Vector + BM25\n\nEvery search runs **two parallel queries** against LanceDB:\n- **Vector search** — cosine/ANN similarity of the query embedding vs. stored embeddings\n- **BM25 full-text search** — keyword-frequency scoring (TF-IDF variant)\n\nBoth produce ranked lists of results.\n\n---\n\n### 2. Fusion via Reciprocal Rank Fusion (RRF)\n\nThe two ranked lists are merged using **RRF**, not by combining raw similarity scores. RRF only cares about *rank position*, which makes it robust to score-scale mismatches between vector and keyword systems.\n\nThere are two variants of RRF used:\n\n#### Plain RRF (`reciprocalRankFusion`) — used for code unit search\n```\nrrf_contribution = (source_weight × testWeight) / (k + rank + 1)\n```\nwhere `k = 60` (the standard RRF smoothing constant).\n\nA document's `fusedScore` is the **sum of its RRF contributions** from each list it appears in. Documents appearing in both lists get contributions from both and naturally rank higher.\n\n#### Type-Aware RRF (`typeAwareRRFFusion`) — used for enriched document search\n```\nrrf_contribution = (source_weight × typeWeight × testWeight) / (k + rank + 1)\n```\nThis multiplies in a **document type weight** per result, explained next.\n\nGlobal source weights (`store.ts:43-46`):\n- Vector: **0.6**\n- BM25: **0.4**\n\n---\n\n### 3. Document Type Weights\n\nType weights are the key lever for tuning relevance per use case. They're applied multiplicatively inside the RRF formula — a document type with weight `0.0` can never score, while one with `0.3` scores 3× higher than one with `0.1` at the same rank.\n\n**Use case presets** (`store.ts:1423-1463`):\n\n| Document Type | `fim` (code completion) | `search` (human) | `navigation` (agent) |\n|---|---|---|---|\n| `code_chunk` | **0.40** | 0.15 | 0.15 |\n| `usage_example` | 0.20 | 0.08 | — |\n| `symbol_summary` | 0.08 | **0.20** | **0.28** |\n| `file_summary` | — | **0.20** | **0.25** |\n| `idiom` | 0.12 | 0.12 | 0.08 |\n| `framework_doc` | 0.07 | 0.10 | 0.10 |\n| `api_reference` | 0.10 | 0.05 | 0.08 |\n| `session_observation` | 0.05 | **0.20** | 0.15 |\n| `anti_pattern` | — | 0.05 | — |\n| `best_practice` | 0.03 | 0.05 | 0.02 |\n\nUnknown types default to **0.1**. Custom weights can be passed at search time to override any preset.\n\n---\n\n### 4. Test File Handling\n\nA third multiplier, `testWeight`, is applied inside RRF:\n- `exclude` mode: test files are filtered out entirely before fusion\n- `downrank` mode: test files get `testWeight = 0.3` (constant `TEST_FILE_WEIGHT`), meaning their score contribution is reduced to 30%\n- Default: `testWeight = 1.0` (no effect)\n\n---\n\n### 5. Final Score Normalization\n\nAfter fusion, the raw `fusedScore` values are **normalized by the maximum score** in the result set, so the top result always gets `score = 1.0` and all others are in `[0, 1]`. This is what gets returned as `EnrichedSearchResult.score`.\n\n---\n\n### 6. Cloud + Local Overlay Merging\n\nWhen the cloud index and a local \"overlay\" (dirty/unsaved files) are both involved (`OverlayMerger`), each set is **independently min-max normalized** to `[0, 1]`, then they're concatenated and sorted by the normalized score. This prevents cloud scores (which could be on a different scale) from dominating.\n\n---\n\n### 7. Optional LLM Reranking (Enhanced Retriever)\n\nThe `EnhancedRetriever` adds an optional post-processing step on top:\n1. Fetch `initialLimit = 30` results via the hybrid RRF pipeline\n2. Pass them to `LLMReranker`, which scores each by relevance to the query\n3. Discard any with `rerankScore < minRerankScore` (default: 3)\n4. Return the top `finalLimit = 10`\n\nThis step is only active when an LLM client is configured.",
+    "stop_reason": "end_turn",
+    "session_id": "5e97ddcb-f5c7-469b-a0ca-ac63c77c7092",
+    "total_cost_usd": 0.4398525,
+    "usage": {
+      "input_tokens": 4758,
+      "cache_creation_input_tokens": 36714,
+      "cache_read_input_tokens": 177200,
+      "output_tokens": 3920,
+      "server_tool_use": {
+        "web_search_requests": 0,
+        "web_fetch_requests": 0
+      },
+      "service_tier": "standard",
+      "cache_creation": {
+        "ephemeral_1h_input_tokens": 0,
+        "ephemeral_5m_input_tokens": 36714
+      },
+      "inference_geo": "",
+      "iterations": [],
+      "speed": "standard"
+    },
+    "modelUsage": {
+      "claude-sonnet-4-6": {
+        "inputTokens": 4758,
+        "outputTokens": 3920,
+        "cacheReadInputTokens": 177200,
+        "cacheCreationInputTokens": 36714,
+        "webSearchRequests": 0,
+        "costUSD": 0.4398525,
+        "contextWindow": 200000,
+        "maxOutputTokens": 32000
+      }
+    },
+    "permission_denials": [],
+    "fast_mode_state": "off",
+    "uuid": "b12e994b-10dc-4c9f-95a3-086e3f374687"
+  },
+  "durationMs": 92371,
+  "tokensIn": 4758,
+  "tokensOut": 3920,
+  "toolCalls": 14,
+  "costUsd": 0.4398525,
+  "timestamp": "2026-03-05T22:49:34.470Z"
+}

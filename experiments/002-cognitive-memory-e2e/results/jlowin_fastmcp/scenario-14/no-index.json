@@ -1,0 +1,59 @@
+{
+  "scenarioId": 14,
+  "repo": "fastmcp",
+  "condition": "no-index",
+  "title": "Architecture: context dependency injection",
+  "task": "How does FastMCP handle Context dependency injection in tool and resource functions? Explain how a tool function receives the Context object and what's available on it. Do NOT make any code changes.",
+  "output": "Here's how FastMCP handles `Context` dependency injection:\n\n---\n\n## How Context Is Injected\n\n### 1. Detection — `_find_kwarg_by_type` (`dependencies.py:71`)\n\nWhen a tool or resource is registered, FastMCP inspects the function signature via `get_type_hints()` and scans every parameter looking for one annotated as `Context` (including `Union` types and `Annotated` wrappers). The parameter name is irrelevant — only the type annotation matters.\n\n### 2. Schema Stripping — `without_injected_parameters` (`dependencies.py:97`)\n\nBefore Pydantic builds the JSON schema for the tool's inputs, the `Context` parameter (and any Docket `Depends()` parameters) are stripped out. This produces a clean schema that only reflects user-facing arguments. The function is wrapped with a new `__signature__` that omits the injected params. This wrapper is what Pydantic sees.\n\n### 3. Injection at Call Time — `resolve_dependencies` (`dependencies.py:224`)\n\nWhen the tool is invoked, `resolve_dependencies()` is used as an async context manager:\n1. It filters dependency parameter names out of the incoming user arguments (security: callers can't override injected values).\n2. It resolves Docket `Depends()` dependencies.\n3. It calls `get_context()`, which reads from the `_current_context` `ContextVar`, and adds it to the kwargs under whatever parameter name was annotated as `Context`.\n\n### 4. Context Availability — `_current_context` ContextVar (`context.py:~108`)\n\nThe `Context` object is stored in a `ContextVar`. It's set when a `Context` instance is used as an async context manager (`async with context:`), which happens during request handling in the server. The `ContextVar` ensures each concurrent request has its own isolated context.\n\n---\n\n## Two Ways to Receive Context\n\n**Legacy (type annotation):** Any parameter annotated as `Context` is auto-injected, regardless of its name:\n```python\n@mcp.tool\nasync def my_tool(x: int, ctx: Context) -> str: ...\n```\n\n**Explicit dependency:** Use `CurrentContext()` as a default value (Docket-style `Depends()`):\n```python\n@mcp.tool\nasync def my_tool(x: int, ctx: Context = CurrentContext()) -> str: ...\n```\n\n---\n\n## What's Available on `Context`\n\n**Properties:**\n| Property | Description |\n|---|---|\n| `request_id` | Unique ID for the current MCP request |\n| `session_id` | Session ID (works across all transports) |\n| `client_id` | Client ID if provided in request metadata |\n| `session` | Raw `ServerSession` for advanced use |\n| `request_context` | Underlying `RequestContext` (may be `None` before MCP session established) |\n| `fastmcp` | The `FastMCP` server instance |\n\n**Logging (all async, send to MCP client):**\n- `ctx.log(message, level, ...)` — generic log\n- `ctx.debug()`, `ctx.info()`, `ctx.warning()`, `ctx.error()` — convenience wrappers\n\nMessages are also echoed to the `fastmcp.server.context.to_client` Python logger at `DEBUG` level.\n\n**Progress:**\n- `ctx.report_progress(progress, total, message)` — sends a progress notification (no-op if client didn't provide a `progressToken`)\n\n**Resource/Prompt access:**\n- `ctx.read_resource(uri)` → `list[ResourceContent]`\n- `ctx.list_resources()` → `list[Resource]`\n- `ctx.list_prompts()` → `list[Prompt]`\n- `ctx.get_prompt(name, arguments)` → `GetPromptResult`\n\n**Sampling (LLM calls back through the client):**\n- `ctx.sample(messages, ...)` — runs a full tool loop to completion, returns `SamplingResult`\n- `ctx.sample_step(messages, ...)` — single LLM call with manual loop control, returns `SampleStep`\n\n**Elicitation (request input from the user mid-call):**\n- `ctx.elicit(message, response_type)` — returns `AcceptedElicitation`, `DeclinedElicitation`, or `CancelledElicitation`\n\n**State (per-request in-memory KV store):**\n- `ctx.set_state(key, value)` / `ctx.get_state(key)` — share data between middleware and tool calls within a request; nested contexts inherit a deep copy of parent state\n\n**Notifications:**\n- `ctx.send_tool_list_changed()`, `ctx.send_resource_list_changed()`, `ctx.send_prompt_list_changed()`\n\n**Transport:**\n- `ctx.close_sse_stream()` — for StreamableHTTP with an `EventStore`, closes the SSE stream to let the client reconnect (avoids load balancer timeouts in long-running tools)\n- `ctx.list_roots()` — asks the client for its declared filesystem roots",
+  "claudeJson": {
+    "type": "result",
+    "subtype": "success",
+    "is_error": false,
+    "duration_ms": 73844,
+    "duration_api_ms": 73150,
+    "num_turns": 15,
+    "result": "Here's how FastMCP handles `Context` dependency injection:\n\n---\n\n## How Context Is Injected\n\n### 1. Detection — `_find_kwarg_by_type` (`dependencies.py:71`)\n\nWhen a tool or resource is registered, FastMCP inspects the function signature via `get_type_hints()` and scans every parameter looking for one annotated as `Context` (including `Union` types and `Annotated` wrappers). The parameter name is irrelevant — only the type annotation matters.\n\n### 2. Schema Stripping — `without_injected_parameters` (`dependencies.py:97`)\n\nBefore Pydantic builds the JSON schema for the tool's inputs, the `Context` parameter (and any Docket `Depends()` parameters) are stripped out. This produces a clean schema that only reflects user-facing arguments. The function is wrapped with a new `__signature__` that omits the injected params. This wrapper is what Pydantic sees.\n\n### 3. Injection at Call Time — `resolve_dependencies` (`dependencies.py:224`)\n\nWhen the tool is invoked, `resolve_dependencies()` is used as an async context manager:\n1. It filters dependency parameter names out of the incoming user arguments (security: callers can't override injected values).\n2. It resolves Docket `Depends()` dependencies.\n3. It calls `get_context()`, which reads from the `_current_context` `ContextVar`, and adds it to the kwargs under whatever parameter name was annotated as `Context`.\n\n### 4. Context Availability — `_current_context` ContextVar (`context.py:~108`)\n\nThe `Context` object is stored in a `ContextVar`. It's set when a `Context` instance is used as an async context manager (`async with context:`), which happens during request handling in the server. The `ContextVar` ensures each concurrent request has its own isolated context.\n\n---\n\n## Two Ways to Receive Context\n\n**Legacy (type annotation):** Any parameter annotated as `Context` is auto-injected, regardless of its name:\n```python\n@mcp.tool\nasync def my_tool(x: int, ctx: Context) -> str: ...\n```\n\n**Explicit dependency:** Use `CurrentContext()` as a default value (Docket-style `Depends()`):\n```python\n@mcp.tool\nasync def my_tool(x: int, ctx: Context = CurrentContext()) -> str: ...\n```\n\n---\n\n## What's Available on `Context`\n\n**Properties:**\n| Property | Description |\n|---|---|\n| `request_id` | Unique ID for the current MCP request |\n| `session_id` | Session ID (works across all transports) |\n| `client_id` | Client ID if provided in request metadata |\n| `session` | Raw `ServerSession` for advanced use |\n| `request_context` | Underlying `RequestContext` (may be `None` before MCP session established) |\n| `fastmcp` | The `FastMCP` server instance |\n\n**Logging (all async, send to MCP client):**\n- `ctx.log(message, level, ...)` — generic log\n- `ctx.debug()`, `ctx.info()`, `ctx.warning()`, `ctx.error()` — convenience wrappers\n\nMessages are also echoed to the `fastmcp.server.context.to_client` Python logger at `DEBUG` level.\n\n**Progress:**\n- `ctx.report_progress(progress, total, message)` — sends a progress notification (no-op if client didn't provide a `progressToken`)\n\n**Resource/Prompt access:**\n- `ctx.read_resource(uri)` → `list[ResourceContent]`\n- `ctx.list_resources()` → `list[Resource]`\n- `ctx.list_prompts()` → `list[Prompt]`\n- `ctx.get_prompt(name, arguments)` → `GetPromptResult`\n\n**Sampling (LLM calls back through the client):**\n- `ctx.sample(messages, ...)` — runs a full tool loop to completion, returns `SamplingResult`\n- `ctx.sample_step(messages, ...)` — single LLM call with manual loop control, returns `SampleStep`\n\n**Elicitation (request input from the user mid-call):**\n- `ctx.elicit(message, response_type)` — returns `AcceptedElicitation`, `DeclinedElicitation`, or `CancelledElicitation`\n\n**State (per-request in-memory KV store):**\n- `ctx.set_state(key, value)` / `ctx.get_state(key)` — share data between middleware and tool calls within a request; nested contexts inherit a deep copy of parent state\n\n**Notifications:**\n- `ctx.send_tool_list_changed()`, `ctx.send_resource_list_changed()`, `ctx.send_prompt_list_changed()`\n\n**Transport:**\n- `ctx.close_sse_stream()` — for StreamableHTTP with an `EventStore`, closes the SSE stream to let the client reconnect (avoids load balancer timeouts in long-running tools)\n- `ctx.list_roots()` — asks the client for its declared filesystem roots",
+    "stop_reason": "end_turn",
+    "session_id": "452b8396-8f5f-45bd-b1f9-5d29187ce9fb",
+    "total_cost_usd": 0.49788375000000007,
+    "usage": {
+      "input_tokens": 15,
+      "cache_creation_input_tokens": 44711,
+      "cache_read_input_tokens": 269930,
+      "output_tokens": 3336,
+      "server_tool_use": {
+        "web_search_requests": 0,
+        "web_fetch_requests": 0
+      },
+      "service_tier": "standard",
+      "cache_creation": {
+        "ephemeral_1h_input_tokens": 0,
+        "ephemeral_5m_input_tokens": 44711
+      },
+      "inference_geo": "",
+      "iterations": [],
+      "speed": "standard"
+    },
+    "modelUsage": {
+      "claude-sonnet-4-6": {
+        "inputTokens": 15,
+        "outputTokens": 3336,
+        "cacheReadInputTokens": 269930,
+        "cacheCreationInputTokens": 44711,
+        "webSearchRequests": 0,
+        "costUSD": 0.49788375000000007,
+        "contextWindow": 200000,
+        "maxOutputTokens": 32000
+      }
+    },
+    "permission_denials": [],
+    "fast_mode_state": "off",
+    "uuid": "4b322930-64ce-45ad-8ef1-03f7ebefa6fc"
+  },
+  "durationMs": 77835,
+  "tokensIn": 15,
+  "tokensOut": 3336,
+  "toolCalls": 15,
+  "costUsd": 0.49788375000000007,
+  "timestamp": "2026-03-05T23:50:40.202Z"
+}

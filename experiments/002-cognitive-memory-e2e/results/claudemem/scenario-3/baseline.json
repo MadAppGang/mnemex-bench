@@ -1,0 +1,59 @@
+{
+  "scenarioId": 3,
+  "repo": "claudemem",
+  "condition": "baseline",
+  "title": "Architecture: search scoring",
+  "task": "How does the search scoring system work? Explain the fusion of vector and keyword results, and how document type weights affect ranking. Do NOT make any code changes.",
+  "output": "Now I have the full picture. Here's how the scoring system works:\n\n---\n\n## Search Scoring System\n\n### 1. Two Retrieval Legs\n\nEvery search runs two parallel queries against LanceDB:\n- **Vector search** — ANN (approximate nearest neighbor) on the query embedding\n- **BM25 (keyword) search** — LanceDB's full-text search index\n\nBoth return ranked lists, which are then fused.\n\n---\n\n### 2. Reciprocal Rank Fusion (RRF)\n\nThe core fusion algorithm is **Reciprocal Rank Fusion** (`store.ts:1333`). For each result at rank `i` in a list:\n\n```\nrrf = weight / (k + i + 1)    where k = 60\n```\n\nThe `k=60` constant dampens the impact of rank differences — rank 1 vs rank 5 matters far less than rank 1 vs rank 100.\n\n**Global channel weights** split the 1.0 budget between the two legs:\n- `VECTOR_WEIGHT = 0.6`\n- `BM25_WEIGHT = 0.4`\n\nSo a document appearing at rank 0 in the vector list gets `0.6 / 61 ≈ 0.0098`. A document found in both lists accumulates contributions from both channels — this is RRF's key property: documents that rank well in both modalities get boosted.\n\n---\n\n### 3. Type-Aware Weighting (multiplied in)\n\nThe `typeAwareRRFFusion` function (`store.ts:1497`) adds a **third multiplier** for document type:\n\n```\nrrf = (channelWeight × typeWeight × testFileWeight) / (k + i + 1)\n```\n\nThe `typeWeight` is looked up from a use-case table. **Three use cases** are defined in `USE_CASE_WEIGHTS` (`store.ts:1422–1463`):\n\n| Use Case | Priority |\n|---|---|\n| `fim` | Code chunks (0.4), usage examples (0.2), idioms (0.12) |\n| `search` | File/symbol summaries (0.2 each), code chunks (0.15), framework docs (0.1) |\n| `navigation` | Symbol summaries (0.28), file summaries (0.25), code chunks (0.15) |\n\nA document type not in the table defaults to weight `0.1`. Custom per-call `typeWeights` can override these entirely.\n\nThe `EnrichedRetriever` in `retriever.ts` also exposes `DEFAULT_TYPE_WEIGHTS` with slightly different values — those are the retriever-layer presets, but the authoritative weights used in actual fusion live in `store.ts`'s `USE_CASE_WEIGHTS`.\n\n---\n\n### 4. Test File Handling\n\nControlled by the project's `testFileMode` config:\n- **`exclude`** — test files are removed from both result lists before fusion\n- **`downrank`** — test files keep their results but get multiplied by `TEST_FILE_WEIGHT = 0.3`, effectively pushing them toward the bottom\n\n---\n\n### 5. Final Score Normalization\n\nAfter fusion and sorting, the top results are **normalized** to `[0, 1]` by dividing each `fusedScore` by the top result's score (`store.ts:478, 889`):\n\n```\nscore = fusedScore / maxFusedScore\n```\n\nThe `vectorScore` and `keywordScore` fields on the result are stored as raw reciprocal ranks (`1/(i+1)`) for diagnostic purposes, not used in final ranking.\n\n---\n\n### Summary Flow\n\n```\nquery\n  ├─ embed → vector search (ranked list A)\n  └─ tokenize → BM25 search (ranked list B)\n       ↓\ntypeAwareRRFFusion:\n  for each result at rank i in A: score += (0.6 × typeWeight × testWeight) / (60 + i + 1)\n  for each result at rank i in B: score += (0.4 × typeWeight × testWeight) / (60 + i + 1)\n       ↓\nsort by fusedScore → slice to limit → normalize to [0,1]\n```",
+  "claudeJson": {
+    "type": "result",
+    "subtype": "success",
+    "is_error": false,
+    "duration_ms": 70098,
+    "duration_api_ms": 66969,
+    "num_turns": 15,
+    "result": "Now I have the full picture. Here's how the scoring system works:\n\n---\n\n## Search Scoring System\n\n### 1. Two Retrieval Legs\n\nEvery search runs two parallel queries against LanceDB:\n- **Vector search** — ANN (approximate nearest neighbor) on the query embedding\n- **BM25 (keyword) search** — LanceDB's full-text search index\n\nBoth return ranked lists, which are then fused.\n\n---\n\n### 2. Reciprocal Rank Fusion (RRF)\n\nThe core fusion algorithm is **Reciprocal Rank Fusion** (`store.ts:1333`). For each result at rank `i` in a list:\n\n```\nrrf = weight / (k + i + 1)    where k = 60\n```\n\nThe `k=60` constant dampens the impact of rank differences — rank 1 vs rank 5 matters far less than rank 1 vs rank 100.\n\n**Global channel weights** split the 1.0 budget between the two legs:\n- `VECTOR_WEIGHT = 0.6`\n- `BM25_WEIGHT = 0.4`\n\nSo a document appearing at rank 0 in the vector list gets `0.6 / 61 ≈ 0.0098`. A document found in both lists accumulates contributions from both channels — this is RRF's key property: documents that rank well in both modalities get boosted.\n\n---\n\n### 3. Type-Aware Weighting (multiplied in)\n\nThe `typeAwareRRFFusion` function (`store.ts:1497`) adds a **third multiplier** for document type:\n\n```\nrrf = (channelWeight × typeWeight × testFileWeight) / (k + i + 1)\n```\n\nThe `typeWeight` is looked up from a use-case table. **Three use cases** are defined in `USE_CASE_WEIGHTS` (`store.ts:1422–1463`):\n\n| Use Case | Priority |\n|---|---|\n| `fim` | Code chunks (0.4), usage examples (0.2), idioms (0.12) |\n| `search` | File/symbol summaries (0.2 each), code chunks (0.15), framework docs (0.1) |\n| `navigation` | Symbol summaries (0.28), file summaries (0.25), code chunks (0.15) |\n\nA document type not in the table defaults to weight `0.1`. Custom per-call `typeWeights` can override these entirely.\n\nThe `EnrichedRetriever` in `retriever.ts` also exposes `DEFAULT_TYPE_WEIGHTS` with slightly different values — those are the retriever-layer presets, but the authoritative weights used in actual fusion live in `store.ts`'s `USE_CASE_WEIGHTS`.\n\n---\n\n### 4. Test File Handling\n\nControlled by the project's `testFileMode` config:\n- **`exclude`** — test files are removed from both result lists before fusion\n- **`downrank`** — test files keep their results but get multiplied by `TEST_FILE_WEIGHT = 0.3`, effectively pushing them toward the bottom\n\n---\n\n### 5. Final Score Normalization\n\nAfter fusion and sorting, the top results are **normalized** to `[0, 1]` by dividing each `fusedScore` by the top result's score (`store.ts:478, 889`):\n\n```\nscore = fusedScore / maxFusedScore\n```\n\nThe `vectorScore` and `keywordScore` fields on the result are stored as raw reciprocal ranks (`1/(i+1)`) for diagnostic purposes, not used in final ranking.\n\n---\n\n### Summary Flow\n\n```\nquery\n  ├─ embed → vector search (ranked list A)\n  └─ tokenize → BM25 search (ranked list B)\n       ↓\ntypeAwareRRFFusion:\n  for each result at rank i in A: score += (0.6 × typeWeight × testWeight) / (60 + i + 1)\n  for each result at rank i in B: score += (0.4 × typeWeight × testWeight) / (60 + i + 1)\n       ↓\nsort by fusedScore → slice to limit → normalize to [0,1]\n```",
+    "stop_reason": "end_turn",
+    "session_id": "f1ea6c36-f41e-4333-aa28-468cfb578a4d",
+    "total_cost_usd": 0.418324,
+    "usage": {
+      "input_tokens": 17,
+      "cache_creation_input_tokens": 34020,
+      "cache_read_input_tokens": 250628,
+      "output_tokens": 3212,
+      "server_tool_use": {
+        "web_search_requests": 0,
+        "web_fetch_requests": 0
+      },
+      "service_tier": "standard",
+      "cache_creation": {
+        "ephemeral_1h_input_tokens": 0,
+        "ephemeral_5m_input_tokens": 34020
+      },
+      "inference_geo": "",
+      "iterations": [],
+      "speed": "standard"
+    },
+    "modelUsage": {
+      "claude-sonnet-4-6": {
+        "inputTokens": 17,
+        "outputTokens": 3212,
+        "cacheReadInputTokens": 250628,
+        "cacheCreationInputTokens": 34020,
+        "webSearchRequests": 0,
+        "costUSD": 0.418324,
+        "contextWindow": 200000,
+        "maxOutputTokens": 32000
+      }
+    },
+    "permission_denials": [],
+    "fast_mode_state": "off",
+    "uuid": "07959bbb-4553-47f7-afb0-9d3f96628d32"
+  },
+  "durationMs": 75960,
+  "tokensIn": 17,
+  "tokensOut": 3212,
+  "toolCalls": 15,
+  "costUsd": 0.418324,
+  "timestamp": "2026-03-05T22:47:59.557Z"
+}

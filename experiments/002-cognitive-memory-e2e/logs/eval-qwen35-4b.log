@@ -1,0 +1,81 @@
+`torch_dtype` is deprecated! Use `dtype` instead!
+Loaded 50 queries (1.0)
+Models to evaluate: qwen3.5-4b
+
+Loading qwen3.5-4b...
+  Base: Qwen/Qwen3.5-4B
+  Adapter: jackrudenko/claudemem-expansion-qwen3.5-4b
+  Device: mps, dtype: torch.float16
+Fetching 2 files:   0%|          | 0/2 [00:00<?, ?it/s]Fetching 2 files:  50%|█████     | 1/2 [09:59<09:59, 599.74s/it]Fetching 2 files: 100%|██████████| 2/2 [09:59<00:00, 299.87s/it]
+The fast path is not available because one of the required library is not installed. Falling back to torch implementation. To install follow https://github.com/fla-org/flash-linear-attention#installation and https://github.com/Dao-AILab/causal-conv1d
+Loading weights:   0%|          | 0/426 [00:00<?, ?it/s]Loading weights:   0%|          | 1/426 [00:02<18:54,  2.67s/it]Loading weights:  35%|███▍      | 148/426 [00:02<00:03, 72.36it/s]Loading weights:  47%|████▋     | 199/426 [00:03<00:02, 76.36it/s]Loading weights:  54%|█████▍    | 231/426 [00:03<00:02, 81.40it/s]Loading weights:  60%|█████▉    | 254/426 [00:04<00:02, 78.20it/s]Loading weights:  64%|██████▍   | 272/426 [00:04<00:01, 86.46it/s]Loading weights:  68%|██████▊   | 290/426 [00:04<00:01, 88.66it/s]Loading weights:  72%|███████▏  | 305/426 [00:04<00:01, 80.81it/s]Loading weights:  74%|███████▍  | 317/426 [00:04<00:01, 85.05it/s]Loading weights:  77%|███████▋  | 330/426 [00:04<00:01, 90.35it/s]Loading weights:  81%|████████  | 344/426 [00:04<00:00, 90.67it/s]Loading weights:  84%|████████▍ | 358/426 [00:05<00:00, 92.74it/s]Loading weights:  87%|████████▋ | 369/426 [00:05<00:00, 89.20it/s]Loading weights:  89%|████████▉ | 379/426 [00:05<00:00, 85.26it/s]Loading weights:  92%|█████████▏| 393/426 [00:05<00:00, 92.48it/s]Loading weights:  95%|█████████▍| 403/426 [00:05<00:00, 88.17it/s]Loading weights:  97%|█████████▋| 413/426 [00:05<00:00, 75.31it/s]Loading weights:  99%|█████████▉| 421/426 [00:05<00:00, 71.08it/s]Loading weights: 100%|██████████| 426/426 [00:05<00:00, 71.09it/s]
+  Model loaded and merged on mps
+
+============================================================
+Benchmarking: qwen3.5-4b-FT (4B, fine-tuned)
+============================================================
+  [1/50] "useEffect cleanup..." → fmt=1.00 total=0.74 34217ms
+  [2/50] "handleSubmit function..." → fmt=1.00 total=0.76 27212ms
+  [3/50] "SearchBar component..." → fmt=1.00 total=0.73 23263ms
+  [4/50] "createEmbeddingsClient..." → fmt=1.00 total=0.74 20277ms
+  [5/50] "parseParameterSize..." → fmt=1.00 total=0.73 19467ms
+  [6/50] "buildCombinedIndex..." → fmt=1.00 total=0.78 20394ms
+  [7/50] "cosineSimilarity helper..." → fmt=1.00 total=0.78 32494ms
+  [8/50] "QueryGenerator class..." → fmt=1.00 total=0.76 20085ms
+  [9/50] "aggregateRetrievalResults..." → fmt=1.00 total=0.77 21952ms
+  [10/50] "LocalLLMClient constructor..." → fmt=1.00 total=0.76 26620ms
+  [11/50] "fix TypeError cannot read property of un..." → fmt=1.00 total=0.78 32713ms
+  [12/50] "resolve ECONNREFUSED localhost..." → fmt=1.00 total=0.77 33675ms
+  [13/50] "module not found cannot resolve import..." → fmt=1.00 total=0.78 23516ms
+  [14/50] "CORS origin not allowed headers..." → fmt=1.00 total=0.77 26199ms
+  [15/50] "out of memory heap allocation failed..." → fmt=1.00 total=0.75 35284ms
+  [16/50] "database connection timeout pool exhaust..." → fmt=1.00 total=0.74 27042ms
+  [17/50] "promise rejected unhandled async error..." → fmt=0.00 total=0.01 14019ms
+  [18/50] "circular dependency detected import cycl..." → fmt=1.00 total=0.66 22649ms
+  [19/50] "type error argument not assignable to pa..." → fmt=1.00 total=0.78 27440ms
+  [20/50] "permission denied EACCES file access..." → fmt=1.00 total=0.74 28526ms
+  [21/50] "authentication middleware..." → fmt=1.00 total=0.75 24519ms
+  [22/50] "rate limiting implementation..." → fmt=1.00 total=0.78 21984ms
+  [23/50] "caching strategy invalidation..." → fmt=1.00 total=0.71 29524ms
+  [24/50] "retry logic exponential backoff..." → fmt=1.00 total=0.73 28827ms
+  [25/50] "connection pooling database..." → fmt=1.00 total=0.68 32157ms
+  [26/50] "event driven architecture pub sub..." → fmt=1.00 total=0.66 27844ms
+  [27/50] "dependency injection service container..." → fmt=1.00 total=0.67 29462ms
+  [28/50] "pagination cursor offset limit..." → fmt=1.00 total=0.66 23366ms
+  [29/50] "graceful shutdown signal handling..." → fmt=1.00 total=0.78 31092ms
+  [30/50] "streaming response server sent events..." → fmt=1.00 total=0.78 26728ms
+  [31/50] "React context vs Redux state management..." → fmt=0.00 total=0.01 13980ms
+  [32/50] "Express middleware chain next function..." → fmt=1.00 total=0.74 31921ms
+  [33/50] "Prisma ORM query findMany where..." → fmt=1.00 total=0.76 22709ms
+  [34/50] "Next.js server component data fetching..." → fmt=1.00 total=0.71 22998ms
+  [35/50] "Zod schema validation parse transform..." → fmt=1.00 total=0.77 27439ms
+  [36/50] "tRPC router procedure mutation..." → fmt=1.00 total=0.75 28867ms
+  [37/50] "Tailwind responsive breakpoints utilitie..." → fmt=1.00 total=0.69 34019ms
+  [38/50] "Jest mock module spyOn testing..." → fmt=1.00 total=0.76 22352ms
+  [39/50] "Docker compose multi service networking..." → fmt=1.00 total=0.67 22219ms
+  [40/50] "GitHub Actions CI workflow matrix..." → fmt=1.00 total=0.71 25222ms
+  [41/50] "find unused imports dead code..." → fmt=1.00 total=0.73 25054ms
+  [42/50] "detect circular dependencies modules..." → fmt=1.00 total=0.76 35814ms
+  [43/50] "dead code detection unreachable..." → fmt=1.00 total=0.74 26612ms
+  [44/50] "security vulnerability SQL injection..." → fmt=1.00 total=0.74 32290ms
+  [45/50] "code duplication similar functions refac..." → fmt=1.00 total=0.78 33279ms
+  [46/50] "performance bottleneck N+1 query..." → fmt=1.00 total=0.78 34387ms
+  [47/50] "missing error handling try catch..." → fmt=1.00 total=0.78 21452ms
+  [48/50] "type safety any assertion unsafe cast..." → fmt=1.00 total=0.78 31506ms
+  [49/50] "memory leak event listener cleanup..." → fmt=1.00 total=0.67 27346ms
+  [50/50] "race condition async concurrent access..." → fmt=1.00 total=0.78 20821ms
+
+  Results: 50 ok, 0 failed
+  Avg: format=0.960 kw=0.912 sem=0.960 hyde=0.577 speed=26657ms total=0.711
+  Saved: /Users/jack/mag/claudemem/experiments/query-expansion/results/finetuned/qwen3.5-4b-ft.json
+
+============================================================
+Benchmark Complete (1966s total)
+============================================================
+
+Model                 Format     Lex     Vec    HyDE    Speed   Total
+----------------------------------------------------------------------
+qwen3.5-4b-FT          0.960   0.912   0.960   0.577   26657ms   0.711
+
+Run report.ts for full comparison:
+  bun run experiments/query-expansion/bench/report.ts

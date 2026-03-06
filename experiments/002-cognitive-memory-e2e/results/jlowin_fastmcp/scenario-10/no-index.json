@@ -1,0 +1,59 @@
+{
+  "scenarioId": 10,
+  "repo": "fastmcp",
+  "condition": "no-index",
+  "title": "Debug: OpenAPI conversion limits",
+  "task": "The OpenAPI experimental feature sometimes fails to convert endpoints. What are the known limitations? Do NOT make any code changes.",
+  "output": "Here are the known limitations of the OpenAPI experimental feature:\n\n---\n\n## Known OpenAPI Limitations\n\n### 1. No External References\nExternal or non-local `$ref`s are not supported. Any `$ref` must start with `#/` (local reference). If an OpenAPI spec references an external file or URL, parsing will raise a `ValueError`. All schema definitions must be inlined within the single document. (`schemas.py:103-107`, `parser.py:161-163`)\n\n### 2. Only One Success Response is Used\nThe parser extracts only the **primary success response** for output schema purposes. Non-2xx responses and secondary success codes are ignored entirely. Priority order: `200 > 201 > 202 > 204 > 207 > other 2xx`. Error response schemas are not surfaced to MCP. (`parser.py:414-435`)\n\n### 3. `allOf` Body Schemas Are Flattened (Destructively)\nWhen a request body uses `allOf`, the schemas are merged by property union. This loses discriminator information, ordering, and validation semantics. (`schemas.py:255-278`)\n\n### 4. Schema Composition Keywords Stripped for Display\n`allOf`, `anyOf`, `oneOf`, `not`, `nullable`, `discriminator`, `readOnly`, `writeOnly`, `deprecated`, `xml`, and `externalDocs` are stripped from schemas before presenting them in descriptions. (`schemas.py:23-40`)\n\n### 5. Non-JSON Body Content Types Are a Best-Effort Fallback\nRequest body handling picks the first `content` entry if no JSON-compatible type is found. Non-JSON bodies (e.g., `multipart/form-data`, `application/octet-stream`) may not be serialized correctly.\n\n### 6. Body-Only `$ref` Schemas Get a Generic `body` Parameter\nIf a request body's schema is a bare top-level `$ref` with no inline `properties`, it is mapped to a single flat parameter named `body`. The internal structure is not expanded. (`schemas.py:349-356`)\n\n### 7. Parameter Schemas Without `param_schema` or `content` Resolve to Empty Dict\nIf a parameter has neither `param_schema` nor `content`, its schema defaults to `{}` — effectively untyped. (`parser.py:280-312`)\n\n### 8. Unknown Parameter Locations Default to `query`\nAny `in` value other than `path`, `query`, `header`, or `cookie` silently defaults to `query` with a warning log. (`parser.py:146-151`)\n\n### 9. OpenAPI 2.0 (Swagger) Not Supported\nOnly OpenAPI 3.0.x and 3.1.x are supported. Specs with `swagger: \"2.0\"` fail validation. (`parser.py:63-101`)\n\n### 10. Tool/Component Name Truncated to 56 Characters\nNames derived from `operationId`, summary, or path are truncated to 56 characters, which can cause collisions on long, similar names. (`server.py:222-224`)\n\n### 11. Schema Pre-calculation Failures Fall Back to Empty Schema\nIf `_combine_schemas_and_map_params` fails for a route, the route is still registered but with an empty `{}` parameter schema, silently losing all parameter information. (`parser.py:783-793`)",
+  "claudeJson": {
+    "type": "result",
+    "subtype": "success",
+    "is_error": false,
+    "duration_ms": 47484,
+    "duration_api_ms": 46612,
+    "num_turns": 13,
+    "result": "Here are the known limitations of the OpenAPI experimental feature:\n\n---\n\n## Known OpenAPI Limitations\n\n### 1. No External References\nExternal or non-local `$ref`s are not supported. Any `$ref` must start with `#/` (local reference). If an OpenAPI spec references an external file or URL, parsing will raise a `ValueError`. All schema definitions must be inlined within the single document. (`schemas.py:103-107`, `parser.py:161-163`)\n\n### 2. Only One Success Response is Used\nThe parser extracts only the **primary success response** for output schema purposes. Non-2xx responses and secondary success codes are ignored entirely. Priority order: `200 > 201 > 202 > 204 > 207 > other 2xx`. Error response schemas are not surfaced to MCP. (`parser.py:414-435`)\n\n### 3. `allOf` Body Schemas Are Flattened (Destructively)\nWhen a request body uses `allOf`, the schemas are merged by property union. This loses discriminator information, ordering, and validation semantics. (`schemas.py:255-278`)\n\n### 4. Schema Composition Keywords Stripped for Display\n`allOf`, `anyOf`, `oneOf`, `not`, `nullable`, `discriminator`, `readOnly`, `writeOnly`, `deprecated`, `xml`, and `externalDocs` are stripped from schemas before presenting them in descriptions. (`schemas.py:23-40`)\n\n### 5. Non-JSON Body Content Types Are a Best-Effort Fallback\nRequest body handling picks the first `content` entry if no JSON-compatible type is found. Non-JSON bodies (e.g., `multipart/form-data`, `application/octet-stream`) may not be serialized correctly.\n\n### 6. Body-Only `$ref` Schemas Get a Generic `body` Parameter\nIf a request body's schema is a bare top-level `$ref` with no inline `properties`, it is mapped to a single flat parameter named `body`. The internal structure is not expanded. (`schemas.py:349-356`)\n\n### 7. Parameter Schemas Without `param_schema` or `content` Resolve to Empty Dict\nIf a parameter has neither `param_schema` nor `content`, its schema defaults to `{}` — effectively untyped. (`parser.py:280-312`)\n\n### 8. Unknown Parameter Locations Default to `query`\nAny `in` value other than `path`, `query`, `header`, or `cookie` silently defaults to `query` with a warning log. (`parser.py:146-151`)\n\n### 9. OpenAPI 2.0 (Swagger) Not Supported\nOnly OpenAPI 3.0.x and 3.1.x are supported. Specs with `swagger: \"2.0\"` fail validation. (`parser.py:63-101`)\n\n### 10. Tool/Component Name Truncated to 56 Characters\nNames derived from `operationId`, summary, or path are truncated to 56 characters, which can cause collisions on long, similar names. (`server.py:222-224`)\n\n### 11. Schema Pre-calculation Failures Fall Back to Empty Schema\nIf `_combine_schemas_and_map_params` fails for a route, the route is still registered but with an empty `{}` parameter schema, silently losing all parameter information. (`parser.py:783-793`)",
+    "stop_reason": "end_turn",
+    "session_id": "f3f06914-b53e-4bb5-9102-3db26df88903",
+    "total_cost_usd": 0.3932915,
+    "usage": {
+      "input_tokens": 14,
+      "cache_creation_input_tokens": 45608,
+      "cache_read_input_tokens": 108793,
+      "output_tokens": 2151,
+      "server_tool_use": {
+        "web_search_requests": 0,
+        "web_fetch_requests": 0
+      },
+      "service_tier": "standard",
+      "cache_creation": {
+        "ephemeral_1h_input_tokens": 0,
+        "ephemeral_5m_input_tokens": 45608
+      },
+      "inference_geo": "",
+      "iterations": [],
+      "speed": "standard"
+    },
+    "modelUsage": {
+      "claude-sonnet-4-6": {
+        "inputTokens": 14,
+        "outputTokens": 2151,
+        "cacheReadInputTokens": 108793,
+        "cacheCreationInputTokens": 45608,
+        "webSearchRequests": 0,
+        "costUSD": 0.3932915,
+        "contextWindow": 200000,
+        "maxOutputTokens": 32000
+      }
+    },
+    "permission_denials": [],
+    "fast_mode_state": "off",
+    "uuid": "df6e06a1-f54f-447b-9e47-ba7cadd98e2a"
+  },
+  "durationMs": 51112,
+  "tokensIn": 14,
+  "tokensOut": 2151,
+  "toolCalls": 13,
+  "costUsd": 0.3932915,
+  "timestamp": "2026-03-05T23:45:47.674Z"
+}

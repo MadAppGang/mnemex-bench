@@ -1,0 +1,59 @@
+{
+  "scenarioId": 15,
+  "repo": "fastmcp",
+  "condition": "baseline",
+  "title": "Architecture: server composition",
+  "task": "How does FastMCP's server mounting/composition system work? Explain how you can compose multiple MCP servers together and how requests are routed between them. Do NOT make any code changes.",
+  "output": "Here's a complete explanation of FastMCP's server composition system:\n\n---\n\n## Server Composition: `mount()` vs `import_server()`\n\nFastMCP has two ways to compose servers. `import_server()` is deprecated — `mount()` is the current approach.\n\n### `mount()` — Dynamic Composition\n\n`mount()` establishes a **live, dynamic link** between servers. The mounted server's components are not copied; they're queried in real time on every request. Changes to the mounted server are immediately visible through the parent.\n\n```python\nmain = FastMCP(\"Main\")\nweather = FastMCP(\"Weather\")\n\n@weather.tool\ndef get_forecast(location: str) -> str: ...\n\nmain.mount(weather, namespace=\"weather\")\n# Tool now accessible as \"weather_get_forecast\"\n```\n\nThe parent stores mounted servers as a `_providers` list (`server.py:205`). Each mount creates a `FastMCPProvider` wrapping the child server, optionally wrapped in a `TransformingProvider` if a namespace or tool renames are given (`server.py:2640-2645`).\n\n---\n\n### Request Routing\n\nFor every request type (tools, resources, prompts), the parent server uses the same **local-first, then providers** priority:\n\n**Tool calls** (`server.py:1434-1452`):\n1. Check `_tool_manager` (locally registered tools) — **takes precedence**\n2. Iterate `_providers` in registration order — **first match wins**\n3. Raise `NotFoundError` if nothing matches\n\n**Resource reads** (`server.py:1545-1597`):\n1. Check local concrete resources in `_resource_manager`\n2. Check local resource templates (pattern matching)\n3. Check providers for concrete resources\n4. Check providers for resource templates\n5. Raise `NotFoundError`\n\nThis means local components shadow mounted ones of the same name.\n\n---\n\n### Namespace Transformations (`TransformingProvider`)\n\nWhen a namespace is given, a `TransformingProvider` (`providers/transforming.py`) wraps the `FastMCPProvider` and applies bidirectional name/URI transforms:\n\n| Component | Transform |\n|-----------|-----------|\n| Tools | `name` → `namespace_name` |\n| Prompts | `name` → `namespace_name` |\n| Resources | `proto://path` → `proto://namespace/path` |\n| Templates | same URI path-style transform |\n\nOn **lookup** (e.g., `get_tool(\"weather_get_forecast\")`), the `TransformingProvider` strips the namespace prefix to get the original name (`weather_get_forecast` → `get_forecast`), then delegates to the wrapped `FastMCPProvider`, which delegates to the child server's middleware chain.\n\nTool renames (`tool_names` parameter) bypass namespace prefixing entirely and take precedence over namespace rules.\n\n---\n\n### Middleware Propagation (`FastMCPProvider`)\n\nThe key design insight is in `FastMCPProvider` (`providers/fastmcp_provider.py`): when listing or executing components, it wraps them in `FastMCPProviderTool` / `FastMCPProviderResource` / `FastMCPProviderPrompt` objects. These wrappers **delegate execution back through the child server's middleware chain** (e.g., `FastMCPProviderTool.run()` calls `self._server._call_tool_middleware()`). This means:\n\n- The **parent** server's middleware runs on the inbound request\n- The **child** server's middleware also runs when the component executes\n- Lifespans are composed: the child's lifespan runs inside the parent's via `FastMCPProvider.lifespan()`, which calls `server._lifespan()`\n\n---\n\n### Nesting\n\nMounting is recursive. A mounted server can itself have mounted servers. The `TransformingProvider.get_tasks()` handles key transformation at each layer, and `FastMCPProvider.get_tasks()` recursively collects from nested providers. The outermost namespace transformation is preserved through the chain.\n\n---\n\n### `import_server()` (Deprecated)\n\nUnlike `mount()`, `import_server()` is a **one-time, static copy**: it iterates the child server's tools/resources/prompts and registers copies directly into the parent's managers. There's no live link, and the child's lifespan and middleware are not invoked. It's still functional but deprecated in favor of `mount()`.",
+  "claudeJson": {
+    "type": "result",
+    "subtype": "success",
+    "is_error": false,
+    "duration_ms": 68246,
+    "duration_api_ms": 62002,
+    "num_turns": 13,
+    "result": "Here's a complete explanation of FastMCP's server composition system:\n\n---\n\n## Server Composition: `mount()` vs `import_server()`\n\nFastMCP has two ways to compose servers. `import_server()` is deprecated — `mount()` is the current approach.\n\n### `mount()` — Dynamic Composition\n\n`mount()` establishes a **live, dynamic link** between servers. The mounted server's components are not copied; they're queried in real time on every request. Changes to the mounted server are immediately visible through the parent.\n\n```python\nmain = FastMCP(\"Main\")\nweather = FastMCP(\"Weather\")\n\n@weather.tool\ndef get_forecast(location: str) -> str: ...\n\nmain.mount(weather, namespace=\"weather\")\n# Tool now accessible as \"weather_get_forecast\"\n```\n\nThe parent stores mounted servers as a `_providers` list (`server.py:205`). Each mount creates a `FastMCPProvider` wrapping the child server, optionally wrapped in a `TransformingProvider` if a namespace or tool renames are given (`server.py:2640-2645`).\n\n---\n\n### Request Routing\n\nFor every request type (tools, resources, prompts), the parent server uses the same **local-first, then providers** priority:\n\n**Tool calls** (`server.py:1434-1452`):\n1. Check `_tool_manager` (locally registered tools) — **takes precedence**\n2. Iterate `_providers` in registration order — **first match wins**\n3. Raise `NotFoundError` if nothing matches\n\n**Resource reads** (`server.py:1545-1597`):\n1. Check local concrete resources in `_resource_manager`\n2. Check local resource templates (pattern matching)\n3. Check providers for concrete resources\n4. Check providers for resource templates\n5. Raise `NotFoundError`\n\nThis means local components shadow mounted ones of the same name.\n\n---\n\n### Namespace Transformations (`TransformingProvider`)\n\nWhen a namespace is given, a `TransformingProvider` (`providers/transforming.py`) wraps the `FastMCPProvider` and applies bidirectional name/URI transforms:\n\n| Component | Transform |\n|-----------|-----------|\n| Tools | `name` → `namespace_name` |\n| Prompts | `name` → `namespace_name` |\n| Resources | `proto://path` → `proto://namespace/path` |\n| Templates | same URI path-style transform |\n\nOn **lookup** (e.g., `get_tool(\"weather_get_forecast\")`), the `TransformingProvider` strips the namespace prefix to get the original name (`weather_get_forecast` → `get_forecast`), then delegates to the wrapped `FastMCPProvider`, which delegates to the child server's middleware chain.\n\nTool renames (`tool_names` parameter) bypass namespace prefixing entirely and take precedence over namespace rules.\n\n---\n\n### Middleware Propagation (`FastMCPProvider`)\n\nThe key design insight is in `FastMCPProvider` (`providers/fastmcp_provider.py`): when listing or executing components, it wraps them in `FastMCPProviderTool` / `FastMCPProviderResource` / `FastMCPProviderPrompt` objects. These wrappers **delegate execution back through the child server's middleware chain** (e.g., `FastMCPProviderTool.run()` calls `self._server._call_tool_middleware()`). This means:\n\n- The **parent** server's middleware runs on the inbound request\n- The **child** server's middleware also runs when the component executes\n- Lifespans are composed: the child's lifespan runs inside the parent's via `FastMCPProvider.lifespan()`, which calls `server._lifespan()`\n\n---\n\n### Nesting\n\nMounting is recursive. A mounted server can itself have mounted servers. The `TransformingProvider.get_tasks()` handles key transformation at each layer, and `FastMCPProvider.get_tasks()` recursively collects from nested providers. The outermost namespace transformation is preserved through the chain.\n\n---\n\n### `import_server()` (Deprecated)\n\nUnlike `mount()`, `import_server()` is a **one-time, static copy**: it iterates the child server's tools/resources/prompts and registers copies directly into the parent's managers. There's no live link, and the child's lifespan and middleware are not invoked. It's still functional but deprecated in favor of `mount()`.",
+    "stop_reason": "end_turn",
+    "session_id": "e5d856c1-7939-45f0-9337-b291f6f54d3b",
+    "total_cost_usd": 0.46195225,
+    "usage": {
+      "input_tokens": 7914,
+      "cache_creation_input_tokens": 42087,
+      "cache_read_input_tokens": 173227,
+      "output_tokens": 2909,
+      "server_tool_use": {
+        "web_search_requests": 0,
+        "web_fetch_requests": 0
+      },
+      "service_tier": "standard",
+      "cache_creation": {
+        "ephemeral_1h_input_tokens": 0,
+        "ephemeral_5m_input_tokens": 42087
+      },
+      "inference_geo": "",
+      "iterations": [],
+      "speed": "standard"
+    },
+    "modelUsage": {
+      "claude-sonnet-4-6": {
+        "inputTokens": 7914,
+        "outputTokens": 2909,
+        "cacheReadInputTokens": 173227,
+        "cacheCreationInputTokens": 42087,
+        "webSearchRequests": 0,
+        "costUSD": 0.46195225,
+        "contextWindow": 200000,
+        "maxOutputTokens": 32000
+      }
+    },
+    "permission_denials": [],
+    "fast_mode_state": "off",
+    "uuid": "794c7e41-a04c-438e-a620-3c7f4f02b9e0"
+  },
+  "durationMs": 72598,
+  "tokensIn": 7914,
+  "tokensOut": 2909,
+  "toolCalls": 13,
+  "costUsd": 0.46195225,
+  "timestamp": "2026-03-05T23:56:31.684Z"
+}

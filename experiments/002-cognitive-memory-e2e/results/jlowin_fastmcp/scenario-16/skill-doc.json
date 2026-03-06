@@ -1,0 +1,59 @@
+{
+  "scenarioId": 16,
+  "repo": "fastmcp",
+  "condition": "skill-doc",
+  "title": "Feature: add tool timeout",
+  "task": "Add a `timeout` parameter to the `@mcp.tool` decorator that raises a TimeoutError if the tool function takes longer than the specified number of seconds.",
+  "output": "Everything looks correct. Here's a summary of what was changed:\n\n**`src/fastmcp/tools/tool.py`**\n- Added `import asyncio`\n- Added `timeout: float | None = None` field to `FunctionTool`\n- Added `timeout` parameter to both `Tool.from_function()` and `FunctionTool.from_function()`, passing it through to the constructor\n- In `FunctionTool.run()`, replaced `result = await result` with `result = await asyncio.wait_for(result, timeout=self.timeout)` — when `timeout=None`, this behaves identically to a plain `await`\n\n**`src/fastmcp/server/server.py`**\n- Added `timeout: float | None = None` to both `@overload` signatures and the actual `tool()` method\n- Passes `timeout` to `Tool.from_function()` when the function is registered immediately\n- Passes `timeout` through the `partial()` return for decorator-with-args usage\n\nUsage:\n```python\n@mcp.tool(timeout=10)\nasync def slow_tool() -> str:\n    await asyncio.sleep(100)  # raises asyncio.TimeoutError after 10s\n    return \"done\"\n```\n\nNote: the timeout applies only to async tool functions. For sync tools, the function executes synchronously before the timeout check is reached, so `asyncio.wait_for` cannot interrupt it.",
+  "claudeJson": {
+    "type": "result",
+    "subtype": "success",
+    "is_error": false,
+    "duration_ms": 125632,
+    "duration_api_ms": 124110,
+    "num_turns": 20,
+    "result": "Everything looks correct. Here's a summary of what was changed:\n\n**`src/fastmcp/tools/tool.py`**\n- Added `import asyncio`\n- Added `timeout: float | None = None` field to `FunctionTool`\n- Added `timeout` parameter to both `Tool.from_function()` and `FunctionTool.from_function()`, passing it through to the constructor\n- In `FunctionTool.run()`, replaced `result = await result` with `result = await asyncio.wait_for(result, timeout=self.timeout)` — when `timeout=None`, this behaves identically to a plain `await`\n\n**`src/fastmcp/server/server.py`**\n- Added `timeout: float | None = None` to both `@overload` signatures and the actual `tool()` method\n- Passes `timeout` to `Tool.from_function()` when the function is registered immediately\n- Passes `timeout` through the `partial()` return for decorator-with-args usage\n\nUsage:\n```python\n@mcp.tool(timeout=10)\nasync def slow_tool() -> str:\n    await asyncio.sleep(100)  # raises asyncio.TimeoutError after 10s\n    return \"done\"\n```\n\nNote: the timeout applies only to async tool functions. For sync tools, the function executes synchronously before the timeout check is reached, so `asyncio.wait_for` cannot interrupt it.",
+    "stop_reason": "end_turn",
+    "session_id": "4552ed93-7b49-47b2-a4a3-8551945e25fc",
+    "total_cost_usd": 0.8553302499999998,
+    "usage": {
+      "input_tokens": 25,
+      "cache_creation_input_tokens": 50499,
+      "cache_read_input_tokens": 644123,
+      "output_tokens": 8701,
+      "server_tool_use": {
+        "web_search_requests": 0,
+        "web_fetch_requests": 0
+      },
+      "service_tier": "standard",
+      "cache_creation": {
+        "ephemeral_1h_input_tokens": 0,
+        "ephemeral_5m_input_tokens": 50499
+      },
+      "inference_geo": "",
+      "iterations": [],
+      "speed": "standard"
+    },
+    "modelUsage": {
+      "claude-sonnet-4-6": {
+        "inputTokens": 25,
+        "outputTokens": 8701,
+        "cacheReadInputTokens": 644123,
+        "cacheCreationInputTokens": 50499,
+        "webSearchRequests": 0,
+        "costUSD": 0.8553302499999998,
+        "contextWindow": 200000,
+        "maxOutputTokens": 32000
+      }
+    },
+    "permission_denials": [],
+    "fast_mode_state": "off",
+    "uuid": "3dafadd4-2266-4248-bed8-509cd37bfb14"
+  },
+  "durationMs": 129432,
+  "tokensIn": 25,
+  "tokensOut": 8701,
+  "toolCalls": 20,
+  "costUsd": 0.8553302499999998,
+  "timestamp": "2026-03-06T00:10:39.599Z"
+}

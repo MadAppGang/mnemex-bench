@@ -1,0 +1,59 @@
+{
+  "scenarioId": 6,
+  "repo": "fastmcp",
+  "condition": "baseline",
+  "title": "Bug: tool error handling",
+  "task": "The FastMCP server doesn't seem to handle tool errors gracefully — when a tool raises an exception, the client gets an opaque error. Find where error handling happens and explain the flow. Do NOT make any code changes.",
+  "output": "Here's the complete error flow from tool exception to client:\n\n---\n\n## The Error Handling Chain\n\n### 1. Tool execution — `tool.py:470` (`FunctionTool.run`)\nThe user's function is called via Pydantic's `type_adapter.validate_python(arguments)`. Any exception raised here bubbles up to the server's `_execute_tool`.\n\n---\n\n### 2. First catch — `server.py:1461` (`_execute_tool`)\n```python\nasync def _execute_tool(self, tool, tool_name, arguments):\n    try:\n        return await tool._run(arguments)\n    except (ValidationError, PydanticValidationError):\n        logger.exception(...)\n        raise                           # never masked — it's a client input issue\n    except ToolError:\n        logger.exception(...)\n        raise                           # already typed, pass through\n    except Exception as e:\n        logger.exception(...)\n        if self._mask_error_details:\n            raise ToolError(f\"Error calling tool {tool_name!r}\") from e\n        raise ToolError(f\"Error calling tool {tool_name!r}: {e}\") from e\n```\n\nAll arbitrary exceptions are **wrapped into `ToolError`** here, with the original message either included or stripped based on `mask_error_details` (settable via `FastMCP(mask_error_details=True)` or env var).\n\n---\n\n### 3. MCP SDK boundary — `_call_tool_mcp` → MCP low-level server\n\n`_call_tool_mcp` (registered via `self._mcp_server.call_tool()(self._call_tool_mcp)`) only handles `DisabledError`/`NotFoundError` → converts to `NotFoundError`. The `ToolError` propagates to the **MCP SDK's `call_tool` decorator** in the `mcp` package itself.\n\nThe SDK catches all exceptions from the handler and converts them into:\n```python\nCallToolResult(isError=True, content=[TextContent(text=str(exception))])\n```\n\nThis is what goes over the wire. The exception type is lost; only the string representation survives.\n\n---\n\n### 4. Client side — `client.py:1308` (`_parse_call_tool_result`)\n```python\nif result.isError and raise_on_error:\n    msg = cast(mcp.types.TextContent, result.content[0]).text\n    raise ToolError(msg)\n```\n\n`client.call_tool()` defaults `raise_on_error=True`, so it raises a `ToolError` with the text from `content[0]`. The lower-level `call_tool_mcp()` returns the raw `CallToolResult` without raising, giving you direct access to `isError` and the content.\n\n---\n\n## Why errors feel \"opaque\"\n\nThe information loss happens at two places:\n\n1. **`_execute_tool`**: Any non-`ToolError` exception type is erased — the client only ever sees `ToolError`, regardless of whether the original was a `ValueError`, `KeyError`, etc.\n\n2. **The MCP wire format**: `CallToolResult` carries only a text string in `content`. When `mask_error_details=True`, that string is just `\"Error calling tool 'name'\"` with no further detail.\n\nThe intended escape hatch is for tools to raise `ToolError` directly with a user-friendly message — that exception is passed through without wrapping (`server.py:1468`), so its message is what the client receives. Any other exception gets the generic `\"Error calling tool 'name': ...\"` wrapper.",
+  "claudeJson": {
+    "type": "result",
+    "subtype": "success",
+    "is_error": false,
+    "duration_ms": 81599,
+    "duration_api_ms": 77355,
+    "num_turns": 17,
+    "result": "Here's the complete error flow from tool exception to client:\n\n---\n\n## The Error Handling Chain\n\n### 1. Tool execution — `tool.py:470` (`FunctionTool.run`)\nThe user's function is called via Pydantic's `type_adapter.validate_python(arguments)`. Any exception raised here bubbles up to the server's `_execute_tool`.\n\n---\n\n### 2. First catch — `server.py:1461` (`_execute_tool`)\n```python\nasync def _execute_tool(self, tool, tool_name, arguments):\n    try:\n        return await tool._run(arguments)\n    except (ValidationError, PydanticValidationError):\n        logger.exception(...)\n        raise                           # never masked — it's a client input issue\n    except ToolError:\n        logger.exception(...)\n        raise                           # already typed, pass through\n    except Exception as e:\n        logger.exception(...)\n        if self._mask_error_details:\n            raise ToolError(f\"Error calling tool {tool_name!r}\") from e\n        raise ToolError(f\"Error calling tool {tool_name!r}: {e}\") from e\n```\n\nAll arbitrary exceptions are **wrapped into `ToolError`** here, with the original message either included or stripped based on `mask_error_details` (settable via `FastMCP(mask_error_details=True)` or env var).\n\n---\n\n### 3. MCP SDK boundary — `_call_tool_mcp` → MCP low-level server\n\n`_call_tool_mcp` (registered via `self._mcp_server.call_tool()(self._call_tool_mcp)`) only handles `DisabledError`/`NotFoundError` → converts to `NotFoundError`. The `ToolError` propagates to the **MCP SDK's `call_tool` decorator** in the `mcp` package itself.\n\nThe SDK catches all exceptions from the handler and converts them into:\n```python\nCallToolResult(isError=True, content=[TextContent(text=str(exception))])\n```\n\nThis is what goes over the wire. The exception type is lost; only the string representation survives.\n\n---\n\n### 4. Client side — `client.py:1308` (`_parse_call_tool_result`)\n```python\nif result.isError and raise_on_error:\n    msg = cast(mcp.types.TextContent, result.content[0]).text\n    raise ToolError(msg)\n```\n\n`client.call_tool()` defaults `raise_on_error=True`, so it raises a `ToolError` with the text from `content[0]`. The lower-level `call_tool_mcp()` returns the raw `CallToolResult` without raising, giving you direct access to `isError` and the content.\n\n---\n\n## Why errors feel \"opaque\"\n\nThe information loss happens at two places:\n\n1. **`_execute_tool`**: Any non-`ToolError` exception type is erased — the client only ever sees `ToolError`, regardless of whether the original was a `ValueError`, `KeyError`, etc.\n\n2. **The MCP wire format**: `CallToolResult` carries only a text string in `content`. When `mask_error_details=True`, that string is just `\"Error calling tool 'name'\"` with no further detail.\n\nThe intended escape hatch is for tools to raise `ToolError` directly with a user-friendly message — that exception is passed through without wrapping (`server.py:1468`), so its message is what the client receives. Any other exception gets the generic `\"Error calling tool 'name': ...\"` wrapper.",
+    "stop_reason": "end_turn",
+    "session_id": "1dfd5a1e-ca33-4d6c-9c9f-288b535f6795",
+    "total_cost_usd": 0.53436875,
+    "usage": {
+      "input_tokens": 19,
+      "cache_creation_input_tokens": 43715,
+      "cache_read_input_tokens": 321960,
+      "output_tokens": 4003,
+      "server_tool_use": {
+        "web_search_requests": 0,
+        "web_fetch_requests": 0
+      },
+      "service_tier": "standard",
+      "cache_creation": {
+        "ephemeral_1h_input_tokens": 0,
+        "ephemeral_5m_input_tokens": 43715
+      },
+      "inference_geo": "",
+      "iterations": [],
+      "speed": "standard"
+    },
+    "modelUsage": {
+      "claude-sonnet-4-6": {
+        "inputTokens": 19,
+        "outputTokens": 4003,
+        "cacheReadInputTokens": 321960,
+        "cacheCreationInputTokens": 43715,
+        "webSearchRequests": 0,
+        "costUSD": 0.53436875,
+        "contextWindow": 200000,
+        "maxOutputTokens": 32000
+      }
+    },
+    "permission_denials": [],
+    "fast_mode_state": "off",
+    "uuid": "0e22eb33-2019-414e-a524-4c4121212eef"
+  },
+  "durationMs": 86275,
+  "tokensIn": 19,
+  "tokensOut": 4003,
+  "toolCalls": 17,
+  "costUsd": 0.53436875,
+  "timestamp": "2026-03-05T23:31:39.576Z"
+}

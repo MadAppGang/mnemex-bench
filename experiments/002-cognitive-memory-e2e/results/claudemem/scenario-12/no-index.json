@@ -1,0 +1,59 @@
+{
+  "scenarioId": 12,
+  "repo": "claudemem",
+  "condition": "no-index",
+  "title": "Architecture: enrichment pipeline",
+  "task": "How does the LLM enrichment system work? What gets enriched, what prompts are used, and how are results stored? Do NOT make any code changes.",
+  "output": "Here's a complete breakdown of the LLM enrichment system:\n\n---\n\n## What Gets Enriched\n\nSix document types are produced per file (registered in `extractors/index.ts:46`):\n\n| Type | What it is |\n|---|---|\n| `file_summary` | High-level purpose, responsibilities, exports, deps, patterns |\n| `symbol_summary` | Per-function/class/method: purpose, params, return, side effects, usage |\n| `idiom` | Recurring codebase patterns and conventions |\n| `usage_example` | 2–4 practical code examples per symbol |\n| `anti_pattern` | Code smells and potential bugs with fixes |\n| `project_doc` | Architecture/getting-started/API/contributing docs |\n\nOnly `code_chunk` is excluded — those come from the AST chunker, not the LLM.\n\n---\n\n## Prompts Used\n\nAll prompts live in `src/llm/prompts/enrichment.ts`.\n\n**System prompts** (`SYSTEM_PROMPTS` at line 14) are per-document-type. For example:\n- `file_summary` system: instructs JSON output with `{summary, responsibilities, exports, dependencies, patterns}`\n- `symbol_summary` system: JSON with `{summary, parameters, returnDescription, sideEffects, usageContext}`\n- `idiom` system: JSON with `{idioms: [{category, pattern, example, rationale, appliesTo}]}`\n\n**User prompt builders** construct the actual code-containing message:\n- `buildFileSummaryPrompt` (line 176): sends file path + truncated content (8000 chars max)\n- `buildSymbolSummaryPrompt` (line 262): sends the symbol's code + 10 lines of surrounding context\n- Batched variants (`buildBatchedFileSummaryPrompt`, `buildBatchedSymbolSummaryPrompt`) pack multiple items into one call, dividing the char budget across items (24000/N for files, 16000/N for symbols)\n\nCode content is **sanitized** against prompt injection (line 512) — stripping `[INST]`, `<<SYS>>`, `<|im_start|>`, role markers like `System:`, etc.\n\n---\n\n## Execution Flow\n\n`enricher.ts:enrichFiles()` runs **file summaries and symbol summaries in parallel** (line 473 — `Promise.all`):\n\n1. **File summaries phase**: calls `FileSummaryExtractor.extract()` per file with concurrency pool (15 for cloud, 3 for local)\n2. **Symbol summaries phase**: calls `SymbolSummaryExtractor.extract()` per file, same pool\n   - Symbols are batched within a file (up to 20 symbols/call). Single-symbol files get a single call; multi-symbol files get one batched call\n   - Only `function`, `class`, and `method` chunk types are summarized; `partIndex > 1` chunks are skipped\n3. **Embed**: all documents' `.content` strings are embedded in batch via `embeddingsClient.embed()`\n4. **Store**: `vectorStore.addDocuments()` persists documents with their vectors to LanceDB\n5. **Track**: `tracker.trackDocuments()` records IDs/types for incremental update checks\n\n---\n\n## Storage Format\n\nEach document stored in LanceDB has (from `buildContent()` methods):\n\n**`file_summary`** content string:\n```\nFile: src/foo.ts\nSummary: <2-3 sentences>\nResponsibilities:\n- ...\nExports: fn1, fn2\nDependencies: ./bar, ./baz\nPatterns: Factory pattern, ...\n```\n\n**`symbol_summary`** content string:\n```\nfunction: myFn\nSignature: (arg: string): boolean\nSummary: <one sentence>\nParameters:\n- arg: ...\nReturns: ...\nSide effects: ...\nUsage: ...\n```\n\nThe `content` field is what gets embedded and searched. The structured fields (`summary`, `responsibilities`, `parameters`, etc.) are also stored as separate typed fields on the document.\n\n---\n\n## Iterative Refinement (`refineFailures`)\n\nThere's a separate quality-improvement loop in `enricher.ts:647` (called explicitly, not during normal indexing):\n\n1. Load all summaries from the vector store\n2. **Quality test** each: embed the summary, rank it against ~20 competitor summaries by cosine similarity to a query. If rank > `targetRank` (default: 3), it's a \"failure\"\n3. **Refine failures**: for each failing summary, the `RefinementEngine` (`refinement/engine.ts`) runs up to 3 rounds:\n   - Generate feedback (shows rank, the top-ranked competitor, tips)\n   - Ask LLM to produce an improved summary (`REFINEMENT_SYSTEM_PROMPT`, temp=0.3, max 500 tokens)\n   - Re-test quality\n   - If now passing, re-embed and update the doc in the vector store\n4. Score is Brokk-style: `1.0 / log2(rounds + 2)` — fewer rounds = higher score",
+  "claudeJson": {
+    "type": "result",
+    "subtype": "success",
+    "is_error": false,
+    "duration_ms": 57681,
+    "duration_api_ms": 57249,
+    "num_turns": 13,
+    "result": "Here's a complete breakdown of the LLM enrichment system:\n\n---\n\n## What Gets Enriched\n\nSix document types are produced per file (registered in `extractors/index.ts:46`):\n\n| Type | What it is |\n|---|---|\n| `file_summary` | High-level purpose, responsibilities, exports, deps, patterns |\n| `symbol_summary` | Per-function/class/method: purpose, params, return, side effects, usage |\n| `idiom` | Recurring codebase patterns and conventions |\n| `usage_example` | 2–4 practical code examples per symbol |\n| `anti_pattern` | Code smells and potential bugs with fixes |\n| `project_doc` | Architecture/getting-started/API/contributing docs |\n\nOnly `code_chunk` is excluded — those come from the AST chunker, not the LLM.\n\n---\n\n## Prompts Used\n\nAll prompts live in `src/llm/prompts/enrichment.ts`.\n\n**System prompts** (`SYSTEM_PROMPTS` at line 14) are per-document-type. For example:\n- `file_summary` system: instructs JSON output with `{summary, responsibilities, exports, dependencies, patterns}`\n- `symbol_summary` system: JSON with `{summary, parameters, returnDescription, sideEffects, usageContext}`\n- `idiom` system: JSON with `{idioms: [{category, pattern, example, rationale, appliesTo}]}`\n\n**User prompt builders** construct the actual code-containing message:\n- `buildFileSummaryPrompt` (line 176): sends file path + truncated content (8000 chars max)\n- `buildSymbolSummaryPrompt` (line 262): sends the symbol's code + 10 lines of surrounding context\n- Batched variants (`buildBatchedFileSummaryPrompt`, `buildBatchedSymbolSummaryPrompt`) pack multiple items into one call, dividing the char budget across items (24000/N for files, 16000/N for symbols)\n\nCode content is **sanitized** against prompt injection (line 512) — stripping `[INST]`, `<<SYS>>`, `<|im_start|>`, role markers like `System:`, etc.\n\n---\n\n## Execution Flow\n\n`enricher.ts:enrichFiles()` runs **file summaries and symbol summaries in parallel** (line 473 — `Promise.all`):\n\n1. **File summaries phase**: calls `FileSummaryExtractor.extract()` per file with concurrency pool (15 for cloud, 3 for local)\n2. **Symbol summaries phase**: calls `SymbolSummaryExtractor.extract()` per file, same pool\n   - Symbols are batched within a file (up to 20 symbols/call). Single-symbol files get a single call; multi-symbol files get one batched call\n   - Only `function`, `class`, and `method` chunk types are summarized; `partIndex > 1` chunks are skipped\n3. **Embed**: all documents' `.content` strings are embedded in batch via `embeddingsClient.embed()`\n4. **Store**: `vectorStore.addDocuments()` persists documents with their vectors to LanceDB\n5. **Track**: `tracker.trackDocuments()` records IDs/types for incremental update checks\n\n---\n\n## Storage Format\n\nEach document stored in LanceDB has (from `buildContent()` methods):\n\n**`file_summary`** content string:\n```\nFile: src/foo.ts\nSummary: <2-3 sentences>\nResponsibilities:\n- ...\nExports: fn1, fn2\nDependencies: ./bar, ./baz\nPatterns: Factory pattern, ...\n```\n\n**`symbol_summary`** content string:\n```\nfunction: myFn\nSignature: (arg: string): boolean\nSummary: <one sentence>\nParameters:\n- arg: ...\nReturns: ...\nSide effects: ...\nUsage: ...\n```\n\nThe `content` field is what gets embedded and searched. The structured fields (`summary`, `responsibilities`, `parameters`, etc.) are also stored as separate typed fields on the document.\n\n---\n\n## Iterative Refinement (`refineFailures`)\n\nThere's a separate quality-improvement loop in `enricher.ts:647` (called explicitly, not during normal indexing):\n\n1. Load all summaries from the vector store\n2. **Quality test** each: embed the summary, rank it against ~20 competitor summaries by cosine similarity to a query. If rank > `targetRank` (default: 3), it's a \"failure\"\n3. **Refine failures**: for each failing summary, the `RefinementEngine` (`refinement/engine.ts`) runs up to 3 rounds:\n   - Generate feedback (shows rank, the top-ranked competitor, tips)\n   - Ask LLM to produce an improved summary (`REFINEMENT_SYSTEM_PROMPT`, temp=0.3, max 500 tokens)\n   - Re-test quality\n   - If now passing, re-embed and update the doc in the vector store\n4. Score is Brokk-style: `1.0 / log2(rounds + 2)` — fewer rounds = higher score",
+    "stop_reason": "end_turn",
+    "session_id": "06b44894-87c4-42dd-832f-0c80d432471f",
+    "total_cost_usd": 0.4294555,
+    "usage": {
+      "input_tokens": 11,
+      "cache_creation_input_tokens": 48396,
+      "cache_read_input_tokens": 124501,
+      "output_tokens": 2587,
+      "server_tool_use": {
+        "web_search_requests": 0,
+        "web_fetch_requests": 0
+      },
+      "service_tier": "standard",
+      "cache_creation": {
+        "ephemeral_1h_input_tokens": 0,
+        "ephemeral_5m_input_tokens": 48396
+      },
+      "inference_geo": "",
+      "iterations": [],
+      "speed": "standard"
+    },
+    "modelUsage": {
+      "claude-sonnet-4-6": {
+        "inputTokens": 11,
+        "outputTokens": 2587,
+        "cacheReadInputTokens": 124501,
+        "cacheCreationInputTokens": 48396,
+        "webSearchRequests": 0,
+        "costUSD": 0.4294555,
+        "contextWindow": 200000,
+        "maxOutputTokens": 32000
+      }
+    },
+    "permission_denials": [],
+    "fast_mode_state": "off",
+    "uuid": "a6d8f104-7e60-443a-bcf8-9682a365da15"
+  },
+  "durationMs": 62504,
+  "tokensIn": 11,
+  "tokensOut": 2587,
+  "toolCalls": 13,
+  "costUsd": 0.4294555,
+  "timestamp": "2026-03-05T23:15:45.694Z"
+}

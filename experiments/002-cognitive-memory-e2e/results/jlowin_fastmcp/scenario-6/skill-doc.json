@@ -1,0 +1,59 @@
+{
+  "scenarioId": 6,
+  "repo": "fastmcp",
+  "condition": "skill-doc",
+  "title": "Bug: tool error handling",
+  "task": "The FastMCP server doesn't seem to handle tool errors gracefully — when a tool raises an exception, the client gets an opaque error. Find where error handling happens and explain the flow. Do NOT make any code changes.",
+  "output": "Now I have a complete picture. Here's the full error flow:\n\n---\n\n## Tool Error Handling Flow\n\n### 1. Tool raises an exception → `_execute_tool()` (`server.py:1454`)\n\n```\nFunctionTool.run() → raises SomeException\n      ↓\n_execute_tool() catches it at server.py:1471\n```\n\nThis is the first transformation point. There are three paths:\n\n| Exception type | Behavior |\n|---|---|\n| `ValidationError` / `PydanticValidationError` | Re-raised as-is (no wrapping) |\n| `ToolError` | Re-raised as-is (just logged) |\n| Anything else | **Wrapped** into `ToolError(\"Error calling tool 'name': <msg>\")` — or if `_mask_error_details=True`, just `\"Error calling tool 'name'\"` with no message |\n\n### 2. `ToolError` propagates up through middleware\n\n```\n_execute_tool()\n  → _call_tool()         (server.py:1425)\n  → middleware chain     (_apply_middleware)\n  → _call_tool_middleware() (server.py:1402)\n  → _call_tool_mcp()    (server.py:1245)\n```\n\n`_call_tool_mcp` only catches `DisabledError` and `NotFoundError` (re-raising both as `NotFoundError`). A `ToolError` passes straight through it uncaught.\n\n### 3. MCP SDK's `call_tool` decorator catches it (`mcp/server/lowlevel/server.py:583`)\n\n```python\nexcept Exception as e:\n    return self._make_error_result(str(e))\n```\n\nThis catches **any** exception that escapes `_call_tool_mcp` and converts it to:\n\n```python\nCallToolResult(\n    content=[TextContent(type=\"text\", text=str(e))],\n    isError=True,\n)\n```\n\n### Why the client sees an opaque error\n\nThere are two compounding reasons:\n\n1. **`_mask_error_details`** — when enabled, the original exception message is stripped: the client only sees `\"Error calling tool 'my_tool'\"`, with no cause.\n\n2. **Structural loss** — even without masking, the original exception type is gone. The client receives a plain text string inside a `CallToolResult(isError=True)`. The error type (e.g. `ValueError`, `KeyError`) and any structured details are not preserved.\n\n3. **`ErrorHandlingMiddleware` is opt-in** — `src/fastmcp/server/middleware/error_handling.py` exists and can transform errors to proper MCP error codes (`-32602` for invalid params, etc.), but it is **not added by default**. Without it, all tool errors collapse to the same `isError=True` text blob.\n\n### The `ToolError` escape hatch\n\nThe one way to send a meaningful message deliberately is to raise `ToolError` directly in your tool function. Since `_execute_tool` re-raises it without wrapping (`server.py:1468-1470`), `str(e)` passed to `_make_error_result` will be exactly what you put in `ToolError(\"my message\")`.",
+  "claudeJson": {
+    "type": "result",
+    "subtype": "success",
+    "is_error": false,
+    "duration_ms": 99041,
+    "duration_api_ms": 93670,
+    "num_turns": 19,
+    "result": "Now I have a complete picture. Here's the full error flow:\n\n---\n\n## Tool Error Handling Flow\n\n### 1. Tool raises an exception → `_execute_tool()` (`server.py:1454`)\n\n```\nFunctionTool.run() → raises SomeException\n      ↓\n_execute_tool() catches it at server.py:1471\n```\n\nThis is the first transformation point. There are three paths:\n\n| Exception type | Behavior |\n|---|---|\n| `ValidationError` / `PydanticValidationError` | Re-raised as-is (no wrapping) |\n| `ToolError` | Re-raised as-is (just logged) |\n| Anything else | **Wrapped** into `ToolError(\"Error calling tool 'name': <msg>\")` — or if `_mask_error_details=True`, just `\"Error calling tool 'name'\"` with no message |\n\n### 2. `ToolError` propagates up through middleware\n\n```\n_execute_tool()\n  → _call_tool()         (server.py:1425)\n  → middleware chain     (_apply_middleware)\n  → _call_tool_middleware() (server.py:1402)\n  → _call_tool_mcp()    (server.py:1245)\n```\n\n`_call_tool_mcp` only catches `DisabledError` and `NotFoundError` (re-raising both as `NotFoundError`). A `ToolError` passes straight through it uncaught.\n\n### 3. MCP SDK's `call_tool` decorator catches it (`mcp/server/lowlevel/server.py:583`)\n\n```python\nexcept Exception as e:\n    return self._make_error_result(str(e))\n```\n\nThis catches **any** exception that escapes `_call_tool_mcp` and converts it to:\n\n```python\nCallToolResult(\n    content=[TextContent(type=\"text\", text=str(e))],\n    isError=True,\n)\n```\n\n### Why the client sees an opaque error\n\nThere are two compounding reasons:\n\n1. **`_mask_error_details`** — when enabled, the original exception message is stripped: the client only sees `\"Error calling tool 'my_tool'\"`, with no cause.\n\n2. **Structural loss** — even without masking, the original exception type is gone. The client receives a plain text string inside a `CallToolResult(isError=True)`. The error type (e.g. `ValueError`, `KeyError`) and any structured details are not preserved.\n\n3. **`ErrorHandlingMiddleware` is opt-in** — `src/fastmcp/server/middleware/error_handling.py` exists and can transform errors to proper MCP error codes (`-32602` for invalid params, etc.), but it is **not added by default**. Without it, all tool errors collapse to the same `isError=True` text blob.\n\n### The `ToolError` escape hatch\n\nThe one way to send a meaningful message deliberately is to raise `ToolError` directly in your tool function. Since `_execute_tool` re-raises it without wrapping (`server.py:1468-1470`), `str(e)` passed to `_make_error_result` will be exactly what you put in `ToolError(\"my message\")`.",
+    "stop_reason": "end_turn",
+    "session_id": "0122756b-0b92-46f3-881c-af7d33cb24fd",
+    "total_cost_usd": 0.71567075,
+    "usage": {
+      "input_tokens": 19,
+      "cache_creation_input_tokens": 57287,
+      "cache_read_input_tokens": 460264,
+      "output_tokens": 5096,
+      "server_tool_use": {
+        "web_search_requests": 0,
+        "web_fetch_requests": 0
+      },
+      "service_tier": "standard",
+      "cache_creation": {
+        "ephemeral_1h_input_tokens": 0,
+        "ephemeral_5m_input_tokens": 57287
+      },
+      "inference_geo": "",
+      "iterations": [],
+      "speed": "standard"
+    },
+    "modelUsage": {
+      "claude-sonnet-4-6": {
+        "inputTokens": 19,
+        "outputTokens": 5096,
+        "cacheReadInputTokens": 460264,
+        "cacheCreationInputTokens": 57287,
+        "webSearchRequests": 0,
+        "costUSD": 0.71567075,
+        "contextWindow": 200000,
+        "maxOutputTokens": 32000
+      }
+    },
+    "permission_denials": [],
+    "fast_mode_state": "off",
+    "uuid": "33982a84-5638-4022-8c99-27488bdb586c"
+  },
+  "durationMs": 102579,
+  "tokensIn": 19,
+  "tokensOut": 5096,
+  "toolCalls": 19,
+  "costUsd": 0.71567075,
+  "timestamp": "2026-03-05T23:33:22.881Z"
+}

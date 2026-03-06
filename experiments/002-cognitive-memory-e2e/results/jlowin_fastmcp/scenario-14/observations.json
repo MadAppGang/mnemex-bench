@@ -1,0 +1,59 @@
+{
+  "scenarioId": 14,
+  "repo": "fastmcp",
+  "condition": "observations",
+  "title": "Architecture: context dependency injection",
+  "task": "How does FastMCP handle Context dependency injection in tool and resource functions? Explain how a tool function receives the Context object and what's available on it. Do NOT make any code changes.",
+  "output": "Here's a comprehensive explanation of how Context dependency injection works in FastMCP:\n\n---\n\n## Context Injection: Two Mechanisms\n\nFastMCP supports two ways to request a `Context` in a function:\n\n**1. Type-annotation (legacy, simple):**\n```python\n@mcp.tool\nasync def my_tool(x: int, ctx: Context) -> str: ...\n```\nThe parameter can be named anything — FastMCP finds it by type annotation.\n\n**2. `Depends()` / `CurrentContext()` (modern):**\n```python\n@mcp.tool\nasync def my_tool(x: int, ctx: Context = CurrentContext()) -> str: ...\n```\nThis integrates with the full `Docket` dependency injection system.\n\n---\n\n## How It Works (The Pipeline)\n\n### Step 1: Schema stripping at registration time\n\n`FunctionTool.from_function()` → `ParsedFunction.from_function()` calls `without_injected_parameters(fn)` (`dependencies.py:97`). This inspects the function signature, finds `Context`-typed params (via `_find_kwarg_by_type`) and `Depends()`-typed params (via docket's `get_dependency_parameters`), and builds a **new wrapper function** with those removed from the signature. This wrapper is what Pydantic sees when generating the JSON schema — so `Context` never appears as a user-facing tool parameter.\n\n### Step 2: Context set before tool execution\n\nEvery MCP request handler in `server.py` and `fastmcp_provider.py` wraps execution in:\n```python\nasync with fastmcp.server.context.Context(fastmcp=self) as ctx:\n    ...\n```\n`Context.__aenter__` (`context.py:176`) sets `_current_context` (a `ContextVar`) to the new context. Child contexts inherit a deep copy of the parent's state.\n\n### Step 3: Injection at call time\n\n`FunctionTool.run()` (`tool.py:470`) calls `without_injected_parameters(self.fn)`, which — when invoked — enters `resolve_dependencies(fn, user_kwargs)` (`dependencies.py:224`). This context manager:\n\n1. Filters dependency-named keys from user args (security: prevents callers from spoofing injected values)\n2. Resolves `Depends()` dependencies (via docket's machinery + an `AsyncExitStack`)\n3. Checks if `fn` has a `Context`-typed param; if so, calls `get_context()` which reads `_current_context.get()` from the ContextVar\n4. Merges everything into the final `**kwargs` passed to `fn`\n\nThe same `resolve_dependencies` path is used for resources and prompts.\n\n---\n\n## What's Available on `Context`\n\n**Request identity** (`context.py:337–409`):\n- `ctx.request_id` — unique ID for this MCP request\n- `ctx.session_id` — stable session ID across all transports (HTTP header or generated UUID)\n- `ctx.client_id` — from request metadata, if present\n- `ctx.request_context` — underlying `RequestContext` from the MCP SDK (may be `None` before session establishment)\n- `ctx.session` — the `ServerSession`\n- `ctx.fastmcp` — the `FastMCP` server instance\n\n**Logging to client** (`context.py:309–487`):\n- `await ctx.log(message, level=...)` — generic, plus convenience methods:\n- `await ctx.debug()` / `ctx.info()` / `ctx.warning()` / `ctx.error()`\n- Messages are also logged at `DEBUG` to the server-side `fastmcp.server.context.to_client` logger\n\n**Progress reporting** (`context.py:240`):\n- `await ctx.report_progress(progress, total, message)` — no-op if no progress token in the request\n\n**Resource/prompt access** (`context.py:267–295`):\n- `await ctx.read_resource(uri)` — reads a resource from the server\n- `await ctx.list_resources()` / `list_prompts()` / `get_prompt(name, args)`\n\n**Client roots** (`context.py:489`):\n- `await ctx.list_roots()` — roots declared by the client\n\n**State management** (`context.py:151–166`):\n- `ctx.set_state(key, value)` / `ctx.get_state(key)` — per-request dict; child contexts get a deep copy of parent state\n\n**Notifications** (`context.py:494–504`):\n- `await ctx.send_tool_list_changed()` / `send_resource_list_changed()` / `send_prompt_list_changed()`\n\n**Sampling (LLM calls)** (`context.py:545–881`):\n- `await ctx.sample(messages, ...)` — full agentic sampling loop with optional tool execution and structured `result_type`\n- `await ctx.sample_step(messages, ...)` — single LLM call, for manual loop control\n\n**User elicitation** (`context.py:883+`):\n- `await ctx.elicit(message, response_type)` — request interactive input from the user through the client; returns `AcceptedElicitation`, `DeclinedElicitation`, or `CancelledElicitation`\n\n**SSE stream control** (`context.py:506`):\n- `await ctx.close_sse_stream()` — gracefully closes the HTTP connection on StreamableHTTP transport (client reconnects via EventStore), useful to avoid load balancer timeouts on long-running tools",
+  "claudeJson": {
+    "type": "result",
+    "subtype": "success",
+    "is_error": false,
+    "duration_ms": 81545,
+    "duration_api_ms": 79934,
+    "num_turns": 15,
+    "result": "Here's a comprehensive explanation of how Context dependency injection works in FastMCP:\n\n---\n\n## Context Injection: Two Mechanisms\n\nFastMCP supports two ways to request a `Context` in a function:\n\n**1. Type-annotation (legacy, simple):**\n```python\n@mcp.tool\nasync def my_tool(x: int, ctx: Context) -> str: ...\n```\nThe parameter can be named anything — FastMCP finds it by type annotation.\n\n**2. `Depends()` / `CurrentContext()` (modern):**\n```python\n@mcp.tool\nasync def my_tool(x: int, ctx: Context = CurrentContext()) -> str: ...\n```\nThis integrates with the full `Docket` dependency injection system.\n\n---\n\n## How It Works (The Pipeline)\n\n### Step 1: Schema stripping at registration time\n\n`FunctionTool.from_function()` → `ParsedFunction.from_function()` calls `without_injected_parameters(fn)` (`dependencies.py:97`). This inspects the function signature, finds `Context`-typed params (via `_find_kwarg_by_type`) and `Depends()`-typed params (via docket's `get_dependency_parameters`), and builds a **new wrapper function** with those removed from the signature. This wrapper is what Pydantic sees when generating the JSON schema — so `Context` never appears as a user-facing tool parameter.\n\n### Step 2: Context set before tool execution\n\nEvery MCP request handler in `server.py` and `fastmcp_provider.py` wraps execution in:\n```python\nasync with fastmcp.server.context.Context(fastmcp=self) as ctx:\n    ...\n```\n`Context.__aenter__` (`context.py:176`) sets `_current_context` (a `ContextVar`) to the new context. Child contexts inherit a deep copy of the parent's state.\n\n### Step 3: Injection at call time\n\n`FunctionTool.run()` (`tool.py:470`) calls `without_injected_parameters(self.fn)`, which — when invoked — enters `resolve_dependencies(fn, user_kwargs)` (`dependencies.py:224`). This context manager:\n\n1. Filters dependency-named keys from user args (security: prevents callers from spoofing injected values)\n2. Resolves `Depends()` dependencies (via docket's machinery + an `AsyncExitStack`)\n3. Checks if `fn` has a `Context`-typed param; if so, calls `get_context()` which reads `_current_context.get()` from the ContextVar\n4. Merges everything into the final `**kwargs` passed to `fn`\n\nThe same `resolve_dependencies` path is used for resources and prompts.\n\n---\n\n## What's Available on `Context`\n\n**Request identity** (`context.py:337–409`):\n- `ctx.request_id` — unique ID for this MCP request\n- `ctx.session_id` — stable session ID across all transports (HTTP header or generated UUID)\n- `ctx.client_id` — from request metadata, if present\n- `ctx.request_context` — underlying `RequestContext` from the MCP SDK (may be `None` before session establishment)\n- `ctx.session` — the `ServerSession`\n- `ctx.fastmcp` — the `FastMCP` server instance\n\n**Logging to client** (`context.py:309–487`):\n- `await ctx.log(message, level=...)` — generic, plus convenience methods:\n- `await ctx.debug()` / `ctx.info()` / `ctx.warning()` / `ctx.error()`\n- Messages are also logged at `DEBUG` to the server-side `fastmcp.server.context.to_client` logger\n\n**Progress reporting** (`context.py:240`):\n- `await ctx.report_progress(progress, total, message)` — no-op if no progress token in the request\n\n**Resource/prompt access** (`context.py:267–295`):\n- `await ctx.read_resource(uri)` — reads a resource from the server\n- `await ctx.list_resources()` / `list_prompts()` / `get_prompt(name, args)`\n\n**Client roots** (`context.py:489`):\n- `await ctx.list_roots()` — roots declared by the client\n\n**State management** (`context.py:151–166`):\n- `ctx.set_state(key, value)` / `ctx.get_state(key)` — per-request dict; child contexts get a deep copy of parent state\n\n**Notifications** (`context.py:494–504`):\n- `await ctx.send_tool_list_changed()` / `send_resource_list_changed()` / `send_prompt_list_changed()`\n\n**Sampling (LLM calls)** (`context.py:545–881`):\n- `await ctx.sample(messages, ...)` — full agentic sampling loop with optional tool execution and structured `result_type`\n- `await ctx.sample_step(messages, ...)` — single LLM call, for manual loop control\n\n**User elicitation** (`context.py:883+`):\n- `await ctx.elicit(message, response_type)` — request interactive input from the user through the client; returns `AcceptedElicitation`, `DeclinedElicitation`, or `CancelledElicitation`\n\n**SSE stream control** (`context.py:506`):\n- `await ctx.close_sse_stream()` — gracefully closes the HTTP connection on StreamableHTTP transport (client reconnects via EventStore), useful to avoid load balancer timeouts on long-running tools",
+    "stop_reason": "end_turn",
+    "session_id": "7d54c41a-ee7a-444e-a202-5d9c22cf4513",
+    "total_cost_usd": 0.5952805,
+    "usage": {
+      "input_tokens": 15,
+      "cache_creation_input_tokens": 53172,
+      "cache_read_input_tokens": 321161,
+      "output_tokens": 4092,
+      "server_tool_use": {
+        "web_search_requests": 0,
+        "web_fetch_requests": 0
+      },
+      "service_tier": "standard",
+      "cache_creation": {
+        "ephemeral_1h_input_tokens": 0,
+        "ephemeral_5m_input_tokens": 53172
+      },
+      "inference_geo": "",
+      "iterations": [],
+      "speed": "standard"
+    },
+    "modelUsage": {
+      "claude-sonnet-4-6": {
+        "inputTokens": 15,
+        "outputTokens": 4092,
+        "cacheReadInputTokens": 321161,
+        "cacheCreationInputTokens": 53172,
+        "webSearchRequests": 0,
+        "costUSD": 0.5952805,
+        "contextWindow": 200000,
+        "maxOutputTokens": 32000
+      }
+    },
+    "permission_denials": [],
+    "fast_mode_state": "off",
+    "uuid": "2915b41d-bc22-47d2-8138-705ac048c79f"
+  },
+  "durationMs": 85624,
+  "tokensIn": 15,
+  "tokensOut": 4092,
+  "toolCalls": 15,
+  "costUsd": 0.5952805,
+  "timestamp": "2026-03-05T23:54:27.238Z"
+}

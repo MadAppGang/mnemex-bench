@@ -1,0 +1,59 @@
+{
+  "scenarioId": 16,
+  "repo": "fastmcp",
+  "condition": "observations",
+  "title": "Feature: add tool timeout",
+  "task": "Add a `timeout` parameter to the `@mcp.tool` decorator that raises a TimeoutError if the tool function takes longer than the specified number of seconds.",
+  "output": "The implementation looks correct. Here's a summary of what was changed:\n\n**`src/fastmcp/tools/tool.py`:**\n- Added `import asyncio`\n- Added `timeout: float | None = None` field to `FunctionTool`\n- Added `timeout` parameter to `Tool.from_function()` and `FunctionTool.from_function()`, storing it on the created instance\n- Updated `FunctionTool.run()` to apply `asyncio.wait_for(result, timeout=self.timeout)` when awaiting async tool functions\n\n**`src/fastmcp/server/server.py`:**\n- Added `timeout: float | None = None` to all three `tool()` overloads/implementation\n- Passes `timeout` through to `Tool.from_function()` and the `partial` return\n\n**`tests/tools/test_tool.py`:**\n- Added `TestToolTimeout` class with tests covering: fast tool within timeout, slow tool raising `TimeoutError`, `timeout` stored on tool, `None` by default, and end-to-end via `@mcp.tool(timeout=...)` decorator\n\nThe timeout applies to async tool functions via `asyncio.wait_for`. Sync (blocking) tools run synchronously and can't be interrupted by asyncio, so timeout only affects async tools — which is the standard asyncio behavior for this pattern.",
+  "claudeJson": {
+    "type": "result",
+    "subtype": "success",
+    "is_error": false,
+    "duration_ms": 213951,
+    "duration_api_ms": 211516,
+    "num_turns": 34,
+    "result": "The implementation looks correct. Here's a summary of what was changed:\n\n**`src/fastmcp/tools/tool.py`:**\n- Added `import asyncio`\n- Added `timeout: float | None = None` field to `FunctionTool`\n- Added `timeout` parameter to `Tool.from_function()` and `FunctionTool.from_function()`, storing it on the created instance\n- Updated `FunctionTool.run()` to apply `asyncio.wait_for(result, timeout=self.timeout)` when awaiting async tool functions\n\n**`src/fastmcp/server/server.py`:**\n- Added `timeout: float | None = None` to all three `tool()` overloads/implementation\n- Passes `timeout` through to `Tool.from_function()` and the `partial` return\n\n**`tests/tools/test_tool.py`:**\n- Added `TestToolTimeout` class with tests covering: fast tool within timeout, slow tool raising `TimeoutError`, `timeout` stored on tool, `None` by default, and end-to-end via `@mcp.tool(timeout=...)` decorator\n\nThe timeout applies to async tool functions via `asyncio.wait_for`. Sync (blocking) tools run synchronously and can't be interrupted by asyncio, so timeout only affects async tools — which is the standard asyncio behavior for this pattern.",
+    "stop_reason": "end_turn",
+    "session_id": "d3e91d98-00d0-4d16-bc1d-7422af2b606b",
+    "total_cost_usd": 1.1862535,
+    "usage": {
+      "input_tokens": 38,
+      "cache_creation_input_tokens": 47426,
+      "cache_read_input_tokens": 1094902,
+      "output_tokens": 13688,
+      "server_tool_use": {
+        "web_search_requests": 0,
+        "web_fetch_requests": 0
+      },
+      "service_tier": "standard",
+      "cache_creation": {
+        "ephemeral_1h_input_tokens": 0,
+        "ephemeral_5m_input_tokens": 47426
+      },
+      "inference_geo": "",
+      "iterations": [],
+      "speed": "standard"
+    },
+    "modelUsage": {
+      "claude-sonnet-4-6": {
+        "inputTokens": 38,
+        "outputTokens": 13688,
+        "cacheReadInputTokens": 1094902,
+        "cacheCreationInputTokens": 47426,
+        "webSearchRequests": 0,
+        "costUSD": 1.1862535,
+        "contextWindow": 200000,
+        "maxOutputTokens": 32000
+      }
+    },
+    "permission_denials": [],
+    "fast_mode_state": "off",
+    "uuid": "21cc6440-be3b-43c0-8c52-309e5c50f933"
+  },
+  "durationMs": 218151,
+  "tokensIn": 38,
+  "tokensOut": 13688,
+  "toolCalls": 34,
+  "costUsd": 1.1862535,
+  "timestamp": "2026-03-06T00:14:20.567Z"
+}
