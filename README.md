@@ -56,6 +56,42 @@ experiments/
 | 008 | [Embedding Eval Methods](experiments/008-embedding-eval-methods/) | 2026-03-05 | Complete | Multi-model validation of embedding evaluation methodology. 6 external models reviewed and voted on eval spec. |
 
 
+## Data Archives (S3)
+
+Large binary data (indexes, model outputs) is stored in S3, not in git.
+
+**Bucket**: `s3://mnemex-bench/` (region: `ap-southeast-2`, AWS profile: `tools`)
+
+| Archive | Size | Date | Contents |
+|---------|------|------|----------|
+| `archives/indexes-20260304-deepseek.tar.gz` | 1.2 GB | 2026-03-04 | 12 eval repos with deepseek-v3.2 enrichment (latest, recommended) |
+| `archives/indexes-20260304-deepseek-11of12.tar.gz` | 830 MB | 2026-03-04 | 11 repos enriched (missing 1 repo) |
+| `archives/indexes-20260303.tar.gz` | 578 MB | 2026-03-03 | 12 repos, older index version |
+| `archives/generated-20260303.tar.gz` | 1.2 KB | 2026-03-03 | Generated eval data |
+
+**Eval repos** (12 repos, ~39K symbols, ~1.9GB uncompressed indexes):
+ansible/ansible, getzep/graphiti, huggingface/smolagents, huggingface/transformers,
+jlowin/fastmcp, openai/openai-agents-python, opshin/opshin, pdm-project/pdm,
+qodo-ai/pr-agent, tinygrad/tinygrad, vibrantlabsai/ragas, wagtail/wagtail
+
+### Download & Restore
+
+```bash
+# Download the latest archive
+aws s3 cp s3://mnemex-bench/archives/indexes-20260304-deepseek.tar.gz . --profile tools
+
+# Extract to agentbench data directory
+tar xzf indexes-20260304-deepseek.tar.gz -C /path/to/agentbench/data/
+```
+
+### Upload new archives
+
+```bash
+aws s3 cp /path/to/archive.tar.gz s3://mnemex-bench/archives/ --profile tools
+```
+
+After uploading, update this table.
+
 ## Convention
 
 Each experiment lives in `experiments/NNN-short-name/` with:
