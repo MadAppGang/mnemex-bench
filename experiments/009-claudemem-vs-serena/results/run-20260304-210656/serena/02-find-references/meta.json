@@ -1,0 +1,11 @@
+{
+  "test_id": "02-find-references",
+  "mcp_server": "serena",
+  "duration_seconds": 50,
+  "exit_code": 0,
+  "total_mcp_tool_calls": 7,
+  "transcript_lines":       33,
+  "timeout_seconds": 180,
+  "max_budget_usd": 0.50,
+  "timed_out": false
+}

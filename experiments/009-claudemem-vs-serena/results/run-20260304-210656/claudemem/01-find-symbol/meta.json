@@ -1,0 +1,11 @@
+{
+  "test_id": "01-find-symbol",
+  "mcp_server": "claudemem",
+  "duration_seconds": 32,
+  "exit_code": 0,
+  "total_mcp_tool_calls": 3,
+  "transcript_lines":       20,
+  "timeout_seconds": 180,
+  "max_budget_usd": 0.50,
+  "timed_out": false
+}

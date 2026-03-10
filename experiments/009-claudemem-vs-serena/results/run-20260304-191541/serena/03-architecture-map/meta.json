@@ -1,0 +1,9 @@
+{
+  "test_id": "03-architecture-map",
+  "mcp_server": "serena",
+  "duration_seconds": 140,
+  "exit_code": 0,
+  "total_mcp_tool_calls": 26,
+  "transcript_lines":       84,
+  "timeout_seconds": 180
+}

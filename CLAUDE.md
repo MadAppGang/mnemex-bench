@@ -13,25 +13,36 @@ This repo evaluates components of the **claudemem search pipeline**:
 
 The claudemem source code lives at `../claudemem/`. The agentbench eval harness lives at `../agentbench/`.
 
+## Experiments
+
+| # | Name | Topic | Status |
+|---|------|-------|--------|
+| 001 | LLM Speed Claudish | Frontier LLM speed via claudish/OpenRouter | Complete |
+| 002 | Cognitive Memory | Engrams: observation retrieval + E2E eval | Null result; MVP not yet run |
+| 003 | Query Expansion & Planner | Custom LLM for query expansion + planner architecture | Complete |
+| 004 | Code Search Test Harness | Ablation harness design for search pipeline | Design complete |
+| 005 | Embedding Models | Model research + evaluation methodology | Complete |
+| 009 | Claudemem vs Serena | Head-to-head MCP tool comparison (efficiency) | Round 1 complete |
+
 ## Current Status & Next Steps
 
 ### Ready to implement (high priority)
 
-1. **Build the code search test harness** (from experiment 006 design)
+1. **Build the code search test harness** (from experiment 004 design)
    - Extend `../claudemem/src/benchmark-v2/` with 3 new files: `loader.ts`, `ablation.ts`, `reporter.ts`
    - 224-query benchmark: 24 SWE-bench instances + 200 synthetic from 12 repos
    - 6 ablation conditions to measure each pipeline component's contribution
-   - See: `experiments/006-code-search-test-harness/report.md` for full spec
+   - See: `experiments/004-code-search-test-harness/report.md` for full spec
 
 2. **Run SFT Round 2** for query expansion models
    - Priority queue: Qwen3.5-9B, Qwen3.5-4B, MiMo-7B, Phi-4-mini, Qwen3.5-2B
-   - Full plan with HF Jobs commands: `experiments/004-query-expansion-models/research/NEXT-TRAINING-PLAN.md`
+   - Full plan with HF Jobs commands: `experiments/003-query-expansion-models/research/NEXT-TRAINING-PLAN.md`
    - Round 1 proved SFT teaches format compliance (0.23 -> 0.78 for Qwen3-1.7B)
 
-3. **Implement rule-based query classifier** (from experiment 005 findings)
+3. **Implement rule-based query classifier** (from experiment 003 planner research)
    - Regex rules: CamelCase/snake_case -> boost AST+symbol, file paths -> boost BM25, etc.
    - <5ms overhead, ~80% accuracy, no model needed
-   - See: `experiments/005-query-planner-architecture/README.md`
+   - See: `experiments/003-query-expansion-models/planner-architecture/README.md`
 
 ### Research complete (reference)
 
@@ -39,21 +50,16 @@ The claudemem source code lives at `../claudemem/`. The agentbench eval harness 
    - Tiny: LFM2-700M (.708 score, 697ms)
    - Medium: Qwen3-1.7B-FT (.777, 3473ms) — best HyDE for the size
    - Large: LFM2-2.6B (.816, 1879ms) — overall winner
-   - See: `experiments/004-query-expansion-models/README.md`
+   - See: `experiments/003-query-expansion-models/README.md`
 
-5. **Embedding model research** — small models survey for Apple Silicon
-   - See: `experiments/007-embedding-model-research/report.md`
-
-6. **Embedding eval methodology** — 6-model voting on eval spec
-   - See: `experiments/008-embedding-eval-methods/synthesis/embed-eval-spec.md`
+5. **Embedding model research** — small models survey + eval methodology
+   - See: `experiments/005-embedding-models/report.md`
+   - Eval spec: `experiments/005-embedding-models/eval-methods/synthesis/embed-eval-spec.md`
 
 ### Needs redesign
 
-7. **Cognitive memory E2E eval** (experiment 002) — Round 1 was a null result (Sonnet too capable). Needs harder tasks: weaker model, cross-file reasoning, larger repos, or time constraints.
-   - See: `experiments/002-cognitive-memory-e2e/README.md` "Future work" section
-
-8. **Observation retrieval validation** (experiment 003) — harness built but not yet run
-   - See: `experiments/003-cognitive-mvp-validation/README.md`
+6. **Cognitive memory eval** (experiment 002) — Round 1 E2E was a null result (Sonnet too capable). MVP validation harness built but not yet run. Needs harder tasks: weaker model, cross-file reasoning, larger repos, or time constraints.
+   - See: `experiments/002-cognitive-memory-e2e/README.md`
 
 ## Data Archives (S3)
 
@@ -69,7 +75,7 @@ See README.md for full archive table.
 
 ## Key Decisions Made
 
-- **No LLM query planner** — rule-based classifier is correct. No production tool (Cody, Cursor, aider) uses LLM at query time for routing (experiment 005)
-- **SFT teaches format, not domain knowledge** — models with good native format get no benefit from fine-tuning (experiment 004)
-- **Wilcoxon, not t-test** for MRR comparisons — bounded [0,1] and skewed (experiment 006)
-- **HyDE weight 0.25** is highest weight in query expansion scoring — model generates hypothetical code snippet that gets embedded (experiment 004)
+- **No LLM query planner** — rule-based classifier is correct. No production tool (Cody, Cursor, aider) uses LLM at query time for routing (experiment 003)
+- **SFT teaches format, not domain knowledge** — models with good native format get no benefit from fine-tuning (experiment 003)
+- **Wilcoxon, not t-test** for MRR comparisons — bounded [0,1] and skewed (experiment 004)
+- **HyDE weight 0.25** is highest weight in query expansion scoring — model generates hypothetical code snippet that gets embedded (experiment 003)

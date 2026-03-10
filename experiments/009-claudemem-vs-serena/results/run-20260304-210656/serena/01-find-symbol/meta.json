@@ -1,0 +1,11 @@
+{
+  "test_id": "01-find-symbol",
+  "mcp_server": "serena",
+  "duration_seconds": 39,
+  "exit_code": 0,
+  "total_mcp_tool_calls": 6,
+  "transcript_lines":       30,
+  "timeout_seconds": 180,
+  "max_budget_usd": 0.50,
+  "timed_out": false
+}
