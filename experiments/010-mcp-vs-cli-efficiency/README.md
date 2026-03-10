@@ -55,25 +55,28 @@ Prompts explicitly prohibit cross-method tool usage.
 - Timeout: 180s per test
 - Max budget: $0.50 per session
 - Model: Claude Sonnet (default `claude -p`)
-- Target codebase: `mag/claude-code` (auto-detected relative to mnemex-bench)
+- Target codebase: current working directory (or `--target-dir`)
 
 ## Running
 
 ```bash
+# cd into the codebase you want to test, then run the harness
+cd /path/to/your/codebase
+
 # Run all 5 tests (sequential, both methods)
-./experiments/010-mcp-vs-cli-efficiency/harness/run-comparison.sh
+/path/to/mnemex-bench/experiments/010-mcp-vs-cli-efficiency/harness/run-comparison.sh
 
 # Run in parallel (MCP + CLI simultaneously per test)
-./experiments/010-mcp-vs-cli-efficiency/harness/run-comparison.sh --parallel
+/path/to/mnemex-bench/experiments/010-mcp-vs-cli-efficiency/harness/run-comparison.sh --parallel
 
 # Run specific tests
-./experiments/010-mcp-vs-cli-efficiency/harness/run-comparison.sh --cases 02-search-code,04-symbol-lookup
+/path/to/mnemex-bench/experiments/010-mcp-vs-cli-efficiency/harness/run-comparison.sh --cases 02-search-code,04-symbol-lookup
 
-# Custom target codebase
-./experiments/010-mcp-vs-cli-efficiency/harness/run-comparison.sh --target-dir /path/to/repo
+# Or specify target explicitly
+/path/to/mnemex-bench/experiments/010-mcp-vs-cli-efficiency/harness/run-comparison.sh --target-dir /path/to/repo
 ```
 
-The harness prints a summary table at the end comparing duration and tool counts.
+The harness defaults to the current working directory as the target codebase. It prints a summary table at the end comparing duration and tool counts.
 
 ## Expected Findings
 

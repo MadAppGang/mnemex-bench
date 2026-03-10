@@ -47,16 +47,9 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 
-# Default target: mag/claude-code (relative to typical location)
+# Default target: current working directory
 if [[ -z "$TARGET_DIR" ]]; then
-  # Try to find mag/claude-code relative to mnemex-bench
-  if [[ -d "$EXPERIMENT_DIR/../../claude-code" ]]; then
-    TARGET_DIR="$(cd "$EXPERIMENT_DIR/../../claude-code" && pwd)"
-  else
-    echo "ERROR: No --target-dir specified and could not find ../claude-code"
-    echo "Usage: $0 --target-dir /path/to/codebase"
-    exit 1
-  fi
+  TARGET_DIR="$(pwd)"
 fi
 
 echo "Target codebase: $TARGET_DIR"
