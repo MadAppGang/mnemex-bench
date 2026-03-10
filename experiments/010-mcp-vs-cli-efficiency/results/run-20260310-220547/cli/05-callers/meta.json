@@ -1,0 +1,13 @@
+{
+  "test_id": "05-callers",
+  "method": "cli",
+  "duration_seconds": 40,
+  "exit_code": 0,
+  "total_tool_calls": 3,
+  "bash_tool_calls": 3,
+  "transcript_lines": 23,
+  "timeout_seconds": 180,
+  "max_budget_usd": 0.50,
+  "timed_out": false,
+  "target_dir": "/Users/jack/mag/claude-code"
+}

@@ -1,0 +1,13 @@
+{
+  "test_id": "01-index-status",
+  "method": "mcp",
+  "duration_seconds": 23,
+  "exit_code": 0,
+  "total_tool_calls": 2,
+  "bash_tool_calls": 0,
+  "transcript_lines": 19,
+  "timeout_seconds": 180,
+  "max_budget_usd": 0.50,
+  "timed_out": false,
+  "target_dir": "/Users/jack/mag/claude-code"
+}

@@ -1,0 +1,13 @@
+{
+  "test_id": "03-architecture-map",
+  "method": "cli",
+  "duration_seconds": 95,
+  "exit_code": 0,
+  "total_tool_calls": 13,
+  "bash_tool_calls": 13,
+  "transcript_lines": 43,
+  "timeout_seconds": 180,
+  "max_budget_usd": 0.50,
+  "timed_out": false,
+  "target_dir": "/Users/jack/mag/claude-code"
+}
