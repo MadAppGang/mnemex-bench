@@ -48,6 +48,12 @@ experiments/
     prompts/                  # 4 code investigation prompts (+1 skipped)
     results/                  # 7 runs (2 with complete data)
     README.md                 # Results, findings, future work
+  010-mcp-vs-cli-efficiency/  # MCP tools vs CLI (Bash) efficiency comparison
+    harness/                  # run-comparison.sh, MCP configs
+    prompts/mcp/              # 5 prompts for MCP tool variant
+    prompts/cli/              # 5 prompts for CLI (Bash) variant
+    results/                  # Run outputs
+    README.md                 # Design, hypotheses, reproduction
 ```
 
 ## Experiments
@@ -63,6 +69,7 @@ experiments/
 | 007 | [Embedding Model Research](experiments/007-embedding-model-research/) | 2026-03-05 | Complete | Small embedding model survey for local code search on Apple Silicon. |
 | 008 | [Embedding Eval Methods](experiments/008-embedding-eval-methods/) | 2026-03-05 | Complete | Multi-model validation of embedding evaluation methodology. 6 external models reviewed and voted on eval spec. |
 | 009 | [Claudemem vs Serena](experiments/009-claudemem-vs-serena/) | 2026-03-04 | Round 1 complete (preliminary) | Head-to-head MCP tool comparison: claudemem uses 34% fewer tool calls but Serena is ~11% faster wall-clock. Neither clearly wins. Correctness not yet graded. |
+| 010 | [MCP vs CLI Efficiency](experiments/010-mcp-vs-cli-efficiency/) | 2026-03-10 | Ready to run | Compare claudemem MCP tools vs CLI (Bash) for same 5 code investigation tasks. Measures duration, tool calls, compliance. |
 
 
 ## Data Archives (S3)

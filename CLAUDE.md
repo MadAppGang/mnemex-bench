@@ -23,6 +23,7 @@ The claudemem source code lives at `../claudemem/`. The agentbench eval harness 
 | 004 | Code Search Test Harness | Ablation harness design for search pipeline | Design complete |
 | 005 | Embedding Models | Model research + evaluation methodology | Complete |
 | 009 | Claudemem vs Serena | Head-to-head MCP tool comparison (efficiency) | Round 1 complete |
+| 010 | MCP vs CLI Efficiency | MCP tools vs CLI (Bash) for same tasks | Ready to run |
 
 ## Current Status & Next Steps
 

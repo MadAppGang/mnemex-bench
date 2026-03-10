@@ -1,0 +1,131 @@
+{
+  "meta": {
+    "description": "MCP vs CLI efficiency comparison for claudemem/mnemex. Same code investigation tasks executed via MCP tools vs CLI (Bash). Measures duration, tool call count, and answer presence.",
+    "version": "1.0.0",
+    "created": "2026-03-10",
+    "type": "efficiency-comparison",
+    "notes": "5 paired prompts (mcp/ and cli/ variants). MCP uses --strict-mcp-config with claudemem server. CLI uses --strict-mcp-config with empty config (Bash only)."
+  },
+  "test_cases": [
+    {
+      "id": "01-index-status",
+      "description": "Check codebase index status",
+      "task": "Report index initialization, file count, freshness",
+      "mcp_checks": {
+        "has_tool_prefix": "mcp__claudemem__",
+        "tools_used_include_any": [
+          ["mcp__claudemem__index_status"],
+          ["mcp__claudemem__get_status"],
+          ["mcp__plugin_code-analysis_claudemem__index_status"],
+          ["mcp__plugin_code-analysis_claudemem__get_status"]
+        ],
+        "min_tool_calls": 1,
+        "no_bash_calls": true,
+        "response_contains_any": ["initialized", "files", "indexed", "fresh"]
+      },
+      "cli_checks": {
+        "min_bash_calls": 1,
+        "no_mcp_calls": true,
+        "bash_contains_any": ["claudemem status", "claudemem index"],
+        "response_contains_any": ["initialized", "files", "indexed", "fresh", "exists"]
+      }
+    },
+    {
+      "id": "02-search-code",
+      "description": "Semantic search for plugin manifest code",
+      "task": "Find code related to plugin manifest loading and version parsing",
+      "mcp_checks": {
+        "has_tool_prefix": "mcp__claudemem__",
+        "tools_used_include_any": [
+          ["mcp__claudemem__search"],
+          ["mcp__claudemem__search_code"],
+          ["mcp__plugin_code-analysis_claudemem__search"],
+          ["mcp__plugin_code-analysis_claudemem__search_code"]
+        ],
+        "min_tool_calls": 1,
+        "no_bash_calls": true,
+        "response_contains_any": ["plugin.json", "version", "manifest", "score"]
+      },
+      "cli_checks": {
+        "min_bash_calls": 1,
+        "no_mcp_calls": true,
+        "bash_contains_any": ["claudemem search"],
+        "response_contains_any": ["plugin.json", "version", "manifest", "score"]
+      }
+    },
+    {
+      "id": "03-architecture-map",
+      "description": "Generate architecture map with PageRank",
+      "task": "Map codebase architecture, identify key modules and centrality",
+      "mcp_checks": {
+        "has_tool_prefix": "mcp__claudemem__",
+        "tools_used_include_any": [
+          ["mcp__claudemem__map"],
+          ["mcp__plugin_code-analysis_claudemem__map"]
+        ],
+        "min_tool_calls": 1,
+        "no_bash_calls": true,
+        "response_contains_any": ["PageRank", "pagerank", "rank", "plugins", "autotest"]
+      },
+      "cli_checks": {
+        "min_bash_calls": 1,
+        "no_mcp_calls": true,
+        "bash_contains_any": ["claudemem map"],
+        "response_contains_any": ["rank", "plugins", "autotest", "symbol"]
+      }
+    },
+    {
+      "id": "04-symbol-lookup",
+      "description": "Look up symbol definition and usages",
+      "task": "Find RunEntry: definition file, kind, fields, usage count",
+      "mcp_checks": {
+        "has_tool_prefix": "mcp__claudemem__",
+        "tools_used_include_any": [
+          ["mcp__claudemem__symbol"],
+          ["mcp__claudemem__define"],
+          ["mcp__plugin_code-analysis_claudemem__symbol"],
+          ["mcp__plugin_code-analysis_claudemem__define"]
+        ],
+        "min_tool_calls": 1,
+        "no_bash_calls": true,
+        "response_contains_any": ["RunEntry", "interface", "types.ts", "framework"]
+      },
+      "cli_checks": {
+        "min_bash_calls": 1,
+        "no_mcp_calls": true,
+        "bash_contains_any": ["claudemem symbol"],
+        "response_contains_any": ["RunEntry", "interface", "types.ts", "framework"]
+      }
+    },
+    {
+      "id": "05-callers",
+      "description": "Find all callers of a function",
+      "task": "Find all call sites of parseTranscript",
+      "mcp_checks": {
+        "has_tool_prefix": "mcp__claudemem__",
+        "tools_used_include_any": [
+          ["mcp__claudemem__callers"],
+          ["mcp__plugin_code-analysis_claudemem__callers"]
+        ],
+        "min_tool_calls": 1,
+        "no_bash_calls": true,
+        "response_contains_any": ["parseTranscript", "callers", "call", "line"]
+      },
+      "cli_checks": {
+        "min_bash_calls": 1,
+        "no_mcp_calls": true,
+        "bash_contains_any": ["claudemem callers"],
+        "response_contains_any": ["parseTranscript", "callers", "call", "line"]
+      }
+    }
+  ],
+  "efficiency_metrics": {
+    "primary": ["duration_seconds", "total_tool_calls"],
+    "secondary": ["bash_tool_calls", "transcript_lines"],
+    "derived": {
+      "tool_efficiency": "Compare total_tool_calls between MCP and CLI for same task",
+      "time_efficiency": "Compare duration_seconds between MCP and CLI for same task",
+      "compliance": "Did the method stay within its constraint (no Bash for MCP, no MCP for CLI)?"
+    }
+  }
+}
