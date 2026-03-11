@@ -1,4 +1,4 @@
-# 010 — MCP vs CLI Efficiency for claudemem/mnemex
+# 010 — MCP vs CLI Efficiency for mnemex
 
 **Date:** 2026-03-10
 **Status:** Ready to run
@@ -6,10 +6,10 @@
 
 ## Motivation
 
-Claude Code can access claudemem through two paths:
+Claude Code can access mnemex through two paths:
 
-- **MCP tools** — Claude calls `mcp__claudemem__search`, `mcp__claudemem__symbol`, etc. via the MCP protocol. The claudemem MCP server handles the request and returns structured results.
-- **CLI via Bash** — Claude runs `claudemem search "query"`, `claudemem symbol RunEntry`, etc. through the Bash tool. Output is plain text parsed by Claude.
+- **MCP tools** — Claude calls `mcp__mnemex__search`, `mcp__mnemex__symbol`, etc. via the MCP protocol. The mnemex MCP server handles the request and returns structured results.
+- **CLI via Bash** — Claude runs `mnemex search "query"`, `mnemex symbol RunEntry`, etc. through the Bash tool. Output is plain text parsed by Claude.
 
 Both paths access the same underlying index and produce equivalent information. The question: **which path is more efficient for an LLM agent?**
 
@@ -24,17 +24,17 @@ Hypotheses:
 
 | # | Task | MCP Tool | CLI Command |
 |---|------|----------|-------------|
-| 01 | Index status check | `index_status` / `get_status` | `claudemem status` |
-| 02 | Semantic code search | `search` / `search_code` | `claudemem search "..."` |
-| 03 | Architecture map | `map` | `claudemem map` |
-| 04 | Symbol definition lookup | `symbol` / `define` | `claudemem symbol RunEntry` |
-| 05 | Caller analysis | `callers` | `claudemem callers parseTranscript` |
+| 01 | Index status check | `index_status` / `get_status` | `mnemex status` |
+| 02 | Semantic code search | `search` / `search_code` | `mnemex search "..."` |
+| 03 | Architecture map | `map` | `mnemex map` |
+| 04 | Symbol definition lookup | `symbol` / `define` | `mnemex symbol RunEntry` |
+| 05 | Caller analysis | `callers` | `mnemex callers parseTranscript` |
 
 ### Isolation
 
 Each variant runs in its own `claude -p` session with `--strict-mcp-config`:
 
-- **MCP mode**: `mcp-claudemem.json` — only claudemem MCP server, no Bash/Read/Grep
+- **MCP mode**: `mcp-mnemex.json` — only mnemex MCP server, no Bash/Read/Grep
 - **CLI mode**: `mcp-empty.json` — no MCP servers, but Bash tool available for CLI commands
 
 Prompts explicitly prohibit cross-method tool usage.
@@ -82,7 +82,7 @@ The harness defaults to the current working directory as the target codebase. It
 
 Based on experiment 009 (claudemem vs Serena) preliminary data:
 
-- MCP tools tend to produce fewer but richer tool calls
+- MCP tools tend to produce fewer but richer tool calls (using mnemex MCP server)
 - CLI may be faster wall-clock due to lower protocol overhead
 - Claude may need multiple Bash calls to parse CLI text output vs one structured MCP response
 
@@ -103,7 +103,7 @@ Build `analyze-comparison.ts` to:
   test-cases.json           # Test definitions with per-method checks
   harness/
     run-comparison.sh       # Main harness script
-    mcp-claudemem.json      # MCP config: claudemem server only
+    mcp-mnemex.json         # MCP config: mnemex server only
     mcp-empty.json          # MCP config: no servers (Bash only)
   prompts/
     mcp/                    # Prompts for MCP tool variant

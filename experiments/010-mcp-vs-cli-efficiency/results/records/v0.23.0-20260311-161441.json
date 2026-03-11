@@ -1,0 +1,125 @@
+{
+  "schema_version": "1",
+  "run_id": "run-20260311-161441",
+  "timestamp": "2026-03-11T05:19:55Z",
+  "mnemex_version": "0.23.0",
+  "target_dir": "/Users/jack/mag/claude-code",
+  "harness_version": "1.0.0",
+  "test_results": [
+    {
+      "test_id": "01-index-status",
+      "mcp": {
+        "duration_s": 21,
+        "total_tool_calls": 2,
+        "bash_tool_calls": 0,
+        "timed_out": false,
+        "exit_code": 0,
+        "checks_passed": null,
+        "checks": {}
+      },
+      "cli": {
+        "duration_s": 89,
+        "total_tool_calls": 11,
+        "bash_tool_calls": 11,
+        "timed_out": false,
+        "exit_code": 0,
+        "checks_passed": null,
+        "checks": {}
+      }
+    },
+    {
+      "test_id": "02-search-code",
+      "mcp": {
+        "duration_s": 37,
+        "total_tool_calls": 2,
+        "bash_tool_calls": 0,
+        "timed_out": false,
+        "exit_code": 0,
+        "checks_passed": null,
+        "checks": {}
+      },
+      "cli": {
+        "duration_s": 26,
+        "total_tool_calls": 1,
+        "bash_tool_calls": 1,
+        "timed_out": false,
+        "exit_code": 0,
+        "checks_passed": null,
+        "checks": {}
+      }
+    },
+    {
+      "test_id": "03-architecture-map",
+      "mcp": {
+        "duration_s": 64,
+        "total_tool_calls": 2,
+        "bash_tool_calls": 0,
+        "timed_out": false,
+        "exit_code": 0,
+        "checks_passed": null,
+        "checks": {}
+      },
+      "cli": {
+        "duration_s": 83,
+        "total_tool_calls": 6,
+        "bash_tool_calls": 6,
+        "timed_out": false,
+        "exit_code": 0,
+        "checks_passed": null,
+        "checks": {}
+      }
+    },
+    {
+      "test_id": "04-symbol-lookup",
+      "mcp": {
+        "duration_s": 54,
+        "total_tool_calls": 9,
+        "bash_tool_calls": 0,
+        "timed_out": false,
+        "exit_code": 0,
+        "checks_passed": null,
+        "checks": {}
+      },
+      "cli": {
+        "duration_s": 36,
+        "total_tool_calls": 3,
+        "bash_tool_calls": 3,
+        "timed_out": false,
+        "exit_code": 0,
+        "checks_passed": null,
+        "checks": {}
+      }
+    },
+    {
+      "test_id": "05-callers",
+      "mcp": {
+        "duration_s": 49,
+        "total_tool_calls": 5,
+        "bash_tool_calls": 0,
+        "timed_out": false,
+        "exit_code": 0,
+        "checks_passed": null,
+        "checks": {}
+      },
+      "cli": {
+        "duration_s": 48,
+        "total_tool_calls": 4,
+        "bash_tool_calls": 4,
+        "timed_out": false,
+        "exit_code": 0,
+        "checks_passed": null,
+        "checks": {}
+      }
+    }
+  ],
+  "aggregate": {
+    "mcp": {
+      "avg_duration_s": 45,
+      "avg_total_tool_calls": 4
+    },
+    "cli": {
+      "avg_duration_s": 56.4,
+      "avg_total_tool_calls": 5
+    }
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "id": "claudemem",
+  "name": "claudemem",
+  "description": "Semantic code search + AST analysis MCP server",
+  "requires_preindex": true,
+  "designated_tool_prefix": "mcp__claudemem__",
+  "min_designated_calls": 1,
+  "version_command": "claudemem --version",
+  "setup_timeout_seconds": 60,
+  "env": {
+    "CLAUDEMEM_LSP": "true"
+  },
+  "notes": "Index must exist at {repo_path}/.claudemem/ before running. setup.sh validates this."
+}

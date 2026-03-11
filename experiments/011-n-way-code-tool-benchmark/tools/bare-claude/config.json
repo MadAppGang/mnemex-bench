@@ -1,0 +1,12 @@
+{
+  "id": "bare-claude",
+  "name": "bare-claude",
+  "description": "Stock Claude Code with no MCP tools. Uses Read, Grep, Glob, Bash only.",
+  "requires_preindex": false,
+  "designated_tool_prefix": "",
+  "min_designated_calls": 0,
+  "version_command": "",
+  "setup_timeout_seconds": 10,
+  "env": {},
+  "notes": "Compliance passes when zero mcp__ tool calls are made. Setup is a no-op."
+}

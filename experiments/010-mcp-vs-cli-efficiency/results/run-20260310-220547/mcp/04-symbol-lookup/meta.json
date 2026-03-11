@@ -1,6 +1,7 @@
 {
   "test_id": "04-symbol-lookup",
   "method": "mcp",
+  "mnemex_version": "0.23.0",
   "duration_seconds": 65,
   "exit_code": 0,
   "total_tool_calls": 10,

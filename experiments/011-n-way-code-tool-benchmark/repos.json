@@ -1,0 +1,10 @@
+{
+  "fastmcp": {
+    "path": "/Users/jack/mag/agentbench/data/eval-repos/jlowin_fastmcp",
+    "language": "python"
+  },
+  "tinygrad": {
+    "path": "/Users/jack/mag/agentbench/data/eval-repos/tinygrad_tinygrad",
+    "language": "python"
+  }
+}

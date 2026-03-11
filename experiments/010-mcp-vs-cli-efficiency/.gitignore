@@ -1,0 +1,7 @@
+# Large transcript files — gitignored
+results/run-*/
+
+# Keep committed artifacts
+!results/runs.json
+!results/records/
+!results/HISTORY.md

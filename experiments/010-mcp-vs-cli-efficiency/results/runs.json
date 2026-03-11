@@ -1,0 +1,25 @@
+{
+  "schema_version": "1",
+  "runs": [
+    {
+      "run_id": "run-20260310-220547",
+      "timestamp": "2026-03-10T22:05:47.000Z",
+      "mnemex_version": "0.23.0",
+      "record_path": "records/v0.23.0-20260310-220547.json",
+      "mcp_avg_duration_s": 47,
+      "cli_avg_duration_s": 54.8,
+      "mcp_pass_rate": 1,
+      "cli_pass_rate": 1
+    },
+    {
+      "run_id": "run-20260311-161441",
+      "timestamp": "2026-03-11T05:19:55Z",
+      "mnemex_version": "0.23.0",
+      "record_path": "records/v0.23.0-20260311-161441.json",
+      "mcp_avg_duration_s": 45,
+      "cli_avg_duration_s": 56.4,
+      "mcp_pass_rate": null,
+      "cli_pass_rate": null
+    }
+  ]
+}

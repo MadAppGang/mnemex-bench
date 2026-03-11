@@ -1,6 +1,7 @@
 {
   "test_id": "01-index-status",
   "method": "mcp",
+  "mnemex_version": "0.23.0",
   "duration_seconds": 23,
   "exit_code": 0,
   "total_tool_calls": 2,

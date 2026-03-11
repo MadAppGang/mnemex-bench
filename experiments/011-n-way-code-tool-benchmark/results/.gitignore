@@ -1,0 +1,3 @@
+# Exclude large transcript files from git
+*/transcript.jsonl
+# Keep meta.json, prompt.md, stderr.log, records/

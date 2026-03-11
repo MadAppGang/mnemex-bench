@@ -1,8 +1,8 @@
 #!/bin/bash
-# run-comparison.sh — MCP vs CLI efficiency comparison for claudemem/mnemex
+# run-comparison.sh — MCP vs CLI efficiency comparison for mnemex
 #
 # Runs identical investigation tasks using two access methods:
-#   - MCP: claude -p with --strict-mcp-config (claudemem MCP server only)
+#   - MCP: claude -p with --strict-mcp-config (mnemex MCP server only)
 #   - CLI: claude -p with --strict-mcp-config (empty MCP, Bash tool available)
 #
 # Captures: transcript, duration, tool calls, token count
@@ -19,12 +19,15 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 EXPERIMENT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
 TIMESTAMP=$(date +%Y%m%d-%H%M%S)
 OUTPUT_DIR="$EXPERIMENT_DIR/results/run-$TIMESTAMP"
+
+# Capture mnemex version at run start
+MNEMEX_VERSION=$(mnemex --version 2>/dev/null | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' || echo "unknown")
 TIMEOUT=180
 MAX_BUDGET=0.50
 TARGET_DIR=""
 
 # MCP configs
-MCP_CLAUDEMEM="$SCRIPT_DIR/mcp-claudemem.json"
+MCP_MNEMEX="$SCRIPT_DIR/mcp-mnemex.json"
 MCP_EMPTY="$SCRIPT_DIR/mcp-empty.json"
 
 # Prompt directories
@@ -88,14 +91,14 @@ run_test() {
   local start_epoch=$(date +%s)
   local timed_out=false
 
-  # Build env prefix for MCP mode (LSP needs CLAUDEMEM_LSP in parent env)
+  # Build env prefix for MCP mode (LSP needs MNEMEX_LSP in parent env)
   local env_prefix=""
   if [[ "$method" == "mcp" ]]; then
-    env_prefix="CLAUDEMEM_LSP=true"
+    env_prefix="MNEMEX_LSP=true"
   fi
 
   # Run claude -p with isolated MCP config
-  # MCP mode: only claudemem MCP tools available
+  # MCP mode: only mnemex MCP tools available
   # CLI mode: empty MCP (no MCP tools), but Bash/Read/etc available
   (
     cd "$TARGET_DIR"
@@ -143,6 +146,7 @@ run_test() {
 {
   "test_id": "$test_id",
   "method": "$method",
+  "mnemex_version": "$MNEMEX_VERSION",
   "duration_seconds": $duration,
   "exit_code": $exit_code,
   "total_tool_calls": $mcp_calls,
@@ -159,6 +163,97 @@ METAJSON
   [[ $exit_code -ne 0 ]] && icon="FAIL"
   $timed_out && icon="TIMEOUT"
   echo "  $icon  [$test_id] method=$method dur=${duration}s tools=$mcp_calls bash=$bash_calls exit=$exit_code"
+}
+
+write_run_record() {
+  local record_file="$EXPERIMENT_DIR/results/records/v${MNEMEX_VERSION}-${TIMESTAMP}.json"
+  mkdir -p "$(dirname "$record_file")"
+
+  # Build test_results array from meta.json files using jq
+  local test_results="[]"
+  local tid
+  for tid in "${PROMPT_IDS[@]}"; do
+    local mcp_meta="$OUTPUT_DIR/mcp/$tid/meta.json"
+    local cli_meta="$OUTPUT_DIR/cli/$tid/meta.json"
+    [[ -f "$mcp_meta" && -f "$cli_meta" ]] || continue
+
+    local entry
+    entry=$(jq -n \
+      --arg tid "$tid" \
+      --slurpfile mcp "$mcp_meta" \
+      --slurpfile cli "$cli_meta" \
+      '{
+        test_id: $tid,
+        mcp: { duration_s: $mcp[0].duration_seconds, total_tool_calls: $mcp[0].total_tool_calls,
+               bash_tool_calls: $mcp[0].bash_tool_calls, timed_out: $mcp[0].timed_out,
+               exit_code: $mcp[0].exit_code, checks_passed: null, checks: {} },
+        cli: { duration_s: $cli[0].duration_seconds, total_tool_calls: $cli[0].total_tool_calls,
+               bash_tool_calls: $cli[0].bash_tool_calls, timed_out: $cli[0].timed_out,
+               exit_code: $cli[0].exit_code, checks_passed: null, checks: {} }
+      }')
+    test_results=$(echo "$test_results" | jq ". += [$entry]")
+  done
+
+  # Compute aggregates
+  local mcp_avg_dur cli_avg_dur mcp_avg_tools cli_avg_tools
+  mcp_avg_dur=$(echo "$test_results" | jq '[.[].mcp.duration_s] | add / length')
+  cli_avg_dur=$(echo "$test_results" | jq '[.[].cli.duration_s] | add / length')
+  mcp_avg_tools=$(echo "$test_results" | jq '[.[].mcp.total_tool_calls] | add / length')
+  cli_avg_tools=$(echo "$test_results" | jq '[.[].cli.total_tool_calls] | add / length')
+
+  jq -n \
+    --arg schema "1" \
+    --arg run_id "run-$TIMESTAMP" \
+    --arg ts "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+    --arg ver "$MNEMEX_VERSION" \
+    --arg target "$TARGET_DIR" \
+    --argjson tests "$test_results" \
+    --argjson mcp_dur "$mcp_avg_dur" \
+    --argjson cli_dur "$cli_avg_dur" \
+    --argjson mcp_tools "$mcp_avg_tools" \
+    --argjson cli_tools "$cli_avg_tools" \
+    '{
+      schema_version: $schema, run_id: $run_id, timestamp: $ts,
+      mnemex_version: $ver, target_dir: $target,
+      harness_version: "1.0.0",
+      test_results: $tests,
+      aggregate: {
+        mcp: { avg_duration_s: $mcp_dur, avg_total_tool_calls: $mcp_tools },
+        cli: { avg_duration_s: $cli_dur, avg_total_tool_calls: $cli_tools }
+      }
+    }' > "$record_file"
+
+  echo "Run record: $record_file"
+}
+
+update_manifest() {
+  local manifest="$EXPERIMENT_DIR/results/runs.json"
+  local record_rel="records/v${MNEMEX_VERSION}-${TIMESTAMP}.json"
+  local mcp_avg cli_avg
+  mcp_avg=$(jq '.aggregate.mcp.avg_duration_s' "$EXPERIMENT_DIR/results/$record_rel")
+  cli_avg=$(jq '.aggregate.cli.avg_duration_s' "$EXPERIMENT_DIR/results/$record_rel")
+
+  local new_entry
+  new_entry=$(jq -n \
+    --arg run_id "run-$TIMESTAMP" \
+    --arg ts "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+    --arg ver "$MNEMEX_VERSION" \
+    --arg rec "$record_rel" \
+    --argjson mcp_dur "$mcp_avg" \
+    --argjson cli_dur "$cli_avg" \
+    '{ run_id: $run_id, timestamp: $ts, mnemex_version: $ver, record_path: $rec,
+       mcp_avg_duration_s: $mcp_dur, cli_avg_duration_s: $cli_dur,
+       mcp_pass_rate: null, cli_pass_rate: null }')
+
+  # Initialize if missing
+  if [[ ! -f "$manifest" ]]; then
+    echo '{"schema_version":"1","runs":[]}' > "$manifest"
+  fi
+
+  # Atomic append via temp file
+  local tmp="$manifest.tmp.$$"
+  jq --argjson entry "$new_entry" '.runs += [$entry]' "$manifest" > "$tmp" && mv "$tmp" "$manifest"
+  echo "Manifest updated: $manifest"
 }
 
 # Execute all tests for both methods
@@ -178,11 +273,11 @@ for test_id in "${PROMPT_IDS[@]}"; do
   echo "--- $test_id ---"
 
   if $PARALLEL; then
-    run_test "mcp" "$MCP_CLAUDEMEM" "$mcp_prompt" "$test_id" &
+    run_test "mcp" "$MCP_MNEMEX" "$mcp_prompt" "$test_id" &
     run_test "cli" "$MCP_EMPTY" "$cli_prompt" "$test_id" &
     wait
   else
-    run_test "mcp" "$MCP_CLAUDEMEM" "$mcp_prompt" "$test_id"
+    run_test "mcp" "$MCP_MNEMEX" "$mcp_prompt" "$test_id"
     run_test "cli" "$MCP_EMPTY" "$cli_prompt" "$test_id"
   fi
   echo ""
@@ -215,3 +310,6 @@ for test_id in "${PROMPT_IDS[@]}"; do
   fi
 done
 echo ""
+
+write_run_record
+update_manifest

@@ -1,6 +1,7 @@
 {
   "test_id": "03-architecture-map",
   "method": "mcp",
+  "mnemex_version": "0.23.0",
   "duration_seconds": 58,
   "exit_code": 0,
   "total_tool_calls": 2,

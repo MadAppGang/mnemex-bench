@@ -1,6 +1,7 @@
 {
   "test_id": "02-search-code",
   "method": "cli",
+  "mnemex_version": "0.23.0",
   "duration_seconds": 32,
   "exit_code": 0,
   "total_tool_calls": 1,

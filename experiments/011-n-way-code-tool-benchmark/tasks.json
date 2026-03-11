@@ -1,0 +1,68 @@
+{
+  "version": "1",
+  "description": "N-way code tool benchmark tasks — Phase 1",
+  "tasks": [
+    {
+      "id": "T01",
+      "category": "symbol-lookup",
+      "repo": "fastmcp",
+      "difficulty": "medium",
+      "description": "Find the FastMCP class __init__ method: file path, line number, and all parameters with their types.",
+      "prompt_file": "T01-symbol-fastmcp.md",
+      "expected_tokens": [
+        "server.py",
+        "__init__",
+        "name",
+        "instructions",
+        "lifespan"
+      ],
+      "notes": "Correct answer: src/fastmcp/server.py (or similar path), lists all __init__ params. 'instructions' and 'lifespan' are non-obvious params that require reading the actual signature."
+    },
+    {
+      "id": "T02",
+      "category": "symbol-lookup",
+      "repo": "tinygrad",
+      "difficulty": "medium",
+      "description": "Find the Tensor.realize method: file path, line number, and return type.",
+      "prompt_file": "T02-symbol-tinygrad.md",
+      "expected_tokens": [
+        "tensor.py",
+        "realize",
+        "Tensor",
+        "self"
+      ],
+      "notes": "Correct answer: tinygrad/tensor.py. realize() is a key method that triggers lazy evaluation. Return type is Tensor (returns self). The exact line number validates the answer is specific."
+    },
+    {
+      "id": "T03",
+      "category": "cross-file-trace",
+      "repo": "fastmcp",
+      "difficulty": "hard",
+      "description": "Trace how an MCP tool call request is dispatched from the MCP protocol layer to the Python function registered as a tool handler. Identify the entry point, the dispatch chain, and the file+line where the user's Python function is finally called.",
+      "prompt_file": "T03-trace-fastmcp.md",
+      "expected_tokens": [
+        "server.py",
+        "call_tool",
+        "tool",
+        "handler",
+        "await"
+      ],
+      "notes": "Hard: requires tracing through at least 3 files (MCP protocol handler -> FastMCP dispatch -> tool registry -> Python fn). Vague answers score 0."
+    },
+    {
+      "id": "T04",
+      "category": "cross-file-trace",
+      "repo": "tinygrad",
+      "difficulty": "hard",
+      "description": "Trace how calling Tensor.realize() schedules and executes a lazy computation. Starting from Tensor.realize, identify the key files and functions involved in the execution path until the actual computation runs on a device.",
+      "prompt_file": "T04-trace-tinygrad.md",
+      "expected_tokens": [
+        "realize",
+        "schedule",
+        "exec",
+        "lazy"
+      ],
+      "notes": "Hard: tinygrad uses lazy evaluation. Path goes through lazy.py / schedule.py / device execution. Requires synthesizing 3+ files. A vague 'it uses lazy evaluation' answer scores 0."
+    }
+  ]
+}

@@ -1,0 +1,427 @@
+{
+  "schema_version": "1",
+  "run_id": "run-20260310-220547",
+  "timestamp": "2026-03-11T04:56:50.690Z",
+  "mnemex_version": "0.23.0",
+  "target_dir": "",
+  "harness_version": "1.0.0",
+  "test_results": [
+    {
+      "test_id": "01-index-status",
+      "mcp": {
+        "duration_s": 23,
+        "total_tool_calls": 2,
+        "bash_tool_calls": 0,
+        "timed_out": false,
+        "exit_code": 0,
+        "checks_passed": true,
+        "checks": {
+          "has_tool_prefix": true,
+          "tools_used_include_any": true,
+          "min_tool_calls": true,
+          "no_bash_calls": true,
+          "response_contains_any": true
+        },
+        "check_details": [
+          {
+            "check_name": "has_tool_prefix",
+            "passed": true,
+            "detail": "Matched: mcp__mnemex__index_status"
+          },
+          {
+            "check_name": "tools_used_include_any",
+            "passed": true,
+            "detail": "Matched combo: [mcp__mnemex__index_status]"
+          },
+          {
+            "check_name": "min_tool_calls",
+            "passed": true,
+            "detail": "Got 2, required >= 1"
+          },
+          {
+            "check_name": "no_bash_calls",
+            "passed": true,
+            "detail": "No Bash calls"
+          },
+          {
+            "check_name": "response_contains_any",
+            "passed": true,
+            "detail": "Found: initialized, files, indexed, fresh"
+          }
+        ]
+      },
+      "cli": {
+        "duration_s": 44,
+        "total_tool_calls": 5,
+        "bash_tool_calls": 5,
+        "timed_out": false,
+        "exit_code": 0,
+        "checks_passed": true,
+        "checks": {
+          "min_bash_calls": true,
+          "no_mcp_calls": true,
+          "bash_contains_any": true,
+          "response_contains_any": true
+        },
+        "check_details": [
+          {
+            "check_name": "min_bash_calls",
+            "passed": true,
+            "detail": "Got 5, required >= 1"
+          },
+          {
+            "check_name": "no_mcp_calls",
+            "passed": true,
+            "detail": "No MCP calls"
+          },
+          {
+            "check_name": "bash_contains_any",
+            "passed": true,
+            "detail": "Matched pattern in: \"mnemex status 2>&1\""
+          },
+          {
+            "check_name": "response_contains_any",
+            "passed": true,
+            "detail": "Found: initialized, files, indexed, fresh"
+          }
+        ]
+      }
+    },
+    {
+      "test_id": "02-search-code",
+      "mcp": {
+        "duration_s": 42,
+        "total_tool_calls": 2,
+        "bash_tool_calls": 0,
+        "timed_out": false,
+        "exit_code": 0,
+        "checks_passed": true,
+        "checks": {
+          "has_tool_prefix": true,
+          "tools_used_include_any": true,
+          "min_tool_calls": true,
+          "no_bash_calls": true,
+          "response_contains_any": true
+        },
+        "check_details": [
+          {
+            "check_name": "has_tool_prefix",
+            "passed": true,
+            "detail": "Matched: mcp__mnemex__search"
+          },
+          {
+            "check_name": "tools_used_include_any",
+            "passed": true,
+            "detail": "Matched combo: [mcp__mnemex__search]"
+          },
+          {
+            "check_name": "min_tool_calls",
+            "passed": true,
+            "detail": "Got 2, required >= 1"
+          },
+          {
+            "check_name": "no_bash_calls",
+            "passed": true,
+            "detail": "No Bash calls"
+          },
+          {
+            "check_name": "response_contains_any",
+            "passed": true,
+            "detail": "Found: plugin.json, version, manifest, score"
+          }
+        ]
+      },
+      "cli": {
+        "duration_s": 32,
+        "total_tool_calls": 1,
+        "bash_tool_calls": 1,
+        "timed_out": false,
+        "exit_code": 0,
+        "checks_passed": true,
+        "checks": {
+          "min_bash_calls": true,
+          "no_mcp_calls": true,
+          "bash_contains_any": true,
+          "response_contains_any": true
+        },
+        "check_details": [
+          {
+            "check_name": "min_bash_calls",
+            "passed": true,
+            "detail": "Got 1, required >= 1"
+          },
+          {
+            "check_name": "no_mcp_calls",
+            "passed": true,
+            "detail": "No MCP calls"
+          },
+          {
+            "check_name": "bash_contains_any",
+            "passed": true,
+            "detail": "Matched pattern in: \"mnemex search \"plugin manifest loading and version parsing\" 2>&1\""
+          },
+          {
+            "check_name": "response_contains_any",
+            "passed": true,
+            "detail": "Found: plugin.json, version, manifest, score"
+          }
+        ]
+      }
+    },
+    {
+      "test_id": "03-architecture-map",
+      "mcp": {
+        "duration_s": 58,
+        "total_tool_calls": 2,
+        "bash_tool_calls": 0,
+        "timed_out": false,
+        "exit_code": 0,
+        "checks_passed": true,
+        "checks": {
+          "has_tool_prefix": true,
+          "tools_used_include_any": true,
+          "min_tool_calls": true,
+          "no_bash_calls": true,
+          "response_contains_any": true
+        },
+        "check_details": [
+          {
+            "check_name": "has_tool_prefix",
+            "passed": true,
+            "detail": "Matched: mcp__mnemex__map"
+          },
+          {
+            "check_name": "tools_used_include_any",
+            "passed": true,
+            "detail": "Matched combo: [mcp__mnemex__map]"
+          },
+          {
+            "check_name": "min_tool_calls",
+            "passed": true,
+            "detail": "Got 2, required >= 1"
+          },
+          {
+            "check_name": "no_bash_calls",
+            "passed": true,
+            "detail": "No Bash calls"
+          },
+          {
+            "check_name": "response_contains_any",
+            "passed": true,
+            "detail": "Found: PageRank, pagerank, rank, plugins, autotest"
+          }
+        ]
+      },
+      "cli": {
+        "duration_s": 95,
+        "total_tool_calls": 13,
+        "bash_tool_calls": 13,
+        "timed_out": false,
+        "exit_code": 0,
+        "checks_passed": true,
+        "checks": {
+          "min_bash_calls": true,
+          "no_mcp_calls": true,
+          "bash_contains_any": true,
+          "response_contains_any": true
+        },
+        "check_details": [
+          {
+            "check_name": "min_bash_calls",
+            "passed": true,
+            "detail": "Got 13, required >= 1"
+          },
+          {
+            "check_name": "no_mcp_calls",
+            "passed": true,
+            "detail": "No MCP calls"
+          },
+          {
+            "check_name": "bash_contains_any",
+            "passed": true,
+            "detail": "Matched pattern in: \"mnemex map 2>&1\""
+          },
+          {
+            "check_name": "response_contains_any",
+            "passed": true,
+            "detail": "Found: rank, plugins, autotest, symbol"
+          }
+        ]
+      }
+    },
+    {
+      "test_id": "04-symbol-lookup",
+      "mcp": {
+        "duration_s": 65,
+        "total_tool_calls": 10,
+        "bash_tool_calls": 0,
+        "timed_out": false,
+        "exit_code": 0,
+        "checks_passed": true,
+        "checks": {
+          "has_tool_prefix": true,
+          "tools_used_include_any": true,
+          "min_tool_calls": true,
+          "no_bash_calls": true,
+          "response_contains_any": true
+        },
+        "check_details": [
+          {
+            "check_name": "has_tool_prefix",
+            "passed": true,
+            "detail": "Matched: mcp__mnemex__symbol, mcp__mnemex__hover, mcp__mnemex__define"
+          },
+          {
+            "check_name": "tools_used_include_any",
+            "passed": true,
+            "detail": "Matched combo: [mcp__mnemex__symbol]"
+          },
+          {
+            "check_name": "min_tool_calls",
+            "passed": true,
+            "detail": "Got 10, required >= 1"
+          },
+          {
+            "check_name": "no_bash_calls",
+            "passed": true,
+            "detail": "No Bash calls"
+          },
+          {
+            "check_name": "response_contains_any",
+            "passed": true,
+            "detail": "Found: RunEntry, interface, types.ts, framework"
+          }
+        ]
+      },
+      "cli": {
+        "duration_s": 63,
+        "total_tool_calls": 8,
+        "bash_tool_calls": 8,
+        "timed_out": false,
+        "exit_code": 0,
+        "checks_passed": true,
+        "checks": {
+          "min_bash_calls": true,
+          "no_mcp_calls": true,
+          "bash_contains_any": true,
+          "response_contains_any": true
+        },
+        "check_details": [
+          {
+            "check_name": "min_bash_calls",
+            "passed": true,
+            "detail": "Got 8, required >= 1"
+          },
+          {
+            "check_name": "no_mcp_calls",
+            "passed": true,
+            "detail": "No MCP calls"
+          },
+          {
+            "check_name": "bash_contains_any",
+            "passed": true,
+            "detail": "Matched pattern in: \"mnemex symbol RunEntry 2>&1\""
+          },
+          {
+            "check_name": "response_contains_any",
+            "passed": true,
+            "detail": "Found: RunEntry, interface, types.ts, framework"
+          }
+        ]
+      }
+    },
+    {
+      "test_id": "05-callers",
+      "mcp": {
+        "duration_s": 47,
+        "total_tool_calls": 4,
+        "bash_tool_calls": 0,
+        "timed_out": false,
+        "exit_code": 0,
+        "checks_passed": true,
+        "checks": {
+          "has_tool_prefix": true,
+          "tools_used_include_any": true,
+          "min_tool_calls": true,
+          "no_bash_calls": true,
+          "response_contains_any": true
+        },
+        "check_details": [
+          {
+            "check_name": "has_tool_prefix",
+            "passed": true,
+            "detail": "Matched: mcp__mnemex__callers, mcp__mnemex__symbol, mcp__mnemex__references"
+          },
+          {
+            "check_name": "tools_used_include_any",
+            "passed": true,
+            "detail": "Matched combo: [mcp__mnemex__callers]"
+          },
+          {
+            "check_name": "min_tool_calls",
+            "passed": true,
+            "detail": "Got 4, required >= 1"
+          },
+          {
+            "check_name": "no_bash_calls",
+            "passed": true,
+            "detail": "No Bash calls"
+          },
+          {
+            "check_name": "response_contains_any",
+            "passed": true,
+            "detail": "Found: parseTranscript, callers, call, line"
+          }
+        ]
+      },
+      "cli": {
+        "duration_s": 40,
+        "total_tool_calls": 3,
+        "bash_tool_calls": 3,
+        "timed_out": false,
+        "exit_code": 0,
+        "checks_passed": true,
+        "checks": {
+          "min_bash_calls": true,
+          "no_mcp_calls": true,
+          "bash_contains_any": true,
+          "response_contains_any": true
+        },
+        "check_details": [
+          {
+            "check_name": "min_bash_calls",
+            "passed": true,
+            "detail": "Got 3, required >= 1"
+          },
+          {
+            "check_name": "no_mcp_calls",
+            "passed": true,
+            "detail": "No MCP calls"
+          },
+          {
+            "check_name": "bash_contains_any",
+            "passed": true,
+            "detail": "Matched pattern in: \"mnemex callers parseTranscript 2>&1\""
+          },
+          {
+            "check_name": "response_contains_any",
+            "passed": true,
+            "detail": "Found: parseTranscript, callers, call, line"
+          }
+        ]
+      }
+    }
+  ],
+  "aggregate": {
+    "mcp": {
+      "avg_duration_s": 47,
+      "avg_total_tool_calls": 4,
+      "pass_rate": 1
+    },
+    "cli": {
+      "avg_duration_s": 54.8,
+      "avg_total_tool_calls": 6,
+      "pass_rate": 1
+    }
+  }
+}

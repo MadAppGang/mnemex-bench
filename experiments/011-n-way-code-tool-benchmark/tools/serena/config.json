@@ -1,0 +1,12 @@
+{
+  "id": "serena",
+  "name": "serena",
+  "description": "LSP-based code intelligence MCP server",
+  "requires_preindex": false,
+  "designated_tool_prefix": "mcp__serena__",
+  "min_designated_calls": 1,
+  "version_command": "",
+  "setup_timeout_seconds": 120,
+  "env": {},
+  "notes": "Uses LSP on demand (pyright, typescript-language-server). No pre-indexing required. First call may take a few seconds for LSP startup."
+}
