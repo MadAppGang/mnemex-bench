@@ -7,11 +7,11 @@
 
 `─────────────────────────────────────────────────`
 
-# Embedding Model Evaluation System Design for claudemem
+# Embedding Model Evaluation System Design for mnemex
 
 ## Executive Summary
 
-The current benchmark-v2 system evaluates LLM *generators* (summaries), treating the embedding model as fixed infrastructure. This design inverts that — we evaluate *embedding models* as the primary subject, using claudemem's existing summary/query infrastructure as the test harness.
+The current benchmark-v2 system evaluates LLM *generators* (summaries), treating the embedding model as fixed infrastructure. This design inverts that — we evaluate *embedding models* as the primary subject, using mnemex's existing summary/query infrastructure as the test harness.
 
 ---
 
@@ -57,7 +57,7 @@ function ndcgAtK(results: RetrievedResult[], k: number): number {
 - `problem_based`: "I need to parse CSV files"
 - `vague`: "data processing" (tests semantic robustness)
 
-**Real User Query Integration**: Log actual `claudemem search` queries (opt-in via `claudemem telemetry`) and replay them in evaluation.
+**Real User Query Integration**: Log actual `mnemex search` queries (opt-in via `mnemex telemetry`) and replay them in evaluation.
 
 ---
 
@@ -203,25 +203,25 @@ function pairedTTest(modelAScores: number[], modelBScores: number[]): { t: numbe
 
 ---
 
-## 9. CLI Design: `claudemem eval:embeddings`
+## 9. CLI Design: `mnemex eval:embeddings`
 
 **Recommendation**: New command structure:
 
 ```bash
 # Core evaluation (all models, single repo)
-claudemem eval:embeddings --models voyage-code-3,qwen3-embed-8b
+mnemex eval:embeddings --models voyage-code-3,qwen3-embed-8b
 
 # Cross-repo evaluation (uses agentbench infrastructure)
-claudemem eval:embeddings --cross-repo --repos react,transformers,kubernetes
+mnemex eval:embeddings --cross-repo --repos react,transformers,kubernetes
 
 # Hybrid search comparison
-claudemem eval:embeddings --hybrid --weights 0.5,0.7
+mnemex eval:embeddings --hybrid --weights 0.5,0.7
 
 # Quantization/MRL testing
-claudemem eval:embeddings --dimensions 1024,512,256 --quantization fp16,q4
+mnemex eval:embeddings --dimensions 1024,512,256 --quantization fp16,q4
 
 # Full benchmark with all features
-claudemem eval:embeddings \
+mnemex eval:embeddings \
   --models voyage-code-3,qwen3-embed-8b,jina-code-0.5b \
   --cross-repo \
   --hybrid \

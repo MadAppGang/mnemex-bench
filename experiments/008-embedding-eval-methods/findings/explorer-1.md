@@ -46,7 +46,7 @@ From the BEIR benchmark (which MTEB extends):
 - BEIR established NDCG@10 as the canonical retrieval metric; all MTEB tasks inherit this
 - BEIR source: `small-embedding-models-march2026.md` reports "BEIR Retrieval: ~49.8 for nomic-embed-text" (NDCG@10)
 
-From claudemem's own benchmark implementations:
+From mnemex's own benchmark implementations:
 - `eval/embedding-benchmark.ts` implements P@1, P@5, MRR (lines 36, 141-166)
 - `src/benchmark-v2/evaluators/retrieval/index.ts` implements hitAtK, reciprocalRank (lines 263-292)
 - These match industry norms: P@K for quick hit detection, MRR for ranked-list quality
@@ -250,11 +250,11 @@ Standard protocol (BEIR/CoIR/MTEB-style):
 - The model must separate the query from ALL other documents, including semantically close ones
 - This is the "full corpus retrieval" protocol
 
-Contrastive evaluation (claudemem's benchmark approach), from `contrastive-evaluation-analysis.md`:
+Contrastive evaluation (mnemex's benchmark approach), from `contrastive-evaluation-analysis.md`:
 - Uses a curated negative pool (4-19 distractors) rather than full corpus
 - Industry standard: 9-19 distractors for challenging contrastive evaluation
 - Hard negative selection strategies: same-file code, similar signatures, high semantic similarity (0.75-0.98)
-- The document identifies a critical flaw: claudemem's original evaluator uses similarity filter 0.5-0.95 which EXCLUDES the best hard negatives (0.85-0.95 range)
+- The document identifies a critical flaw: mnemex's original evaluator uses similarity filter 0.5-0.95 which EXCLUDES the best hard negatives (0.85-0.95 range)
 - Corrected strategy: prioritize distractors with similarity 0.75-0.98 for hard contrastive tasks
 - This is confirmed by academic practice: meaningful model differentiation requires distractors with ≥0.75 cosine similarity to the target
 
@@ -307,12 +307,12 @@ MTEB multilingual code:
   - Primarily driven by CodeSearchNet structure
 ```
 
-Gaps in current benchmarks (important for claudemem):
+Gaps in current benchmarks (important for mnemex):
 1. **No repository-level retrieval benchmark**: All benchmarks test function-level retrieval from a flat corpus. They do NOT test "given a natural language query about a feature, find the right file in a real project's directory structure."
 2. **No dependency-aware retrieval**: Benchmarks do not evaluate ability to find code that calls or is called by a specific function (cross-file dependency search)
 3. **No incremental/streaming evaluation**: All benchmarks assume a static corpus; no evaluation of how models perform when code changes
 
-From the claudemem benchmark implementation (`eval/embedding-benchmark.ts`):
+From the mnemex benchmark implementation (`eval/embedding-benchmark.ts`):
 - Benchmark tests against a pool of 37 code units from a real codebase
 - 296 queries generated (mix of query types)
 - Tests P@1, P@5, MRR across models
@@ -322,7 +322,7 @@ From the claudemem benchmark implementation (`eval/embedding-benchmark.ts`):
 - MTEB and CoIR do NOT report statistical significance tests or confidence intervals
 - Point estimates only; ranking stability depends on score magnitude
 - Rule of thumb from NLP literature: differences <0.5 NDCG points are unlikely to be statistically significant for typical test set sizes
-- For claudemem-scale evaluation (37 code units, 296 queries): standard error is higher; differences of 2+ MRR points are meaningful
+- For mnemex-scale evaluation (37 code units, 296 queries): standard error is higher; differences of 2+ MRR points are meaningful
 
 **Sources**:
 - `ai-docs/embedding-model-research-20260304/small-embedding-models-march2026.md` — Quality: High
@@ -338,7 +338,7 @@ From the claudemem benchmark implementation (`eval/embedding-benchmark.ts`):
 
 ### Finding 7: Query Construction — Human-Written vs. LLM-Generated vs. Template Queries
 
-**Summary**: Academic benchmarks primarily use human-written queries (docstrings, SO questions, GitHub issues). Newer research uses LLM-generated synthetic queries for expanding test coverage. claudemem's benchmark uses an LLM query generator. The query type significantly affects which models perform best.
+**Summary**: Academic benchmarks primarily use human-written queries (docstrings, SO questions, GitHub issues). Newer research uses LLM-generated synthetic queries for expanding test coverage. mnemex's benchmark uses an LLM query generator. The query type significantly affects which models perform best.
 
 **Evidence**:
 
@@ -362,7 +362,7 @@ MTEB (general): Mix — some human-written (MS-MARCO, BEIR), some LLM-augmented
   - FEVER: Human-written fact verification
 ```
 
-claudemem's query generator (from `docs/llm benchmark.md` and `src/benchmark-v2/evaluators/retrieval/index.ts`):
+mnemex's query generator (from `docs/llm benchmark.md` and `src/benchmark-v2/evaluators/retrieval/index.ts`):
 - Generates queries via LLM given code unit content
 - Query types: functional description, behavior description, use-case query, API usage query
 - These are LLM-generated synthetic queries — different from human-written docstrings
@@ -418,9 +418,9 @@ Evaluation implications of MRL:
 - Benchmarks report scores at FULL dimension by default
 - MRL quality at reduced dims: typically ~2% NDCG drop at 512-dim vs. full-dim
 - For storage-constrained use cases: 512-dim is the recommended practical minimum
-- LanceDB (claudemem's vector store) supports arbitrary vector dimensions — no constraint on dimension selection
+- LanceDB (mnemex's vector store) supports arbitrary vector dimensions — no constraint on dimension selection
 
-Why MRL matters for claudemem evaluation:
+Why MRL matters for mnemex evaluation:
 - If evaluating multiple models, MRL allows fair comparison at equivalent storage cost
 - Example: Jina code-1.5B (1536 dims) vs. Qwen3-0.6B (1024 dims) should be compared at either 1024 dims (matching Qwen3's max) or evaluated at each model's native optimum
 - The MTEB leaderboard reports native (full) dimension scores for fair model-to-model comparison
@@ -468,13 +468,13 @@ What this research did NOT find:
 
 1. **Statistical significance testing methodology**: No academic benchmark (MTEB, CoIR, BEIR) publishes confidence intervals or significance tests for embedding model comparisons. The community convention is point estimates only. Gap: No guidance on minimum test set size for reliable embedding model comparison. Suggested query: `"statistical significance embedding model evaluation confidence intervals minimum test set size"`
 
-2. **Cross-repository evaluation benchmarks**: No published benchmark tests embedding models for repository-level code search (finding the right file in a real project's directory structure, not function-level retrieval). This is claudemem's actual use case. Suggested query: `"repository-level code search embedding evaluation benchmark cross-file retrieval"`
+2. **Cross-repository evaluation benchmarks**: No published benchmark tests embedding models for repository-level code search (finding the right file in a real project's directory structure, not function-level retrieval). This is mnemex's actual use case. Suggested query: `"repository-level code search embedding evaluation benchmark cross-file retrieval"`
 
-3. **LLM-generated query evaluation vs. human-written query evaluation**: No systematic study compares model rankings when queries are LLM-generated vs. human-written (docstrings). If claudemem uses LLM-generated queries, model rankings may differ from CoIR. Gap: Uncertain whether CoIR-based model selection transfers to claudemem's LLM-generated query evaluation. Suggested query: `"synthetic query generation evaluation bias embedding benchmark human vs LLM queries"`
+3. **LLM-generated query evaluation vs. human-written query evaluation**: No systematic study compares model rankings when queries are LLM-generated vs. human-written (docstrings). If mnemex uses LLM-generated queries, model rankings may differ from CoIR. Gap: Uncertain whether CoIR-based model selection transfers to mnemex's LLM-generated query evaluation. Suggested query: `"synthetic query generation evaluation bias embedding benchmark human vs LLM queries"`
 
 4. **Hard negative mining specific to code**: BEIR and CoIR use in-corpus natural negatives. No published study explicitly curates a code hard-negative benchmark (functions with same signatures but different implementations as explicit negatives). Suggested query: `"code embedding hard negative mining evaluation adversarial code retrieval benchmark"`
 
-5. **Domain adaptation evaluation**: No benchmark specifically tests how well models trained on general code (CodeSearchNet) transfer to proprietary/organization-specific code (private repos with domain-specific patterns). This is relevant for claudemem's real-world use. Gap: Cannot predict from CoIR scores alone how models will perform on user-specific codebases.
+5. **Domain adaptation evaluation**: No benchmark specifically tests how well models trained on general code (CodeSearchNet) transfer to proprietary/organization-specific code (private repos with domain-specific patterns). This is relevant for mnemex's real-world use. Gap: Cannot predict from CoIR scores alone how models will perform on user-specific codebases.
 
 ---
 

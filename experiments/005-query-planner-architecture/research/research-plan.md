@@ -8,7 +8,7 @@
 
 ## Background
 
-claudemem currently has a simple "query expander" that translates a natural language query into
+mnemex currently has a simple "query expander" that translates a natural language query into
 tagged retrieval strings (`lex:`, `vec:`, `hyde:`). The open question is whether this should
 evolve into a **query planner**: a component that understands all available retrieval tools,
 decides which to invoke, in what order, and how to combine results — potentially adapting based
@@ -99,7 +99,7 @@ agentic retrieval systems.
 **Key questions**:
 - How do you measure retrieval quality when ground truth is "the files needed to solve a task"?
 - Are there labeled datasets mapping queries → relevant code files/symbols?
-- How does claudemem's AgentBench setup measure retrieval contribution vs. generation quality?
+- How does mnemex's AgentBench setup measure retrieval contribution vs. generation quality?
 - What offline metrics correlate with downstream task success?
 
 **Datasets to catalog**:
@@ -199,7 +199,7 @@ approaches.
 7. Review CodeSearchNet and SWE-bench metric definitions (Q3)
 
 ### Phase 3: Synthesis (Day 2)
-8. Identify the 2-3 most promising planner architectures for claudemem
+8. Identify the 2-3 most promising planner architectures for mnemex
 9. Identify evaluation dataset/metric recommendation
 10. Identify candidate local models for query planner role
 11. Write findings document with recommendations
@@ -208,7 +208,7 @@ approaches.
 
 ## Key Decision the Research Should Inform
 
-**Architecture choice**: Which of these approaches should claudemem adopt?
+**Architecture choice**: Which of these approaches should mnemex adopt?
 
 **Option A: Enhanced query expander (current direction)**
 - LLM generates parallel retrieval strings
@@ -240,19 +240,19 @@ The research findings document should include:
 1. **Executive summary** (3-5 bullets): key findings and recommendation
 2. **Frameworks/tools survey**: table of existing systems with approach + notes
 3. **Papers**: annotated bibliography of 8-12 most relevant papers
-4. **Evaluation metrics**: recommended metric(s) for claudemem's query planner eval
+4. **Evaluation metrics**: recommended metric(s) for mnemex's query planner eval
 5. **Model recommendations**: top 2-3 local models for query planner role with rationale
 6. **Architecture recommendation**: which option (A/B/C/D) with justification
 7. **Implementation sketch**: high-level design for chosen approach
 
 ---
 
-## Related claudemem Context
+## Related mnemex Context
 
 - Current query expansion: `src/llm/prompts/enrichment.ts` (or similar)
 - Search pipeline: `src/core/search/`
 - Symbol graph: `src/core/graph/`
 - MCP tools: `src/mcp/tools/search.ts`
-- AgentBench eval conditions: `no_plan`, `claudemem_full`, `dc_planner`, `ace_planner`
+- AgentBench eval conditions: `no_plan`, `mnemex_full`, `dc_planner`, `ace_planner`
   — the `dc_planner` and `ace_planner` conditions already demonstrate sequential planning;
   research should inform whether to bring similar logic into the core retrieval layer

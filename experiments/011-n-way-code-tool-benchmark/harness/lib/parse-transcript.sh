@@ -3,7 +3,7 @@
 #
 # Usage:
 #   TRANSCRIPT_FILE=/path/to/transcript.jsonl
-#   DESIGNATED_PREFIX="mcp__claudemem__"  # or "" for bare-claude
+#   DESIGNATED_PREFIX="mcp__mnemex__"  # or "" for bare-claude
 #   source harness/lib/parse-transcript.sh
 #
 # Exports:

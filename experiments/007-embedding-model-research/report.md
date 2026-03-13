@@ -12,7 +12,7 @@ As of March 2026, the landscape for small embedding models has shifted dramatica
 
 The critical constraint is licensing. The best code-specialized local models (Jina code series) are CC-BY-NC-4.0, blocking commercial distribution. The best **Apache 2.0, commercially safe, sub-1B** option is **Qwen3-Embedding-0.6B** (June 2025), now natively available on Ollama as `qwen3-embedding:0.6b` (639MB Q4_K_M). It achieves CoIR 73.49 / MTEB-Code 75.41 with a 32K token context window.
 
-Both models represent a massive leap over claudemem's current default: nomic-embed-text v1.5 scores approximately CoIR ~44, making any candidate in this report a significant upgrade. A third promising option, nomic CodeRankEmbed-137M (CSN avg 77.9 at just 137M params), requires direct verification but could be the smallest high-quality code model available under Apache 2.0.
+Both models represent a massive leap over mnemex's current default: nomic-embed-text v1.5 scores approximately CoIR ~44, making any candidate in this report a significant upgrade. A third promising option, nomic CodeRankEmbed-137M (CSN avg 77.9 at just 137M params), requires direct verification but could be the smallest high-quality code model available under Apache 2.0.
 
 ---
 
@@ -76,7 +76,7 @@ Test 5 models in this priority order, targeting 1–2 days of empirical work:
 # Priority 1: Qwen3-Embedding-0.6B (Ollama native)
 ollama pull qwen3-embedding:0.6b
 
-# Priority 2: Current baseline (already installed in most claudemem deployments)
+# Priority 2: Current baseline (already installed in most mnemex deployments)
 ollama pull nomic-embed-text
 
 # Priority 3: Best Ollama-native alternative
@@ -130,7 +130,7 @@ Without this change, benchmark results for Qwen3-Embedding-0.6B will understate 
 
 **Why it's interesting**: The only sub-1B model in "Tier A" — its CoIR 78.41 matches within 1% of Voyage Code 3 (79.23), the paid API gold standard. At ~350MB Q4 GGUF, it is smaller than qwen3-embedding:0.6b on Ollama (639MB). Task instruction prefixes (`nl2code:`, `code2code:`) are supported for asymmetric retrieval. MLX weights are available at `jinaai/jina-code-embeddings-0.5b-mlx`.
 
-**Known limitations**: CC-BY-NC-4.0 license blocks commercial use and distribution in production claudemem. Not natively in the Ollama registry — requires GGUF import (`ollama pull hf.co/jinaai/jina-code-embeddings-0.5b-GGUF:Q4_K_M`) or LM Studio. No commercial licensing path publicly disclosed.
+**Known limitations**: CC-BY-NC-4.0 license blocks commercial use and distribution in production mnemex. Not natively in the Ollama registry — requires GGUF import (`ollama pull hf.co/jinaai/jina-code-embeddings-0.5b-GGUF:Q4_K_M`) or LM Studio. No commercial licensing path publicly disclosed.
 
 **How to get it**: `ollama pull hf.co/jinaai/jina-code-embeddings-0.5b-GGUF:Q4_K_M` (one-time ~5 minute setup). For MLX: `mlx-community/jina-code-embeddings-0.5b-4bit` (if available, check HuggingFace).
 
@@ -148,7 +148,7 @@ Without this change, benchmark results for Qwen3-Embedding-0.6B will understate 
 
 **How to get it**: `ollama pull qwen3-embedding:0.6b` (native Ollama, no special setup). For raw GGUF: `Qwen/Qwen3-Embedding-0.6B-GGUF` on HuggingFace.
 
-**Expected performance vs baselines**: CoIR 73.49 vs nomic-embed-text (~44) — approximately 67% better on code retrieval. Will likely be the best commercially-safe local model for claudemem unless CodeRankEmbed-137M scores validate.
+**Expected performance vs baselines**: CoIR 73.49 vs nomic-embed-text (~44) — approximately 67% better on code retrieval. Will likely be the best commercially-safe local model for mnemex unless CodeRankEmbed-137M scores validate.
 
 ---
 
@@ -170,11 +170,11 @@ Without this change, benchmark results for Qwen3-Embedding-0.6B will understate 
 
 **What it is**: A 568M parameter general-purpose embedding model from Snowflake, already in the Ollama registry at 309MB (Q4_K_M). Based on a modified BERT architecture, trained on diverse retrieval tasks with BEIR NDCG@10 of 55.6.
 
-**Why it's interesting**: Already natively supported in the claudemem codebase. The benchmark's "zero-configuration upgrade" comparison point — if Qwen3-0.6B shows substantial gains, it proves the upgrade path is worth the instruction prefix integration work. If snowflake matches Qwen3-0.6B, the simpler model wins.
+**Why it's interesting**: Already natively supported in the mnemex codebase. The benchmark's "zero-configuration upgrade" comparison point — if Qwen3-0.6B shows substantial gains, it proves the upgrade path is worth the instruction prefix integration work. If snowflake matches Qwen3-0.6B, the simpler model wins.
 
 **Known limitations**: 8K token context window (vs. 32K for Qwen3/Jina models). General model not code-specialized — CoIR estimated at ~50, significantly below code-specialized candidates. No published MTEB-Code or CoIR scores.
 
-**How to get it**: `ollama pull snowflake-arctic-embed2` (native Ollama, already in claudemem source).
+**How to get it**: `ollama pull snowflake-arctic-embed2` (native Ollama, already in mnemex source).
 
 **Expected performance vs baselines**: BEIR ~56.5 vs nomic-embed-text BEIR ~49.8 — about 14% better on general retrieval. Estimated CoIR ~50 (roughly 15% below Qwen3-0.6B, 45% below jina-code-0.5b). Useful as the "baseline Ollama upgrade" benchmark point.
 
@@ -230,7 +230,7 @@ CoIR Score
 **Key structural insights**:
 - The Tier A/B gap (CoIR 78 vs 73) is entirely explained by code-specialized training, not model scale
 - Within Tier A, scaling from 0.5B to 1.5B adds only 0.63 CoIR points (+0.8%) for 3x parameters
-- The current claudemem default (CoIR ~44) is on the dominated part of the curve — any candidate here is a significant Pareto improvement
+- The current mnemex default (CoIR ~44) is on the dominated part of the curve — any candidate here is a significant Pareto improvement
 - 32K context window (available in all new candidates) vs 8K (current default) is a secondary but meaningful advantage for large file indexing
 
 ---
@@ -239,7 +239,7 @@ CoIR Score
 
 ### Apache 2.0 (Production-Safe, Commercial Use Allowed)
 
-These models can be included in commercial claudemem distributions, used in any product, or sold as part of a service:
+These models can be included in commercial mnemex distributions, used in any product, or sold as part of a service:
 
 | Model | Size (Q4) | CoIR | Notes |
 |-------|-----------|------|-------|
@@ -260,7 +260,7 @@ These models **cannot** be distributed in a commercial product or used in a serv
 | jina-code-embeddings-1.5b | ~1.0 GB | 79.04 | Near-SOTA locally; CC-BY-NC |
 | jina-embeddings-v4 | ~2.5 GB | 74.11 | General + code, CC-BY-NC |
 
-**Practical implication for claudemem**: If claudemem recommends or ships a default model, it must be Apache 2.0 (or similar). Jina code models can only be documented as "optional upgrade for non-commercial use." Qwen3-Embedding-0.6B is the recommended default upgrade path.
+**Practical implication for mnemex**: If mnemex recommends or ships a default model, it must be Apache 2.0 (or similar). Jina code models can only be documented as "optional upgrade for non-commercial use." Qwen3-Embedding-0.6B is the recommended default upgrade path.
 
 **Commercial license path for Jina**: Contact jina.ai/contact or enterprise@jina.ai. No public pricing available as of March 2026. Worth pursuing if Jina code quality (CoIR 78.41) is needed for commercial deployments.
 
@@ -292,11 +292,11 @@ All sources cited across the three explorer research findings:
 15. [SFR-Embedding-Code README (HuggingFace)](https://huggingface.co/Salesforce/SFR-Embedding-Code) — Older CoIR benchmark (Nov 2024)
 
 ### Local Prior Research (High Quality — Internal)
-16. `/Users/jack/mag/claudemem/ai-docs/embedding-model-research-20260304/small-embedding-models-march2026.md` — Comprehensive model survey, 2026-03-04
-17. `/Users/jack/mag/claudemem/ai-docs/embedding-model-research-20260304/openrouter-embedding-models-comparison.md` — Cloud API comparison, 2026-03-04
-18. `/Users/jack/mag/claudemem/ai-docs/sessions/dev-research-embedding-models-benchmarks-20260305/embedding-model-benchmarks-march2026.md` — Detailed benchmark synthesis, 2026-03-05
-19. `/Users/jack/mag/claudemem/src/core/embeddings.ts` — Claudemem codebase: confirms current model support, batch sizing, LM Studio integration
-20. `/Users/jack/mag/claudemem/src/llm/providers/local.ts` — Claudemem codebase: LM Studio and local provider patterns
+16. `/Users/jack/mag/mnemex/ai-docs/embedding-model-research-20260304/small-embedding-models-march2026.md` — Comprehensive model survey, 2026-03-04
+17. `/Users/jack/mag/mnemex/ai-docs/embedding-model-research-20260304/openrouter-embedding-models-comparison.md` — Cloud API comparison, 2026-03-04
+18. `/Users/jack/mag/mnemex/ai-docs/sessions/dev-research-embedding-models-benchmarks-20260305/embedding-model-benchmarks-march2026.md` — Detailed benchmark synthesis, 2026-03-05
+19. `/Users/jack/mag/mnemex/src/core/embeddings.ts` — Mnemex codebase: confirms current model support, batch sizing, LM Studio integration
+20. `/Users/jack/mag/mnemex/src/llm/providers/local.ts` — Mnemex codebase: LM Studio and local provider patterns
 
 ### Infrastructure Documentation (High Quality)
 21. [Ollama models library](https://ollama.com/library) — Registry availability (ongoing)
@@ -348,7 +348,7 @@ All sources cited across the three explorer research findings:
 
 4. **Jina commercial licensing**: No public pricing or licensing path for commercial use of CC-BY-NC models.
 
-5. **Instruction prefix integration**: claudemem's `LocalEmbeddingsClient` needs `queryPrefix` option before a fair Qwen3-0.6B benchmark is possible.
+5. **Instruction prefix integration**: mnemex's `LocalEmbeddingsClient` needs `queryPrefix` option before a fair Qwen3-0.6B benchmark is possible.
 
 6. **Post-August 2025 models**: Research coverage ends with knowledge cutoff. Models released September 2025-March 2026 may not be captured.
 

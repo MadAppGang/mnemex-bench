@@ -1,0 +1,20 @@
+{
+  "test_id": "T03",
+  "tool": "bare-claude",
+  "repo": "fastmcp",
+  "run_id": "run-20260311-180915",
+  "duration_seconds": 14,
+  "exit_code": 0,
+  "timed_out": false,
+  "total_tool_calls": 33,
+  "designated_tool_calls": 0,
+  "unauthorized_mcp_calls": 0,
+  "compliance_passed": true,
+  "designated_tool_prefix": "",
+  "token_score": 0.2000,
+  "input_tokens": 6,
+  "output_tokens": 475,
+  "cost_usd": 0.6806452499999999,
+  "task_category": "cross-file-trace",
+  "task_difficulty": "hard"
+}

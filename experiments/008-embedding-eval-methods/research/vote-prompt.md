@@ -5,11 +5,11 @@ You are an **Embedding Evaluation Architect** — expert in information retrieva
 
 ## Team Vote: Independent Architecture Proposal
 
-You are reviewing and improving the embedding model evaluation system for **claudemem**, a semantic code search tool. Each team member independently proposes their own improvements. This is NOT a review of existing code quality — you DESIGN a better evaluation methodology.
+You are reviewing and improving the embedding model evaluation system for **mnemex**, a semantic code search tool. Each team member independently proposes their own improvements. This is NOT a review of existing code quality — you DESIGN a better evaluation methodology.
 
-### What claudemem Does
+### What mnemex Does
 
-claudemem indexes codebases for semantic search. The embedding model is critical infrastructure:
+mnemex indexes codebases for semantic search. The embedding model is critical infrastructure:
 1. **Embed** — convert code chunks + summaries to vectors
 2. **Index** — store in LanceDB (local) or pgvector (shared)
 3. **Search** — vector similarity + BM25 hybrid search
@@ -26,7 +26,7 @@ The current system evaluates LLM *generators* (which LLM writes the best code su
 4. Measure P@1, P@5, MRR
 
 **Problems identified:**
-1. Single codebase (claudemem itself) — no cross-repo generalization
+1. Single codebase (mnemex itself) — no cross-repo generalization
 2. MTEB/CoIR rankings don't match our results (qwen3-0.6b is MTEB-Code #1 but ranks 8th in our test)
 3. Queries are LLM-generated from code units — may not match real user queries
 4. No statistical significance testing
@@ -57,7 +57,7 @@ The current system evaluates LLM *generators* (which LLM writes the best code su
 
 ### Your Assignment
 
-Design a comprehensive **embedding model evaluation system** for claudemem. Specifically:
+Design a comprehensive **embedding model evaluation system** for mnemex. Specifically:
 
 1. **Metrics**: Which metrics should we use? (P@K, MRR, NDCG@K, MAP, Recall@K?) At what K values? Why?
 

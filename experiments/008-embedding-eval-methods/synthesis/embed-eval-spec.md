@@ -9,7 +9,7 @@
 
 ## 1. Executive Summary
 
-`claudemem embed-eval` is a purpose-built command that answers one question: **which embedding model best retrieves raw code chunks for claudemem's hybrid search pipeline?**
+`mnemex embed-eval` is a purpose-built command that answers one question: **which embedding model best retrieves raw code chunks for mnemex's hybrid search pipeline?**
 
 The existing `eval/embedding-benchmark.ts` conflates two separate signals — embedding model quality and LLM summary quality — by re-embedding LLM-generated summaries. This makes it impossible to know whether a score improvement comes from the embedding model or from better summaries. `embed-eval` eliminates this by indexing raw code chunks directly, evaluating each candidate embedding model independently, across multiple codebases, with controlled query types and tiered hard negatives.
 
@@ -36,7 +36,7 @@ All results persist to a separate `eval-embed.db` SQLite database. The command r
 ## 2. Architecture
 
 ```
-claudemem embed-eval [--quick] [--hybrid] [--latency] [--quant-sweep] ...
+mnemex embed-eval [--quick] [--hybrid] [--latency] [--quant-sweep] ...
        |
        v
 ┌────────────────────────────────────────────────────────────────────────┐
@@ -133,7 +133,7 @@ Both MRR and NDCG@10 are reported as primary. They answer different questions:
 | Win Rate | — | Cross-model: which model places #1 most often per query |
 | Confidence Gap | — | top-1 minus top-2 similarity score; indicates decisiveness |
 
-### Tier-Weighted MRR (claudemem-specific)
+### Tier-Weighted MRR (mnemex-specific)
 
 A composite that rewards models which maintain quality on hard distractors:
 
@@ -232,7 +232,7 @@ The split is stored in `eval-embed.db` and reproduced from a fixed seed. The see
 
 ### Real User Query Integration (optional)
 
-Minimax proposed opt-in telemetry. If enabled via `claudemem telemetry enable`, actual `claudemem search` queries are logged anonymously and can be replayed in eval. These are treated as a third query source (labeled `user_telemetry`) and reported separately. They are NOT mixed into the primary query set to preserve benchmark reproducibility.
+Minimax proposed opt-in telemetry. If enabled via `mnemex telemetry enable`, actual `mnemex search` queries are logged anonymously and can be replayed in eval. These are treated as a third query source (labeled `user_telemetry`) and reported separately. They are NOT mixed into the primary query set to preserve benchmark reproducibility.
 
 ### Scale
 
@@ -278,7 +278,7 @@ T3       2     RANDOM SAME-LANGUAGE: from a           EASY
 
 ### Reference Model for T2 Bootstrapping
 
-T2 requires pre-computing embeddings with a reference model (`qwen/qwen3-embedding-8b`, the current claudemem default). This is the bootstrapping step: the reference model's embedding space defines the semantic near-miss pool. All candidate models are evaluated against this shared pool, which is fair because the pool is fixed across models.
+T2 requires pre-computing embeddings with a reference model (`qwen/qwen3-embedding-8b`, the current mnemex default). This is the bootstrapping step: the reference model's embedding space defines the semantic near-miss pool. All candidate models are evaluated against this shared pool, which is fair because the pool is fixed across models.
 
 **Trade-off**: If the reference model has biases, those propagate to all models' T2 pools. This is acceptable because T2 is only one of four tiers (2/9 distractors). The shared pool also ensures comparability across runs.
 
@@ -307,7 +307,7 @@ Minimum 5 repos (statistical reliability requires 3+; 5 gives stable variance es
 ```
 Repo           Language      Size      Why Selected
 -----------------------------------------------------------------------
-claudemem      TypeScript    Medium    Home repo; known quantities
+mnemex      TypeScript    Medium    Home repo; known quantities
 fastify        TypeScript    Large     HTTP server; async patterns; TS #2
 cpython/Lib    Python        Large     Docstring-rich; established idioms
 ruff           Rust          Medium    CLI tool; non-TS naming conventions
@@ -352,7 +352,7 @@ Kimi's contribution: train the alpha sweep (hybrid search) on 4 repos, evaluate 
 
 ### Why Hybrid Search Must Be Evaluated
 
-BM25 excels on exact identifier matches ("useAuthStore", "PageRank", class/function names). Embeddings excel on semantic natural language queries. claudemem uses hybrid search by default. A "worse" embedding model can win in hybrid mode if it provides complementary signal to BM25. Evaluating embedding-only underestimates the combined system.
+BM25 excels on exact identifier matches ("useAuthStore", "PageRank", class/function names). Embeddings excel on semantic natural language queries. mnemex uses hybrid search by default. A "worse" embedding model can win in hybrid mode if it provides complementary signal to BM25. Evaluating embedding-only underestimates the combined system.
 
 ### Evaluation Modes
 
@@ -564,7 +564,7 @@ When comparing more than 2 models across multiple repos simultaneously, use the 
 ### Core Command
 
 ```bash
-claudemem embed-eval [CORE_FLAGS] [OPTIONAL_FLAGS] [repos...]
+mnemex embed-eval [CORE_FLAGS] [OPTIONAL_FLAGS] [repos...]
 ```
 
 ### CORE Flags (always available, essential)
@@ -577,8 +577,8 @@ These flags define what you are evaluating. Every run uses them.
                       Example: --models voyage-code-3,qwen/qwen3-embedding-8b,ollama/nomic-embed-code
 
 --repos/-r <list>     Comma-separated repo paths or agentbench slugs.
-                      Default: claudemem (home repo only, for quick checks)
-                      Example: --repos claudemem,fastify,cpython,ruff,chi
+                      Default: mnemex (home repo only, for quick checks)
+                      Example: --repos mnemex,fastify,cpython,ruff,chi
 
 --n-per-repo <n>      Code units sampled per repo.
                       Default: 50. Quick mode default: 20.
@@ -654,37 +654,37 @@ These flags enable features that add runtime or compute. Off by default.
 
 ```bash
 # Minimal: compare 3 models on home repo (default)
-claudemem embed-eval --models voyage-code-3,qwen/qwen3-embedding-8b,ollama/nomic-embed-code
+mnemex embed-eval --models voyage-code-3,qwen/qwen3-embedding-8b,ollama/nomic-embed-code
 
 # Quick smoke test: fast, single repo
-claudemem embed-eval --quick \
+mnemex embed-eval --quick \
   --models voyage-code-3,qwen3-embedding-0.6b
 
 # Full cross-repo evaluation with all recommended features
-claudemem embed-eval \
+mnemex embed-eval \
   --models voyage-code-3,qwen/qwen3-embedding-8b,ollama/nomic-embed-code \
-  --repos claudemem,fastify,cpython,ruff,chi \
+  --repos mnemex,fastify,cpython,ruff,chi \
   --hybrid --latency --ci \
   --output eval-embed-2026-03.db \
   --pareto
 
 # Quantization and MRL sweep for a single model
-claudemem embed-eval \
+mnemex embed-eval \
   --models qwen/qwen3-embedding-0.6b \
   --quant-sweep \
   --mrl-dims 1024,512,256,128 \
-  --repos claudemem
+  --repos mnemex
 
 # Compare new model against previous baseline
-claudemem embed-eval \
+mnemex embed-eval \
   --baseline eval-embed-2026-01.db \
   --models mistralai/codestral-embed \
   --ci --significance 0.05
 
 # Dataset build only (Gemini's eval-build idea, useful for pre-computation)
-claudemem embed-eval \
+mnemex embed-eval \
   --build-only \
-  --repos claudemem,fastify,cpython,ruff,chi \
+  --repos mnemex,fastify,cpython,ruff,chi \
   --n-per-repo 50 \
   --output eval-dataset-2026-03.db
 ```
@@ -692,7 +692,7 @@ claudemem embed-eval \
 ### Default Terminal Output
 
 ```
-claudemem embed-eval — 2026-03-05 14:32 — 5 repos, 250 units, 2000 queries
+mnemex embed-eval — 2026-03-05 14:32 — 5 repos, 250 units, 2000 queries
 =======================================================================
 
 OVERALL RANKING (by MRR on test split)
@@ -707,7 +707,7 @@ OVERALL RANKING (by MRR on test split)
 
 CROSS-REPO BREAKDOWN
 ----------------------------------------------------------------------
-Model                claudemem  fastify  cpython  ruff   chi  StdDev
+Model                mnemex  fastify  cpython  ruff   chi  StdDev
 voyage-code-3          0.821    0.791    0.813   0.778  0.808  0.016
 nomic-embed-code       0.808    0.778    0.796   0.765  0.769  0.017
 qwen3-emb-8b           0.771    0.743    0.781   0.734  0.741  0.019

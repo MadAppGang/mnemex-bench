@@ -21,7 +21,7 @@ The research identifies **two critical new entrants** that go beyond the known l
 
 Key general finding: **Code-specialized models dramatically outperform general models at equivalent or even larger sizes**. Jina code-0.5B (CoIR 78.41) outperforms Qwen3-Embedding-0.6B (CoIR 73.49) despite similar parameter counts — because Jina was trained on code-to-code and text-to-code tasks.
 
-**License caveat**: Both Jina code models use CC-BY-NC-4.0 (non-commercial). This is a critical constraint for production claudemem use.
+**License caveat**: Both Jina code models use CC-BY-NC-4.0 (non-commercial). This is a critical constraint for production mnemex use.
 
 ---
 
@@ -35,7 +35,7 @@ These models are already known; updated benchmark data is included for context.
 | qwen3-embedding-4B | ~75+ est. | ~77+ est. | On Ollama as `qwen3-embedding:4b` (2.5GB Q4) |
 | qwen3-embedding-8B | ~77+ est. | ~80+ est. | On Ollama as `qwen3-embedding:8b` (4.7GB Q4) |
 | snowflake-arctic-embed2 | ~50 est. | ~48 est. | On Ollama (1.2GB); strong BEIR 55.6, not code-specialized |
-| nomic-embed-text-v1.5 | ~44 est. | ~45 est. | On Ollama (274MB); current claudemem default |
+| nomic-embed-text-v1.5 | ~44 est. | ~45 est. | On Ollama (274MB); current mnemex default |
 | nomic-embed-text-v2-moe | ~50 est. | ~50 est. | 512-token context — NOT suitable for code chunks |
 | jina-embeddings-v4 | 74.11 | 74.87 | 3.8B, multimodal, GGUF available; too large for <1B constraint |
 | voyage-3.5-lite | — | — | Cloud API, strong general retrieval, 32K ctx |
@@ -317,7 +317,7 @@ These models are already known; updated benchmark data is included for context.
 
 ### Finding 9: BGE-EN-ICL (BAAI) — 7B Research Model
 
-**Summary**: BAAI released `bge-en-icl` (7B, Mistral-based) that uses in-context learning for embedding tasks. Very low adoption (1,640 downloads). Not recommended for claudemem but represents BAAI's latest research direction. No code-specialized BAAI small model released as of March 2026.
+**Summary**: BAAI released `bge-en-icl` (7B, Mistral-based) that uses in-context learning for embedding tasks. Very low adoption (1,640 downloads). Not recommended for mnemex but represents BAAI's latest research direction. No code-specialized BAAI small model released as of March 2026.
 
 **HuggingFace ID**: `BAAI/bge-en-icl`
 **Parameters**: 7B
@@ -394,7 +394,7 @@ The prompt asks for models BEYOND: voyage-3.5-lite, nomic-embed-text v1.5, embed
 
 ---
 
-## Critical Decision: Code-Specialized vs. General for claudemem
+## Critical Decision: Code-Specialized vs. General for mnemex
 
 The data strongly favors code-specialized models for code search:
 
@@ -410,7 +410,7 @@ For MIXED (code + NL) RETRIEVAL:
   → For NL queries like "where is auth handled?": qwen3 may be better
 ```
 
-**Recommendation for claudemem**:
+**Recommendation for mnemex**:
 - If primary use case is code search: `jina-code-0.5b` (if CC-BY-NC acceptable) or `jina-code-1.5b`
 - If commercial use required: `qwen3-embedding:0.6b` on Ollama (Apache 2.0, 639MB, CoIR 73.49)
 - Current `nomic-embed-text` baseline scores CoIR ~44 — any of these is a massive improvement
@@ -449,11 +449,11 @@ What this research did NOT find with certainty:
 
 3. **NVIDIA Llama Nemotron Embed VL 1B code performance**: Free model on OpenRouter, 131K context, but no CoIR/code benchmark data published. Suggested query: "llama-nemotron-embed code retrieval benchmark"
 
-4. **Jina code license exception for claudemem**: CC-BY-NC-4.0 blocks commercial use. Is there a commercial licensing path from Jina AI? Suggested action: Contact jina.ai for licensing terms.
+4. **Jina code license exception for mnemex**: CC-BY-NC-4.0 blocks commercial use. Is there a commercial licensing path from Jina AI? Suggested action: Contact jina.ai for licensing terms.
 
 5. **SFR-Embedding-Code CoIR Aug2025 benchmark**: Only older Nov2024 CoIR data available. Suggested query: "SFR-Embedding-Code 2025 CoIR benchmark"
 
-6. **Mistral Codestral Embed on CoIR**: Mistral's own benchmarks show it outperforms Voyage Code 3 but no third-party CoIR evaluation exists. Suggested action: run claudemem benchmark empirically.
+6. **Mistral Codestral Embed on CoIR**: Mistral's own benchmarks show it outperforms Voyage Code 3 but no third-party CoIR evaluation exists. Suggested action: run mnemex benchmark empirically.
 
 ---
 

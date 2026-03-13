@@ -1,7 +1,7 @@
 {
   "model": {
     "name": "lfm2-700m-FT",
-    "lmsKey": "jackrudenko/claudemem-expansion-lfm2-700m",
+    "lmsKey": "jackrudenko/mnemex-expansion-lfm2-700m",
     "family": "lfm2-ft",
     "paramsB": 0.7
   },

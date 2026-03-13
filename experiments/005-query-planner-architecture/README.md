@@ -5,7 +5,7 @@
 
 ## Motivation
 
-Should claudemem's query expander (small LLM generating lex/vec/hyde strings) evolve into a query PLANNER that intelligently orchestrates multiple retrieval tools (AST, LSP, embedding, BM25, code descriptions, symbol graph)?
+Should mnemex's query expander (small LLM generating lex/vec/hyde strings) evolve into a query PLANNER that intelligently orchestrates multiple retrieval tools (AST, LSP, embedding, BM25, code descriptions, symbol graph)?
 
 ## Design
 

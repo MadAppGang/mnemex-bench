@@ -72,13 +72,13 @@ The `patch` field is a unified diff. Modified file paths can be extracted by par
 
 ---
 
-### Finding 2: Claudemem Already Has a Production 8-Type Query Generator — Reuse Directly
+### Finding 2: Mnemex Already Has a Production 8-Type Query Generator — Reuse Directly
 
 **Summary**: `src/benchmark-v2/extractors/query-generator.ts` implements an LLM-based query generator that produces 8 typed queries per code unit. This is the primary tool for synthetic query generation for the new benchmark. The 8 types (vague, wrong_terminology, specific_behavior, integration, problem_based, doc_conceptual, doc_api_lookup, doc_best_practice) are a richer taxonomy than needed for the 4-class router (symbol/semantic/structural/exploratory) — they can be mapped down or kept for finer-grained evaluation.
 
 **Evidence**:
 
-From `/Users/jack/mag/claudemem/src/benchmark-v2/extractors/query-generator.ts`:
+From `/Users/jack/mag/mnemex/src/benchmark-v2/extractors/query-generator.ts`:
 ```typescript
 // 8 query types generated per code unit:
 1. "vague"            → maps to exploratory
@@ -110,7 +110,7 @@ exploratory      ← vague + doc_conceptual + doc_best_practice
 - 360 symbols × $0.002 × 0.2 = ~$0.14 to generate the full synthetic query set
 
 **Sources**:
-- `/Users/jack/mag/claudemem/src/benchmark-v2/extractors/query-generator.ts` — Quality: High, Date: 2026-02-25
+- `/Users/jack/mag/mnemex/src/benchmark-v2/extractors/query-generator.ts` — Quality: High, Date: 2026-02-25
 - `dev-research-embed-eval-methods-20260305-085036-2fea1a92/findings/explorer-2.md`, Finding 1 & 2 — Quality: High, Date: 2026-03-05
 - `research-plan.md` Section 3 "Approach B" — Quality: High, Date: 2026-03-06
 
@@ -150,7 +150,7 @@ LOW contamination risk (requires paraphrase):
 
 **Sources**:
 - `dev-research-embed-eval-methods-20260305-085036-2fea1a92/findings/explorer-2.md` — Quality: High, Date: 2026-03-05
-- `/Users/jack/mag/claudemem/src/benchmark-v2/extractors/query-generator.ts` — Quality: High
+- `/Users/jack/mag/mnemex/src/benchmark-v2/extractors/query-generator.ts` — Quality: High
 - `research-plan.md` Section 3 — Quality: High
 
 **Confidence**: High
@@ -161,11 +161,11 @@ LOW contamination risk (requires paraphrase):
 
 ### Finding 4: Statistical Power Analysis for MRR Comparison
 
-**Summary**: Claudemem already has paired t-test and Wilcoxon signed-rank implementations in `src/benchmark-v2/scorers/statistics.ts`. For detecting a 5% MRR improvement at 80% power, ~120-200 queries are needed (not 24). The 24 SWE-bench instances are sufficient only for detecting large improvements (>15% MRR delta).
+**Summary**: Mnemex already has paired t-test and Wilcoxon signed-rank implementations in `src/benchmark-v2/scorers/statistics.ts`. For detecting a 5% MRR improvement at 80% power, ~120-200 queries are needed (not 24). The 24 SWE-bench instances are sufficient only for detecting large improvements (>15% MRR delta).
 
 **Evidence**:
 
-From `/Users/jack/mag/claudemem/src/benchmark-v2/scorers/statistics.ts`, the `wilcoxonSignedRankTest` implementation:
+From `/Users/jack/mag/mnemex/src/benchmark-v2/scorers/statistics.ts`, the `wilcoxonSignedRankTest` implementation:
 ```typescript
 // Normal approximation valid for n >= 6 with continuity correction
 // Effect size: r = Z / sqrt(N)
@@ -210,7 +210,7 @@ N=500:                        detects Δ≥0.03 MRR (very fine-grained compariso
 - **End-to-end agent tasks** (SWE-bench resolve rate): 24 is marginal; detects only large task completion deltas (≥15%)
 
 **Sources**:
-- `/Users/jack/mag/claudemem/src/benchmark-v2/scorers/statistics.ts` — Quality: High, Date: 2026-02-25 (Wilcoxon implementation)
+- `/Users/jack/mag/mnemex/src/benchmark-v2/scorers/statistics.ts` — Quality: High, Date: 2026-02-25 (Wilcoxon implementation)
 - `dev-research-embed-eval-methods-20260305-085036-2fea1a92/findings/explorer-2.md`, Finding 7 — Quality: High, Date: 2026-03-05
 - `research-plan.md` Section 3 "Minimum viable dataset size" — Quality: High
 - Standard power analysis tables (from model training knowledge) — Quality: High
@@ -231,7 +231,7 @@ N=500:                        detects Δ≥0.03 MRR (very fine-grained compariso
 
 **Auto-labeling approach using heuristics**:
 
-From the claudemem codebase patterns and SWE-bench issue text analysis:
+From the mnemex codebase patterns and SWE-bench issue text analysis:
 ```
 Heuristic Rules for SWE-bench issues:
   SYMBOL_LOOKUP if:
@@ -280,11 +280,11 @@ Using `run_condition.py`'s 24 filter instances (e.g., `fastapi__fastapi-1234`):
 
 ### Finding 6: Component-Wise Ablation Design — Established Pattern in Local Codebase
 
-**Summary**: The claudemem benchmark-v2 framework already supports isolated component evaluation via separate evaluators (retrieval, contrastive, judge). The same pattern applies to the 4-component pipeline (router + expander + retriever + reranker). Paired evaluation (with/without each component using identical query sets) is the correct ablation design.
+**Summary**: The mnemex benchmark-v2 framework already supports isolated component evaluation via separate evaluators (retrieval, contrastive, judge). The same pattern applies to the 4-component pipeline (router + expander + retriever + reranker). Paired evaluation (with/without each component using identical query sets) is the correct ablation design.
 
 **Evidence**:
 
-From `/Users/jack/mag/claudemem/src/benchmark-v2/types.ts`:
+From `/Users/jack/mag/mnemex/src/benchmark-v2/types.ts`:
 ```typescript
 export const DEFAULT_EVALUATION_WEIGHTS: EvaluationWeights = {
   retrieval: 0.45,    // Bi-encoder retrieval quality
@@ -323,8 +323,8 @@ For each condition, report:
 The BEIR package accepts custom datasets in JSONL format: `corpus.jsonl`, `queries.jsonl`, `qrels.tsv`. Our hybrid dataset (SWE-bench instances + synthetic queries + CoSQA subset) can be serialized to this format. The BEIR `retrieve_and_evaluate()` interface will then compute NDCG@10, Recall@k, MRR@10 out of the box.
 
 **Sources**:
-- `/Users/jack/mag/claudemem/src/benchmark-v2/types.ts` — Quality: High, Date: 2026-02-25
-- `/Users/jack/mag/claudemem/src/benchmark-v2/scorers/statistics.ts` — Quality: High, Date: 2026-02-25
+- `/Users/jack/mag/mnemex/src/benchmark-v2/types.ts` — Quality: High, Date: 2026-02-25
+- `/Users/jack/mag/mnemex/src/benchmark-v2/scorers/statistics.ts` — Quality: High, Date: 2026-02-25
 - `research-plan.md` Section 4 "Metrics Per Component" — Quality: High, Date: 2026-03-06
 - `dev-research-embed-eval-methods-20260305-085036-2fea1a92/findings/explorer-2.md`, Finding 9 — Quality: High
 
@@ -419,8 +419,8 @@ export interface GeneratedQuery {
 The `codeUnitId` provides function-level ground truth. For SWE-bench-derived queries, `codeUnitId` is replaced by a file path list (multiple targets). A nullable union type accommodates both.
 
 **Sources**:
-- `/Users/jack/mag/claudemem/src/benchmark-v2/extractors/query-generator.ts` — Quality: High
-- `/Users/jack/mag/claudemem/.claudemem/benchmark.db` — Quality: High (confirmed exists)
+- `/Users/jack/mag/mnemex/src/benchmark-v2/extractors/query-generator.ts` — Quality: High
+- `/Users/jack/mag/mnemex/.mnemex/benchmark.db` — Quality: High (confirmed exists)
 - Prior research `dev-research-embed-eval-methods-20260305-085036-2fea1a92` — Quality: High
 
 **Confidence**: High
@@ -438,12 +438,12 @@ The `codeUnitId` provides function-level ground truth. For SWE-bench-derived que
 **Source List**:
 1. `/Users/jack/mag/agentbench/src/agentbench/benchmarks/swebench.py` — Quality: High, Date: 2026-03-06, Type: Local code
 2. `/Users/jack/mag/agentbench/scripts/agentbench/run_harness/run_condition.py` — Quality: High, Date: 2026-03-06, Type: Local code
-3. `/Users/jack/mag/claudemem/src/benchmark-v2/extractors/query-generator.ts` — Quality: High, Date: 2026-02-25, Type: Local code
-4. `/Users/jack/mag/claudemem/src/benchmark-v2/evaluators/retrieval/index.ts` — Quality: High, Date: 2026-02-25, Type: Local code
-5. `/Users/jack/mag/claudemem/src/benchmark-v2/scorers/statistics.ts` — Quality: High, Date: 2026-02-25, Type: Local code (Wilcoxon + paired t-test)
-6. `/Users/jack/mag/claudemem/src/benchmark-v2/types.ts` — Quality: High, Date: 2026-02-25, Type: Local code
-7. `/Users/jack/mag/claudemem/eval/embedding-benchmark.ts` — Quality: High, Date: 2026-02-25, Type: Local eval
-8. `/Users/jack/mag/claudemem/eval/cognitive-e2e/scenarios.ts` — Quality: High, Date: 2026-02-25, Type: Local eval
+3. `/Users/jack/mag/mnemex/src/benchmark-v2/extractors/query-generator.ts` — Quality: High, Date: 2026-02-25, Type: Local code
+4. `/Users/jack/mag/mnemex/src/benchmark-v2/evaluators/retrieval/index.ts` — Quality: High, Date: 2026-02-25, Type: Local code
+5. `/Users/jack/mag/mnemex/src/benchmark-v2/scorers/statistics.ts` — Quality: High, Date: 2026-02-25, Type: Local code (Wilcoxon + paired t-test)
+6. `/Users/jack/mag/mnemex/src/benchmark-v2/types.ts` — Quality: High, Date: 2026-02-25, Type: Local code
+7. `/Users/jack/mag/mnemex/eval/embedding-benchmark.ts` — Quality: High, Date: 2026-02-25, Type: Local eval
+8. `/Users/jack/mag/mnemex/eval/cognitive-e2e/scenarios.ts` — Quality: High, Date: 2026-02-25, Type: Local eval
 9. `ai-docs/sessions/dev-research-code-search-test-harness-20260306-021745-38ab28a4/research-plan.md` — Quality: High, Date: 2026-03-06, Type: Research plan
 10. `dev-research-embed-eval-methods-20260305-085036-2fea1a92/findings/explorer-1.md` — Quality: High, Date: 2026-03-05, Type: Prior research
 11. `dev-research-embed-eval-methods-20260305-085036-2fea1a92/findings/explorer-2.md` — Quality: High, Date: 2026-03-05, Type: Prior research (11 findings on eval methodology)
@@ -452,8 +452,8 @@ The `codeUnitId` provides function-level ground truth. For SWE-bench-derived que
 14. [CodeSearchNet HuggingFace](https://huggingface.co/datasets/code-search-net/code_search_net) — Quality: High, Date: Live
 15. [princeton-nlp/SWE-Bench_Verified HuggingFace](https://huggingface.co/datasets/princeton-nlp/SWE-Bench_Verified) — Quality: High (referenced in swebench.py)
 16. MEMORY.md (12 repos, ~39K symbols, agentbench data) — Quality: High, Date: 2026-03-06
-17. `/Users/jack/mag/claudemem/docs/adr/001-chunk-size-limits.md` — Quality: High, Date: 2026-03-02
-18. `/Users/jack/mag/claudemem/docs/adr/002-ast-pure-chunking.md` — Quality: High, Date: 2026-03-02
+17. `/Users/jack/mag/mnemex/docs/adr/001-chunk-size-limits.md` — Quality: High, Date: 2026-03-02
+18. `/Users/jack/mag/mnemex/docs/adr/002-ast-pure-chunking.md` — Quality: High, Date: 2026-03-02
 
 ---
 

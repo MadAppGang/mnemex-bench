@@ -398,8 +398,8 @@ The CoIR benchmark (published Feb 2024) tests code-specific retrieval across:
 9. [granite-embedding-125m-english](https://huggingface.co/ibm-granite/granite-embedding-125m-english) — High, Sep 2024
 10. [CoIR benchmark paper](https://arxiv.org/abs/2407.02883) — High, Jul 2024
 11. Local: openrouter-embedding-models-comparison.md — High, 2026-03-04
-12. claudemem source: embeddings.ts — High (confirms current defaults)
-13. claudemem source: model-discovery.ts — High (confirms snowflake-arctic-embed2 exists in registry)
+12. mnemex source: embeddings.ts — High (confirms current defaults)
+13. mnemex source: model-discovery.ts — High (confirms snowflake-arctic-embed2 exists in registry)
 14. [MTEB Leaderboard](https://huggingface.co/spaces/mteb/leaderboard) — High (scores per model cards)
 
 ---

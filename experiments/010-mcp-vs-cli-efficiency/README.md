@@ -2,7 +2,7 @@
 
 **Date:** 2026-03-10
 **Status:** Ready to run
-**Evolved from:** Experiment 009 (claudemem vs Serena) and `autotest/claudemem/` standalone tests
+**Evolved from:** Experiment 009 (mnemex vs Serena) and `autotest/mnemex/` standalone tests
 
 ## Motivation
 
@@ -80,7 +80,7 @@ The harness defaults to the current working directory as the target codebase. It
 
 ## Expected Findings
 
-Based on experiment 009 (claudemem vs Serena) preliminary data:
+Based on experiment 009 (mnemex vs Serena) preliminary data:
 
 - MCP tools tend to produce fewer but richer tool calls (using mnemex MCP server)
 - CLI may be faster wall-clock due to lower protocol overhead

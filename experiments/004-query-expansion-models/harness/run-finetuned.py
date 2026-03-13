@@ -22,17 +22,17 @@ Usage:
     uv run experiments/query-expansion/bench/run-finetuned.py --all
 
 Models (Round 1):
-    qwen3-1.7b    jackrudenko/claudemem-expansion-qwen3-1.7b
-    qwen3-4b      jackrudenko/claudemem-expansion-qwen3-4b
-    lfm2-1.2b     jackrudenko/claudemem-expansion-lfm2-1.2b
-    lfm2-700m     jackrudenko/claudemem-expansion-lfm2-700m
+    qwen3-1.7b    jackrudenko/mnemex-expansion-qwen3-1.7b
+    qwen3-4b      jackrudenko/mnemex-expansion-qwen3-4b
+    lfm2-1.2b     jackrudenko/mnemex-expansion-lfm2-1.2b
+    lfm2-700m     jackrudenko/mnemex-expansion-lfm2-700m
 
 Models (Round 2):
-    qwen3-8b      jackrudenko/claudemem-expansion-qwen3-8b
-    phi4-mini     jackrudenko/claudemem-expansion-phi4-mini
-    qwen3.5-2b    jackrudenko/claudemem-expansion-qwen3.5-2b
-    qwen3.5-4b    jackrudenko/claudemem-expansion-qwen3.5-4b
-    qwen3.5-9b    jackrudenko/claudemem-expansion-qwen3.5-9b
+    qwen3-8b      jackrudenko/mnemex-expansion-qwen3-8b
+    phi4-mini     jackrudenko/mnemex-expansion-phi4-mini
+    qwen3.5-2b    jackrudenko/mnemex-expansion-qwen3.5-2b
+    qwen3.5-4b    jackrudenko/mnemex-expansion-qwen3.5-4b
+    qwen3.5-9b    jackrudenko/mnemex-expansion-qwen3.5-9b
 """
 
 import argparse
@@ -49,56 +49,56 @@ HF_USER = "jackrudenko"
 MODELS = {
     "qwen3-1.7b": {
         "base": "Qwen/Qwen3-1.7B",
-        "adapter": f"{HF_USER}/claudemem-expansion-qwen3-1.7b",
+        "adapter": f"{HF_USER}/mnemex-expansion-qwen3-1.7b",
         "family": "qwen3-ft",
         "paramsB": 1.7,
     },
     "qwen3-4b": {
         "base": "Qwen/Qwen3-4B",
-        "adapter": f"{HF_USER}/claudemem-expansion-qwen3-4b",
+        "adapter": f"{HF_USER}/mnemex-expansion-qwen3-4b",
         "family": "qwen3-ft",
         "paramsB": 4,
     },
     "lfm2-1.2b": {
         "base": "LiquidAI/LFM2.5-1.2B-Instruct",
-        "adapter": f"{HF_USER}/claudemem-expansion-lfm2-1.2b",
+        "adapter": f"{HF_USER}/mnemex-expansion-lfm2-1.2b",
         "family": "lfm2-ft",
         "paramsB": 1.2,
     },
     "lfm2-700m": {
         "base": "LiquidAI/LFM2-700M",
-        "adapter": f"{HF_USER}/claudemem-expansion-lfm2-700m",
+        "adapter": f"{HF_USER}/mnemex-expansion-lfm2-700m",
         "family": "lfm2-ft",
         "paramsB": 0.7,
     },
     # ── Round 2 ──────────────────────────────────────────────
     "qwen3-8b": {
         "base": "Qwen/Qwen3-8B",
-        "adapter": f"{HF_USER}/claudemem-expansion-qwen3-8b",
+        "adapter": f"{HF_USER}/mnemex-expansion-qwen3-8b",
         "family": "qwen3-ft",
         "paramsB": 8,
     },
     "phi4-mini": {
         "base": "microsoft/Phi-4-mini-instruct",
-        "adapter": f"{HF_USER}/claudemem-expansion-phi4-mini",
+        "adapter": f"{HF_USER}/mnemex-expansion-phi4-mini",
         "family": "phi4-ft",
         "paramsB": 3.8,
     },
     "qwen3.5-2b": {
         "base": "Qwen/Qwen3.5-2B",
-        "adapter": f"{HF_USER}/claudemem-expansion-qwen3.5-2b",
+        "adapter": f"{HF_USER}/mnemex-expansion-qwen3.5-2b",
         "family": "qwen3.5-ft",
         "paramsB": 2,
     },
     "qwen3.5-4b": {
         "base": "Qwen/Qwen3.5-4B",
-        "adapter": f"{HF_USER}/claudemem-expansion-qwen3.5-4b",
+        "adapter": f"{HF_USER}/mnemex-expansion-qwen3.5-4b",
         "family": "qwen3.5-ft",
         "paramsB": 4,
     },
     "qwen3.5-9b": {
         "base": "Qwen/Qwen3.5-9B",
-        "adapter": f"{HF_USER}/claudemem-expansion-qwen3.5-9b",
+        "adapter": f"{HF_USER}/mnemex-expansion-qwen3.5-9b",
         "family": "qwen3.5-ft",
         "paramsB": 9,
     },

@@ -1,0 +1,59 @@
+{
+  "scenarioId": 11,
+  "repo": "mnemex",
+  "condition": "baseline",
+  "title": "Architecture: embedding providers",
+  "task": "What embedding providers does mnemex support and how does the code route between them? Explain the provider selection logic and any fallback behavior. Do NOT make any code changes.",
+  "output": "## Embedding Providers\n\nmnemex supports **5 embedding providers** across two cloud and three local categories:\n\n| Provider | Type | Default Model | Key Source |\n|---|---|---|---|\n| `openrouter` | Cloud | `qwen/qwen3-embedding-8b` | `OPENROUTER_API_KEY` / config |\n| `voyage` | Cloud | `voyage-code-3` | `VOYAGE_API_KEY` / config |\n| `ollama` | Local | `nomic-embed-text` | none (local) |\n| `lmstudio` | Local | `text-embedding-nomic-embed-text-v1.5` | none (local) |\n| `local` | Local | `all-minilm-l6-v2` | none (local) |\n\nThe **global default model** (when nothing is configured) is `voyage-3.5-lite` (`DEFAULT_EMBEDDING_MODEL` in `config.ts:178`).\n\n---\n\n## Provider Selection Logic (`createEmbeddingsClient`, `embeddings.ts:879`)\n\nThe factory uses a **model-prefix-first auto-detection** strategy, which can override any explicit provider config:\n\n```\n1. Load config: provider = options.provider || config.embeddingProvider\n2. Load model:  model   = options.model || config.defaultModel || \"voyage-3.5-lite\"\n\n3. Auto-detect from model prefix (overrides step 1):\n   - model starts with \"voyage-\"        → provider = \"voyage\"\n   - model starts with \"ollama/\"        → provider = \"ollama\", strip prefix\n   - model starts with \"lmstudio/\"      → provider = \"lmstudio\", strip prefix\n   - model contains \"/\" (any other)     → provider = \"openrouter\"\n     (e.g., \"openai/text-embedding-3-small\")\n\n4. If still no provider → default to \"openrouter\"\n```\n\nSo a model string like `ollama/nomic-embed-code` is self-routing — you don't need to set a provider separately.\n\n---\n\n## Fallback Behavior\n\nThere is **no automatic cross-provider fallback** (e.g., Voyage fails → try OpenRouter). Failures are handled differently per provider:\n\n**OpenRouter & Voyage** (cloud, batched):\n- Retry up to 3× with exponential backoff (1s, 2s, 4s)\n- Auth errors (401/403) fail immediately — no retry\n- Individual batch failures return empty embeddings and collect warnings; indexing continues for other chunks\n- `ECONNREFUSED` on Ollama/local **throws immediately** (fast-fail, no retry)\n\n**Ollama** (local, one-at-a-time):\n- Tries the **newer `/api/embed` endpoint** first (supports `truncate: true`)\n- Falls back to **legacy `/api/embeddings`** if the new endpoint returns 404, a JSON parse error, or an unexpected response format — tracked with `this.useNewApi = false` so subsequent calls skip straight to legacy\n- Per-chunk failures are skipped with a warning (except `ECONNREFUSED`, which throws)\n\n**Local/LM Studio** (OpenAI-compatible):\n- Batched (10 at a time), retry up to 3× with backoff\n- `ECONNREFUSED` fails immediately\n\nIn all cases, **failed chunks produce empty embeddings** (`[]`) that callers are expected to filter, and counts are surfaced in `EmbedResult.warnings`.",
+  "claudeJson": {
+    "type": "result",
+    "subtype": "success",
+    "is_error": false,
+    "duration_ms": 33536,
+    "duration_api_ms": 33016,
+    "num_turns": 6,
+    "result": "## Embedding Providers\n\nmnemex supports **5 embedding providers** across two cloud and three local categories:\n\n| Provider | Type | Default Model | Key Source |\n|---|---|---|---|\n| `openrouter` | Cloud | `qwen/qwen3-embedding-8b` | `OPENROUTER_API_KEY` / config |\n| `voyage` | Cloud | `voyage-code-3` | `VOYAGE_API_KEY` / config |\n| `ollama` | Local | `nomic-embed-text` | none (local) |\n| `lmstudio` | Local | `text-embedding-nomic-embed-text-v1.5` | none (local) |\n| `local` | Local | `all-minilm-l6-v2` | none (local) |\n\nThe **global default model** (when nothing is configured) is `voyage-3.5-lite` (`DEFAULT_EMBEDDING_MODEL` in `config.ts:178`).\n\n---\n\n## Provider Selection Logic (`createEmbeddingsClient`, `embeddings.ts:879`)\n\nThe factory uses a **model-prefix-first auto-detection** strategy, which can override any explicit provider config:\n\n```\n1. Load config: provider = options.provider || config.embeddingProvider\n2. Load model:  model   = options.model || config.defaultModel || \"voyage-3.5-lite\"\n\n3. Auto-detect from model prefix (overrides step 1):\n   - model starts with \"voyage-\"        → provider = \"voyage\"\n   - model starts with \"ollama/\"        → provider = \"ollama\", strip prefix\n   - model starts with \"lmstudio/\"      → provider = \"lmstudio\", strip prefix\n   - model contains \"/\" (any other)     → provider = \"openrouter\"\n     (e.g., \"openai/text-embedding-3-small\")\n\n4. If still no provider → default to \"openrouter\"\n```\n\nSo a model string like `ollama/nomic-embed-code` is self-routing — you don't need to set a provider separately.\n\n---\n\n## Fallback Behavior\n\nThere is **no automatic cross-provider fallback** (e.g., Voyage fails → try OpenRouter). Failures are handled differently per provider:\n\n**OpenRouter & Voyage** (cloud, batched):\n- Retry up to 3× with exponential backoff (1s, 2s, 4s)\n- Auth errors (401/403) fail immediately — no retry\n- Individual batch failures return empty embeddings and collect warnings; indexing continues for other chunks\n- `ECONNREFUSED` on Ollama/local **throws immediately** (fast-fail, no retry)\n\n**Ollama** (local, one-at-a-time):\n- Tries the **newer `/api/embed` endpoint** first (supports `truncate: true`)\n- Falls back to **legacy `/api/embeddings`** if the new endpoint returns 404, a JSON parse error, or an unexpected response format — tracked with `this.useNewApi = false` so subsequent calls skip straight to legacy\n- Per-chunk failures are skipped with a warning (except `ECONNREFUSED`, which throws)\n\n**Local/LM Studio** (OpenAI-compatible):\n- Batched (10 at a time), retry up to 3× with backoff\n- `ECONNREFUSED` fails immediately\n\nIn all cases, **failed chunks produce empty embeddings** (`[]`) that callers are expected to filter, and counts are surfaced in `EmbedResult.warnings`.",
+    "stop_reason": "end_turn",
+    "session_id": "f03d7aba-7ed8-444f-b420-84e351117d6c",
+    "total_cost_usd": 0.3172995,
+    "usage": {
+      "input_tokens": 9450,
+      "cache_creation_input_tokens": 33854,
+      "cache_read_input_tokens": 39274,
+      "output_tokens": 1553,
+      "server_tool_use": {
+        "web_search_requests": 0,
+        "web_fetch_requests": 0
+      },
+      "service_tier": "standard",
+      "cache_creation": {
+        "ephemeral_1h_input_tokens": 0,
+        "ephemeral_5m_input_tokens": 33854
+      },
+      "inference_geo": "",
+      "iterations": [],
+      "speed": "standard"
+    },
+    "modelUsage": {
+      "claude-sonnet-4-6": {
+        "inputTokens": 9450,
+        "outputTokens": 1553,
+        "cacheReadInputTokens": 39274,
+        "cacheCreationInputTokens": 33854,
+        "webSearchRequests": 0,
+        "costUSD": 0.3172995,
+        "contextWindow": 200000,
+        "maxOutputTokens": 32000
+      }
+    },
+    "permission_denials": [],
+    "fast_mode_state": "off",
+    "uuid": "163b5624-9993-4fcc-aa95-2f7395262280"
+  },
+  "durationMs": 40454,
+  "tokensIn": 9450,
+  "tokensOut": 1553,
+  "toolCalls": 6,
+  "costUsd": 0.3172995,
+  "timestamp": "2026-03-05T23:13:13.980Z"
+}

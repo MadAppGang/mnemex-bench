@@ -13,13 +13,13 @@
 
 The practical local deployment landscape for embedding models on Apple Silicon comes down to three clear tiers in March 2026:
 
-**Tier 1 (Recommended)**: Ollama is the fastest path to a working local embedding server. For quality, `nomic-embed-text` (274MB, `ollama pull nomic-embed-text`) and `snowflake-arctic-embed2` (309MB) are proven, available today, and already integrated in the claudemem codebase.
+**Tier 1 (Recommended)**: Ollama is the fastest path to a working local embedding server. For quality, `nomic-embed-text` (274MB, `ollama pull nomic-embed-text`) and `snowflake-arctic-embed2` (309MB) are proven, available today, and already integrated in the mnemex codebase.
 
 **Tier 2 (Best Quality, requires GGUF import or sentence-transformers)**: `Qwen3-Embedding-0.6B` is the standout new model — 230MB at Q4_K_M quantization, 32K context, MTEB-Code ~75. It is NOT in the standard Ollama registry as of mid-2025; it requires GGUF import into Ollama or serving via LM Studio with a local endpoint.
 
 **Tier 3 (Fastest raw throughput on Metal GPU)**: MLX-native serving via `mlx_lm.server` or sentence-transformers with PyTorch MPS backend offers the highest tokens/sec on Apple Silicon but requires Python setup overhead.
 
-**Speed winner for claudemem integration**: Ollama with `nomic-embed-text` or `snowflake-arctic-embed2` — zero setup, works immediately, already supported by the `OllamaEmbeddingsClient`.
+**Speed winner for mnemex integration**: Ollama with `nomic-embed-text` or `snowflake-arctic-embed2` — zero setup, works immediately, already supported by the `OllamaEmbeddingsClient`.
 
 ---
 
@@ -31,11 +31,11 @@ The practical local deployment landscape for embedding models on Apple Silicon c
 
 **Evidence**:
 
-The claudemem codebase (`src/core/embeddings.ts`, `MODEL_CONTEXT_LENGTHS`) plus the local research file `small-embedding-models-march2026.md` (2026-03-04) confirm the following Ollama-native embedding models as of mid-2025:
+The mnemex codebase (`src/core/embeddings.ts`, `MODEL_CONTEXT_LENGTHS`) plus the local research file `small-embedding-models-march2026.md` (2026-03-04) confirm the following Ollama-native embedding models as of mid-2025:
 
 | Model | Ollama Pull Command | Disk Size | Context | MTEB Retrieval | Code Suitability |
 |---|---|---|---|---|---|
-| `nomic-embed-text` | `ollama pull nomic-embed-text` | 274MB | 8,192 | ~49.8 | Good (default in claudemem) |
+| `nomic-embed-text` | `ollama pull nomic-embed-text` | 274MB | 8,192 | ~49.8 | Good (default in mnemex) |
 | `snowflake-arctic-embed2` | `ollama pull snowflake-arctic-embed2` | 309MB | 8,192 | ~56.5 | Good (best Ollama-native option) |
 | `bge-m3` | `ollama pull bge-m3` | ~1.1GB | 8,192 | ~62 | Very Good (but large) |
 | `mxbai-embed-large` | `ollama pull mxbai-embed-large` | 670MB | **512** | ~46.5 | **Eliminated** (512-token context) |
@@ -53,8 +53,8 @@ The claudemem codebase (`src/core/embeddings.ts`, `MODEL_CONTEXT_LENGTHS`) plus 
 **Quantization available in Ollama**: Ollama serves GGUF files internally. `nomic-embed-text:v1.5` is served as Q4_K_M by default. Users cannot manually choose quantization level via `ollama pull` — the registry provides one default quantization per model tag.
 
 **Sources**:
-- Local: `/Users/jack/mag/claudemem/src/core/embeddings.ts` — Quality: High, date: 2026-03-04
-- Local: `/Users/jack/mag/claudemem/ai-docs/embedding-model-research-20260304/small-embedding-models-march2026.md` — Quality: High, 2026-03-04
+- Local: `/Users/jack/mag/mnemex/src/core/embeddings.ts` — Quality: High, date: 2026-03-04
+- Local: `/Users/jack/mag/mnemex/ai-docs/embedding-model-research-20260304/small-embedding-models-march2026.md` — Quality: High, 2026-03-04
 - [Ollama models page](https://ollama.com/library) — Quality: High (registry, ongoing)
 
 **Confidence**: High
@@ -129,14 +129,14 @@ This asymmetric pattern is already supported in the `LocalEmbeddingsClient` and 
 
 ### Finding 3: LM Studio — OpenAI-Compatible Embedding Endpoint for Any GGUF Model
 
-**Summary**: LM Studio exposes an OpenAI-compatible `/v1/embeddings` endpoint at `http://localhost:1234/v1`. It can serve any GGUF embedding model including Qwen3-Embedding-0.6B. The claudemem codebase already has a `LocalEmbeddingsClient` that works with LM Studio.
+**Summary**: LM Studio exposes an OpenAI-compatible `/v1/embeddings` endpoint at `http://localhost:1234/v1`. It can serve any GGUF embedding model including Qwen3-Embedding-0.6B. The mnemex codebase already has a `LocalEmbeddingsClient` that works with LM Studio.
 
 **Evidence**:
 
-From claudemem source code (`src/core/embeddings.ts`, `src/llm/providers/local.ts`):
+From mnemex source code (`src/core/embeddings.ts`, `src/llm/providers/local.ts`):
 
 ```typescript
-// LM Studio embedding endpoint (already in claudemem)
+// LM Studio embedding endpoint (already in mnemex)
 case "lmstudio":
   return new LocalEmbeddingsClient({
     model: "text-embedding-nomic-embed-text-v1.5",  // or any loaded model
@@ -152,7 +152,7 @@ From `src/tui/setup/hardware.ts`, LM Studio detection checks:
 2. In LM Studio Discover tab: search "nomic-embed-text", "snowflake-arctic-embed", or "Qwen3-Embedding"
 3. Download desired model (GGUF format, 4-bit recommended)
 4. Enable local server (port 1234) and load the embedding model
-5. Use `provider: "lmstudio"` in claudemem config
+5. Use `provider: "lmstudio"` in mnemex config
 
 **Available in LM Studio (as of model knowledge cutoff + extrapolation)**:
 - `lmstudio-community/nomic-embed-text-v1.5-GGUF` — Q4_K_M: 274MB
@@ -168,9 +168,9 @@ From `src/tui/setup/hardware.ts`, LM Studio detection checks:
 However, as of mid-2025, most embedding models are distributed as GGUF (not MLX) because the MLX-specific embedding pipeline (`mlx.core.fast.scaled_dot_product_attention`) is used for LLMs but less commonly for embedding-only models which don't need autoregressive generation.
 
 **Sources**:
-- Local: `/Users/jack/mag/claudemem/src/core/embeddings.ts` — Quality: High
-- Local: `/Users/jack/mag/claudemem/src/llm/providers/local.ts` — Quality: High
-- Local: `/Users/jack/mag/claudemem/src/tui/setup/hardware.ts` — Quality: High
+- Local: `/Users/jack/mag/mnemex/src/core/embeddings.ts` — Quality: High
+- Local: `/Users/jack/mag/mnemex/src/llm/providers/local.ts` — Quality: High
+- Local: `/Users/jack/mag/mnemex/src/tui/setup/hardware.ts` — Quality: High
 
 **Confidence**: High (LM Studio architecture confirmed from codebase; MLX embedding availability moderate confidence)
 **Multi-source**: Yes
@@ -179,7 +179,7 @@ However, as of mid-2025, most embedding models are distributed as GGUF (not MLX)
 
 ### Finding 4: Inference Speed Comparison — Serving Methods on Apple Silicon M3/M4
 
-**Summary**: For embedding throughput, native llama.cpp server and MLX-native offer the best raw speed, but Ollama is the best overall for claudemem integration due to zero-overhead API compatibility.
+**Summary**: For embedding throughput, native llama.cpp server and MLX-native offer the best raw speed, but Ollama is the best overall for mnemex integration due to zero-overhead API compatibility.
 
 **Evidence**:
 
@@ -187,7 +187,7 @@ Based on architectural understanding and benchmarks from the Qwen3 and nomic-emb
 
 **Serving method comparison for Apple Silicon (M3 Pro / M4, 16-36GB unified memory)**:
 
-| Method | Setup Time | throughput (est.) | RAM Overhead | claudemem Compatible | Notes |
+| Method | Setup Time | throughput (est.) | RAM Overhead | mnemex Compatible | Notes |
 |---|---|---|---|---|---|
 | Ollama (`ollama serve`) | ~30s startup | 2,000-5,000 tok/s | ~200MB daemon | YES (built-in) | Best for dev; auto model loading |
 | LM Studio local server | ~5s per model load | 3,000-6,000 tok/s | ~300MB UI | YES (LocalEmbeddingsClient) | Good GUI; needs manual model load |
@@ -196,9 +196,9 @@ Based on architectural understanding and benchmarks from the Qwen3 and nomic-emb
 | sentence-transformers + CoreML | ~10s compile | 5,000-15,000 tok/s | ~100MB | Via custom script | Fastest on Apple Silicon; CoreML AOT compilation |
 | MLX-LM server (`mlx_lm.server`) | ~5s startup | 6,000-12,000 tok/s | ~100MB | YES (OpenAI-compat) | Best pure speed; limited embedding model support |
 
-**Bottleneck analysis for claudemem's use pattern**:
+**Bottleneck analysis for mnemex's use pattern**:
 
-claudemem sends batches of 10-20 texts to the embedding server (per `LocalEmbeddingsClient.LOCAL_BATCH_SIZE = 10`). The latency-throughput trade-off matters more than raw tokens/sec because each batch is a round-trip HTTP request.
+mnemex sends batches of 10-20 texts to the embedding server (per `LocalEmbeddingsClient.LOCAL_BATCH_SIZE = 10`). The latency-throughput trade-off matters more than raw tokens/sec because each batch is a round-trip HTTP request.
 
 - **Critical path**: HTTP round-trip latency per batch (not pure GPU throughput)
 - Ollama adds ~5-15ms per request overhead (HTTP + JSON parsing)
@@ -217,7 +217,7 @@ For 5,000 chunks at 10 chunks/batch = 500 requests:
 - Convert model once: `ct.convert(model, convert_to="mlprogram", compute_units=ct.ComputeUnit.ALL)`
 - Achieves Neural Engine (ANE) acceleration — 3-4x faster than GPU for small matrices
 - For nomic-embed-text (137M params), achieves ~10,000-15,000 tokens/sec on M3 ANE
-- Does NOT integrate easily with claudemem's HTTP-based embedding clients
+- Does NOT integrate easily with mnemex's HTTP-based embedding clients
 
 **Sources**:
 - [llama.cpp benchmark data](https://github.com/ggerganov/llama.cpp/blob/master/docs/performance.md) — Quality: High (within training knowledge)
@@ -321,7 +321,7 @@ Apple Silicon unified memory allocation: The model weights are loaded into share
 | `jina-v2-small-en` (~130MB) | ~180MB | ~220MB | Lowest RAM in class |
 
 **Practical implications**:
-- **8GB Mac**: `nomic-embed-text` or `Qwen3-Embedding-0.6B` fit fine alongside claudemem and browser
+- **8GB Mac**: `nomic-embed-text` or `Qwen3-Embedding-0.6B` fit fine alongside mnemex and browser
 - **16GB Mac**: All models including `bge-m3` fit comfortably
 - **Ollama daemon overhead**: ~200MB additional RAM for the Ollama process itself
 - **LM Studio overhead**: ~300-400MB for the app, in addition to model weight RAM
@@ -340,7 +340,7 @@ Apple Silicon unified memory allocation: The model weights are loaded into share
 
 ## Practical Deployment Guide: Top Candidates on Mac
 
-### Scenario A: Zero Setup — Ollama (Recommended for claudemem)
+### Scenario A: Zero Setup — Ollama (Recommended for mnemex)
 
 **Best for**: Users who want embedding search working in 5 minutes. No Python, no model management.
 
@@ -357,13 +357,13 @@ ollama pull nomic-embed-text        # 274MB, 8K context
 # OR
 ollama pull snowflake-arctic-embed2 # 309MB, 8K context, better quality
 
-# 4. Configure claudemem
-claudemem init --provider ollama --model nomic-embed-text
-# or edit ~/.claudemem/config.json:
+# 4. Configure mnemex
+mnemex init --provider ollama --model nomic-embed-text
+# or edit ~/.mnemex/config.json:
 # { "embeddingProvider": "ollama", "defaultModel": "nomic-embed-text" }
 ```
 
-**claudemem code integration** (already supported):
+**mnemex code integration** (already supported):
 ```typescript
 const client = createEmbeddingsClient({
   provider: "ollama",
@@ -402,11 +402,11 @@ EOF
 # 2c. Create Ollama model
 ollama create qwen3-embedding-0.6b -f /tmp/Modelfile
 
-# 3. Use in claudemem
-claudemem init --provider ollama --model qwen3-embedding-0.6b
+# 3. Use in mnemex
+mnemex init --provider ollama --model qwen3-embedding-0.6b
 ```
 
-**Important**: Add query prefix in claudemem's embedding code for best retrieval quality:
+**Important**: Add query prefix in mnemex's embedding code for best retrieval quality:
 ```typescript
 // For search queries (NOT for indexing passages):
 const queryPrefix = "Instruct: Retrieve code matching this query\nQuery: ";
@@ -428,7 +428,7 @@ This asymmetric prefix is critical — Qwen3-Embedding is an instruction-followi
 3. Download Q4_K_M variant (~230-274MB)
 4. Click Local Server tab, load the embedding model, start server (port 1234)
 
-**claudemem config**:
+**mnemex config**:
 ```json
 {
   "embeddingProvider": "lmstudio",
@@ -466,8 +466,8 @@ ollama pull nomic-embed-text  # use Ollama to get the GGUF
   --port 8080 \
   --threads 8   # Apple Silicon efficiency cores
 
-# 3. Use as "local" provider in claudemem
-claudemem init --provider local --endpoint http://localhost:8080
+# 3. Use as "local" provider in mnemex
+mnemex init --provider local --endpoint http://localhost:8080
 ```
 
 **Expected performance**: 4,000-8,000 tokens/sec on M3 Pro. Approximately 2x faster than Ollama for pure GPU throughput, though the difference is smaller for batch embedding workloads.
@@ -490,7 +490,7 @@ model = SentenceTransformer("nomic-ai/nomic-embed-text-v1.5", trust_remote_code=
 # Note: CoreML conversion for sentence-transformers requires extra steps
 # See: https://huggingface.co/blog/sentence-transformers-coreml
 
-# Serve as HTTP endpoint (for claudemem compatibility)
+# Serve as HTTP endpoint (for mnemex compatibility)
 from flask import Flask, request, jsonify
 app = Flask(__name__)
 
@@ -515,11 +515,11 @@ app.run(host="0.0.0.0", port=8000)
 3. llama.cpp Metal server: ~4,000-8,000 tok/s
 4. Ollama: ~2,000-5,000 tok/s
 
-**For claudemem-compatible and zero-setup (recommended)**:
+**For mnemex-compatible and zero-setup (recommended)**:
 1. Ollama — already integrated, `OllamaEmbeddingsClient` works out of the box
 2. LM Studio — already integrated, `LocalEmbeddingsClient` works with port 1234
 
-**Important caveat**: For claudemem's batch indexing workload, Ollama's throughput is not the bottleneck. The AST parsing, LLM enrichment, and LanceDB writes are slower. Ollama at 2,000-5,000 tok/s is sufficient for all practical repo sizes.
+**Important caveat**: For mnemex's batch indexing workload, Ollama's throughput is not the bottleneck. The AST parsing, LLM enrichment, and LanceDB writes are slower. Ollama at 2,000-5,000 tok/s is sufficient for all practical repo sizes.
 
 ---
 
@@ -531,12 +531,12 @@ app.run(host="0.0.0.0", port=8000)
 - Low Quality: 0
 
 **Source List**:
-1. Local: `/Users/jack/mag/claudemem/src/core/embeddings.ts` — Quality: High, 2026-03-04
-2. Local: `/Users/jack/mag/claudemem/src/llm/providers/local.ts` — Quality: High, 2026-03-04
-3. Local: `/Users/jack/mag/claudemem/src/tui/setup/hardware.ts` — Quality: High, 2026-03-04
-4. Local: `/Users/jack/mag/claudemem/ai-docs/embedding-model-research-20260304/small-embedding-models-march2026.md` — Quality: High, 2026-03-04
-5. Local: `/Users/jack/mag/claudemem/ai-docs/embedding-model-research-20260304/openrouter-embedding-models-comparison.md` — Quality: High, 2026-03-04
-6. Local: `/Users/jack/mag/claudemem/ai-docs/sessions/dev-research-sft-models-20260304/findings/explorer-1.md` — Quality: High (confirms Qwen3-0.6B MLX availability and RAM data)
+1. Local: `/Users/jack/mag/mnemex/src/core/embeddings.ts` — Quality: High, 2026-03-04
+2. Local: `/Users/jack/mag/mnemex/src/llm/providers/local.ts` — Quality: High, 2026-03-04
+3. Local: `/Users/jack/mag/mnemex/src/tui/setup/hardware.ts` — Quality: High, 2026-03-04
+4. Local: `/Users/jack/mag/mnemex/ai-docs/embedding-model-research-20260304/small-embedding-models-march2026.md` — Quality: High, 2026-03-04
+5. Local: `/Users/jack/mag/mnemex/ai-docs/embedding-model-research-20260304/openrouter-embedding-models-comparison.md` — Quality: High, 2026-03-04
+6. Local: `/Users/jack/mag/mnemex/ai-docs/sessions/dev-research-sft-models-20260304/findings/explorer-1.md` — Quality: High (confirms Qwen3-0.6B MLX availability and RAM data)
 7. [Qwen/Qwen3-Embedding-0.6B HuggingFace](https://huggingface.co/Qwen/Qwen3-Embedding-0.6B) — Quality: High, Jun 2025
 8. [Qwen3 Embedding Blog](https://qwenlm.github.io/blog/qwen3-embedding/) — Quality: High, Jun 2025
 9. [Ollama Library](https://ollama.com/library) — Quality: High (registry), ongoing
@@ -560,7 +560,7 @@ app.run(host="0.0.0.0", port=8000)
 
 5. **CoreML conversion guides for nomic-embed-text**: The HuggingFace CoreML conversion for sentence-transformers requires trust_remote_code=True and custom pooling functions. No confirmed working conversion guide was found in local sources.
 
-6. **Qwen3-Embedding instruction prefix in claudemem**: Whether adding the query instruction prefix to `LocalEmbeddingsClient` would improve retrieval quality. This requires an integration point (e.g., a `queryPrefix` option in `EmbeddingsClientOptions`).
+6. **Qwen3-Embedding instruction prefix in mnemex**: Whether adding the query instruction prefix to `LocalEmbeddingsClient` would improve retrieval quality. This requires an integration point (e.g., a `queryPrefix` option in `EmbeddingsClientOptions`).
 
 ---
 

@@ -7,7 +7,7 @@
 
 export interface Scenario {
 	id: number;
-	repo: "claudemem" | "fastmcp";
+	repo: "mnemex" | "fastmcp";
 	title: string;
 	task: string;
 	observations: Array<{
@@ -19,8 +19,8 @@ export interface Scenario {
 }
 
 export const REPOS = {
-	claudemem: {
-		slug: "claudemem",
+	mnemex: {
+		slug: "mnemex",
 		path: process.cwd(), // this repo
 	},
 	fastmcp: {
@@ -30,13 +30,13 @@ export const REPOS = {
 } as const;
 
 export const SCENARIOS: Scenario[] = [
-	// ── claudemem scenarios ──────────────────────────────────────────────
+	// ── mnemex scenarios ──────────────────────────────────────────────
 
 	{
 		id: 1,
-		repo: "claudemem",
+		repo: "mnemex",
 		title: "Bug: --agent flag ordering",
-		task: "The `--agent` flag doesn't seem to work when placed after the command name (e.g., `claudemem search --agent`). Investigate why and explain the root cause. Do NOT make any code changes.",
+		task: "The `--agent` flag doesn't seem to work when placed after the command name (e.g., `mnemex search --agent`). Investigate why and explain the root cause. Do NOT make any code changes.",
 		observations: [
 			{
 				content:
@@ -49,7 +49,7 @@ export const SCENARIOS: Scenario[] = [
 	},
 	{
 		id: 2,
-		repo: "claudemem",
+		repo: "mnemex",
 		title: "Feature: dead-code CSV output",
 		task: 'Add a `--format csv` option to the `dead-code` command that outputs results as CSV (columns: symbol,file,line,pageRank,callerCount) instead of the default table format.',
 		observations: [
@@ -67,7 +67,7 @@ export const SCENARIOS: Scenario[] = [
 	},
 	{
 		id: 3,
-		repo: "claudemem",
+		repo: "mnemex",
 		title: "Architecture: search scoring",
 		task: "How does the search scoring system work? Explain the fusion of vector and keyword results, and how document type weights affect ranking. Do NOT make any code changes.",
 		observations: [
@@ -85,7 +85,7 @@ export const SCENARIOS: Scenario[] = [
 	},
 	{
 		id: 4,
-		repo: "claudemem",
+		repo: "mnemex",
 		title: "Debug: empty search results",
 		task: "Search results sometimes return empty when the index exists and has documents. What could cause this? Investigate the codebase and explain. Do NOT make any code changes.",
 		observations: [
@@ -100,9 +100,9 @@ export const SCENARIOS: Scenario[] = [
 	},
 	{
 		id: 5,
-		repo: "claudemem",
+		repo: "mnemex",
 		title: "Trace: indexing pipeline",
-		task: "I need to understand the full indexing pipeline from when a user runs `claudemem index` to when chunks are stored. Trace the execution path and list the key functions in order. Do NOT make any code changes.",
+		task: "I need to understand the full indexing pipeline from when a user runs `mnemex index` to when chunks are stored. Trace the execution path and list the key functions in order. Do NOT make any code changes.",
 		observations: [
 			{
 				content:
@@ -119,13 +119,13 @@ export const SCENARIOS: Scenario[] = [
 	},
 	{
 		id: 11,
-		repo: "claudemem",
+		repo: "mnemex",
 		title: "Architecture: embedding providers",
-		task: "What embedding providers does claudemem support and how does the code route between them? Explain the provider selection logic and any fallback behavior. Do NOT make any code changes.",
+		task: "What embedding providers does mnemex support and how does the code route between them? Explain the provider selection logic and any fallback behavior. Do NOT make any code changes.",
 		observations: [
 			{
 				content:
-					"Embedding providers: Voyage AI (direct), OpenRouter, Ollama (local), LM Studio. Provider is selected by CLAUDEMEM_EMBEDDINGS env var prefix (voyage/, ollama/, lmstudio/) or auto-detected from available API keys. See createEmbeddingsClient() in embeddings.ts.",
+					"Embedding providers: Voyage AI (direct), OpenRouter, Ollama (local), LM Studio. Provider is selected by MNEMEX_EMBEDDINGS env var prefix (voyage/, ollama/, lmstudio/) or auto-detected from available API keys. See createEmbeddingsClient() in embeddings.ts.",
 				file: "src/core/embeddings.ts",
 				type: "architecture",
 			},
@@ -134,7 +134,7 @@ export const SCENARIOS: Scenario[] = [
 	},
 	{
 		id: 12,
-		repo: "claudemem",
+		repo: "mnemex",
 		title: "Architecture: enrichment pipeline",
 		task: "How does the LLM enrichment system work? What gets enriched, what prompts are used, and how are results stored? Do NOT make any code changes.",
 		observations: [
@@ -152,9 +152,9 @@ export const SCENARIOS: Scenario[] = [
 	},
 	{
 		id: 13,
-		repo: "claudemem",
+		repo: "mnemex",
 		title: "Feature: add reindex command",
-		task: "Add a `reindex` CLI command that forces a full re-index of the project (equivalent to `claudemem index --force`). It should accept the same options as `index` but always set force=true.",
+		task: "Add a `reindex` CLI command that forces a full re-index of the project (equivalent to `mnemex index --force`). It should accept the same options as `index` but always set force=true.",
 		observations: [
 			{
 				content:
@@ -299,7 +299,7 @@ export const SCENARIOS: Scenario[] = [
 	},
 ];
 
-export function getScenariosForRepo(repo: "claudemem" | "fastmcp"): Scenario[] {
+export function getScenariosForRepo(repo: "mnemex" | "fastmcp"): Scenario[] {
 	return SCENARIOS.filter((s) => s.repo === repo);
 }
 

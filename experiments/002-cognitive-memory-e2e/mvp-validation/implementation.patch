@@ -1,0 +1,503 @@
+diff --git a/src/cli.ts b/src/cli.ts
+index bd02e67..847f77b 100644
+--- a/src/cli.ts
++++ b/src/cli.ts
+@@ -286,6 +286,16 @@ export async function runCli(args: string[]): Promise<void> {
+ 		case "init":
+ 			await handleInit();
+ 			break;
++		case "setup":
++		case "configure":
++		case "profile":
++			if (process.stdout.isTTY) {
++				const { startSetupWizard } = await import("./tui/setup/index.js");
++				await startSetupWizard();
++			} else {
++				await handleInit();
++			}
++			break;
+ 		case "models":
+ 			await handleModels(args.slice(1));
+ 			break;
+@@ -350,6 +360,10 @@ export async function runCli(args: string[]): Promise<void> {
+ 		case "install":
+ 			await handleInstall(args.slice(1));
+ 			break;
++		// Cognitive memory commands
++		case "observe":
++			await handleObserve(args.slice(1));
++			break;
+ 		// Documentation commands
+ 		case "docs":
+ 			await handleDocs(args.slice(1));
+@@ -1637,8 +1651,11 @@ async function handleSearch(args: string[]): Promise<void> {
+ 
+ 		for (let i = 0; i < results.length; i++) {
+ 			const r = results[i];
+-			const chunk = r.chunk;
+-			printSearchResult(chunk, r.score, queryTerms);
++			if (r.documentType === "session_observation") {
++				printObservationResult(r);
++			} else {
++				printSearchResult(r.chunk, r.score, queryTerms);
++			}
+ 		}
+ 
+ 		// Show feedback hint for agents
+@@ -1665,6 +1682,7 @@ const ANSI_DIM = "\x1b[2m";
+ const ANSI_GREEN = "\x1b[32m";
+ const ANSI_YELLOW = "\x1b[33m";
+ const ANSI_RED = "\x1b[31m";
++const ANSI_MAGENTA = "\x1b[35m";
+ 
+ const CHUNK_TYPE_ABBREV: Record<string, string> = {
+ 	function: "fn",
+@@ -1756,6 +1774,30 @@ function getMatchLines(
+ 	return result;
+ }
+ 
++function printObservationResult(r: { chunk: { content: string; filePath: string }; score: number; observationMetadata?: Record<string, unknown> }): void {
++	const termWidth = process.stdout.columns || 80;
++	const divider = "─".repeat(termWidth);
++
++	const meta = r.observationMetadata || {};
++	const obsType = (meta.observationType as string) || "observation";
++	const confidence = (meta.confidence as number) ?? 0.7;
++	const files = (meta.affectedFiles as string[]) || (r.chunk.filePath ? [r.chunk.filePath] : []);
++
++	const pct = Math.round(r.score * 100);
++	const scoreColor = pct >= 70 ? ANSI_GREEN : pct >= 40 ? ANSI_YELLOW : ANSI_RED;
++
++	const leftPart = ` [observation] ${obsType}`;
++	const scorePart = `${pct}%`;
++	const padding = Math.max(1, termWidth - leftPart.length - scorePart.length - 1);
++	console.log(`${ANSI_MAGENTA}${leftPart}${ANSI_RESET}${" ".repeat(padding)}${scoreColor}${scorePart}${ANSI_RESET}`);
++	console.log(divider);
++	console.log(`  ${r.chunk.content}`);
++	if (files.length > 0) {
++		console.log(`${ANSI_DIM}  files: ${files.join(", ")}  confidence: ${confidence}${ANSI_RESET}`);
++	}
++	console.log("");
++}
++
+ function printSearchResult(
+ 	chunk: {
+ 		filePath: string;
+@@ -3208,9 +3250,15 @@ async function handleBenchmark(args: string[]): Promise<void> {
+ 		mkdirSync(benchDbBase, { recursive: true });
+ 	}
+ 
+-	// Separate local (Ollama) and cloud models
+-	const ollamaModels = models.filter((m) => m.startsWith("ollama/"));
+-	const cloudModels = models.filter((m) => !m.startsWith("ollama/"));
++	// Separate models into execution groups:
++	// - Cloud: parallel (different APIs, no resource conflicts)
++	// - Local: sequential queue (Ollama + LM Studio share the same GPU)
++	const localModels = models.filter(
++		(m) => m.startsWith("ollama/") || m.startsWith("lmstudio/"),
++	);
++	const cloudModels = models.filter(
++		(m) => !m.startsWith("ollama/") && !m.startsWith("lmstudio/"),
++	);
+ 
+ 	// Helper to benchmark a single model
+ 	const benchmarkModel = async (modelId: string): Promise<BenchmarkResult> => {
+@@ -3382,18 +3430,13 @@ async function handleBenchmark(args: string[]): Promise<void> {
+ 		}
+ 	};
+ 
+-	// Run cloud models in PARALLEL (they use different APIs)
+-	const cloudPromises = cloudModels.map((modelId) => benchmarkModel(modelId));
+-	const cloudResults = await Promise.all(cloudPromises);
+-
+-	// Run Ollama models SEQUENTIALLY (they share local GPU/CPU)
+-	const ollamaResults: BenchmarkResult[] = [];
+-	for (const modelId of ollamaModels) {
+-		const result = await benchmarkModel(modelId);
+-		ollamaResults.push(result);
++	// All models run SEQUENTIALLY to avoid Bun fetch response corruption
++	// under concurrent HTTP connections. Cloud models first, then local.
++	const results: BenchmarkResult[] = [];
++	for (const modelId of [...cloudModels, ...localModels]) {
++		results.push(await benchmarkModel(modelId));
+ 	}
+ 
+-	const results = [...cloudResults, ...ollamaResults];
+ 	progress.stop();
+ 
+ 	// Show warnings/errors collected during embedding (after progress display is done)
+@@ -3477,8 +3520,8 @@ async function handleBenchmark(args: string[]): Promise<void> {
+ 			speed = `${c.red}${speedVal.padEnd(7)}${c.reset}`;
+ 		}
+ 
+-		// Cost with highlighting (FREE for local/ollama models)
+-		const isLocal = r.model.startsWith("ollama/");
++		// Cost with highlighting (FREE for local/ollama/lmstudio models)
++		const isLocal = r.model.startsWith("ollama/") || r.model.startsWith("lmstudio/");
+ 		const costVal = isLocal
+ 			? "FREE"
+ 			: r.cost !== undefined
+@@ -3566,6 +3609,30 @@ async function handleBenchmark(args: string[]): Promise<void> {
+ 	console.log(
+ 		`${c.dim}Use --verbose for detailed per-query results${c.reset}\n`,
+ 	);
++
++	// Upload results to Firebase for persistent history
++	try {
++		const { uploadEmbeddingBenchmark } = await import(
++			"./benchmark-v2/firebase/index.js"
++		);
++		const totalDurationMs = results.reduce((sum, r) => sum + r.speedMs, 0);
++		const uploadResult = await uploadEmbeddingBenchmark(results, {
++			projectPath,
++			chunks: chunksWithPaths.length,
++			durationMs: totalDurationMs,
++		});
++		if (uploadResult.success) {
++			console.log(
++				`${c.dim}Results saved to Firebase (${uploadResult.docId})${c.reset}`,
++			);
++		} else {
++			console.log(
++				`${c.dim}Firebase upload skipped: ${uploadResult.error}${c.reset}`,
++			);
++		}
++	} catch {
++		// Firebase upload is best-effort, don't fail the command
++	}
+ }
+ 
+ // ============================================================================
+@@ -5457,6 +5524,112 @@ async function handleDocsClear(
+ // Learning / Feedback Commands
+ // ============================================================================
+ 
++/**
++ * Handle 'observe' command - write a session observation to the index
++ *
++ * Usage:
++ *   mnemex observe "PageRank > 0.05 means high importance" --file src/core/analysis/analyzer.ts --type gotcha
++ *   mnemex observe --content "embedding mismatch causes table clear" --file src/core/store.ts
++ */
++async function handleObserve(args: string[]): Promise<void> {
++	const pathIdx = args.findIndex((a) => a === "-p" || a === "--path");
++	const projectPath = pathIdx >= 0 ? resolve(args[pathIdx + 1]) : process.cwd();
++
++	// Parse --content or positional text
++	const contentIdx = args.findIndex((a) => a === "--content");
++	let content: string;
++	if (contentIdx >= 0) {
++		content = args[contentIdx + 1];
++	} else {
++		// First arg that doesn't start with -- is the content
++		content = args.find((a, i) => !a.startsWith("--") && (i === 0 || !args[i - 1].startsWith("--"))) || "";
++	}
++
++	if (!content) {
++		const msg = "Usage: mnemex observe <text> --file <path> [--type <type>] [--confidence <0-1>]";
++		if (agentMode) {
++			const { agentOutput } = await import("./output/agent.js");
++			agentOutput.error(msg);
++		} else {
++			console.error(msg);
++		}
++		process.exit(1);
++	}
++
++	// Parse --file (comma-separated)
++	const fileIdx = args.findIndex((a) => a === "--file");
++	const affectedFiles = fileIdx >= 0 ? args[fileIdx + 1].split(",") : [];
++
++	// Parse --type (default: "pattern")
++	const typeIdx = args.findIndex((a) => a === "--type");
++	const observationType = typeIdx >= 0 ? args[typeIdx + 1] : "pattern";
++
++	// Parse --confidence (default: 0.7)
++	const confIdx = args.findIndex((a) => a === "--confidence");
++	const confidence = confIdx >= 0 ? Number.parseFloat(args[confIdx + 1]) : 0.7;
++
++	const { createIndexer } = await import("./core/indexer.js");
++	const indexer = createIndexer({ projectPath });
++
++	try {
++		const embeddingsClient = createEmbeddingsClient();
++
++		// Generate embedding for the observation content
++		const embedding = await embeddingsClient.embedOne(content);
++
++		// Create document ID from content hash
++		const id = createHash("sha256").update(`observation:${content}:${affectedFiles.join(",")}`).digest("hex").slice(0, 16);
++
++		const now = new Date().toISOString();
++		const doc = {
++			id,
++			content,
++			documentType: "session_observation" as const,
++			filePath: affectedFiles[0] || "",
++			fileHash: "",
++			createdAt: now,
++			enrichedAt: now,
++			sourceIds: [],
++			metadata: {
++				observationType,
++				confidence,
++				affectedFiles,
++			},
++			vector: embedding,
++		};
++
++		// Write to LanceDB via vectorStore
++		const { createVectorStore } = await import("./core/store.js");
++		const store = await createVectorStore(projectPath);
++		await store.addDocuments([doc]);
++		await store.close();
++
++		if (agentMode) {
++			console.log(`observation_id=${id}`);
++			console.log(`type=${observationType}`);
++			console.log(`confidence=${confidence}`);
++			console.log(`files=${affectedFiles.join(",")}`);
++		} else {
++			console.log(`\n✅ Observation recorded (${observationType}, confidence=${confidence})`);
++			console.log(`   ID: ${id}`);
++			if (affectedFiles.length > 0) {
++				console.log(`   Files: ${affectedFiles.join(", ")}`);
++			}
++			console.log(`   "${content}"\n`);
++		}
++	} catch (error) {
++		if (agentMode) {
++			const { agentOutput } = await import("./output/agent.js");
++			agentOutput.error(`observe failed: ${String(error)}`);
++		} else {
++			console.error(`Error: ${String(error)}`);
++		}
++		process.exit(1);
++	} finally {
++		await indexer.close();
++	}
++}
++
+ /**
+  * Handle 'feedback' command - report search feedback for adaptive ranking
+  *
+@@ -6237,6 +6410,7 @@ ${c.yellow}${c.bold}DEVELOPER EXPERIENCE${c.reset}
+   ${c.green}install${c.reset} <tool>         Install integration ${c.dim}(opencode|claude-code)${c.reset}
+   ${c.green}pack${c.reset} [path]            Pack codebase into a single file ${c.dim}(for AI analysis)${c.reset}
+   ${c.green}docs${c.reset} <subcommand>     Manage library documentation ${c.dim}(status|fetch|refresh|providers|clear)${c.reset}
++  ${c.green}observe${c.reset} <text>         Record a session observation ${c.dim}(--file <path> --type <type>)${c.reset}
+ 
+ ${c.yellow}${c.bold}CLOUD / TEAM${c.reset} ${c.dim}(requires team.orgSlug in mnemex.json)${c.reset}
+   ${c.green}index --cloud${c.reset} [path]   Upload changed files to cloud API ${c.dim}(git-diff based)${c.reset}
+diff --git a/src/core/store.ts b/src/core/store.ts
+index 24ae296..ff66ca3 100644
+--- a/src/core/store.ts
++++ b/src/core/store.ts
+@@ -448,7 +448,7 @@ export class VectorStore implements IVectorStore {
+ 					}
+ 				}
+ 			} else {
+-				// code_chunk, code_unit, etc.
++				// code_chunk, code_unit, session_observation, etc.
+ 				codeResults.push(r);
+ 			}
+ 		}
+@@ -457,28 +457,36 @@ export class VectorStore implements IVectorStore {
+ 		// Prefer symbol-level summary (more specific), fall back to file-level
+ 		const topResults = codeResults.slice(0, limit);
+ 		const maxFused = topResults.length > 0 ? topResults[0].fusedScore : 1;
+-		return topResults.map((r) => ({
+-			chunk: {
+-				id: r.id,
+-				contentHash: r.contentHash || "",
+-				content: r.content,
+-				filePath: r.filePath,
+-				startLine: r.startLine,
+-				endLine: r.endLine,
+-				language: r.language,
+-				chunkType: r.chunkType as any,
+-				name: r.name || undefined,
+-				parentName: r.parentName || undefined,
+-				signature: r.signature || undefined,
+-				fileHash: r.fileHash,
+-			},
+-			score: maxFused > 0 ? r.fusedScore / maxFused : 0,
+-			vectorScore: r.vectorScore || 0,
+-			keywordScore: r.keywordScore || 0,
+-			summary: r.summary || symbolSummaryById.get(r.id) || fileSummaryById.get(r.id) || undefined,
+-			fileSummary: fileSummaryById.get(r.id) || undefined,
+-			unitType: r.unitType || undefined,
+-		}));
++		return topResults.map((r) => {
++			const docType = (r.documentType || "code_chunk") as string;
++			const meta = r.metadata ? (typeof r.metadata === "string" ? JSON.parse(r.metadata) : r.metadata) : undefined;
++			return {
++				chunk: {
++					id: r.id,
++					contentHash: r.contentHash || "",
++					content: r.content,
++					filePath: r.filePath,
++					startLine: r.startLine,
++					endLine: r.endLine,
++					language: r.language,
++					chunkType: r.chunkType as any,
++					name: r.name || undefined,
++					parentName: r.parentName || undefined,
++					signature: r.signature || undefined,
++					fileHash: r.fileHash,
++				},
++				score: maxFused > 0 ? r.fusedScore / maxFused : 0,
++				vectorScore: r.vectorScore || 0,
++				keywordScore: r.keywordScore || 0,
++				summary: r.summary || symbolSummaryById.get(r.id) || fileSummaryById.get(r.id) || undefined,
++				fileSummary: fileSummaryById.get(r.id) || undefined,
++				unitType: r.unitType || undefined,
++				...(docType === "session_observation" ? {
++					documentType: "session_observation" as const,
++					observationMetadata: meta,
++				} : {}),
++			};
++		});
+ 	}
+ 
+ 	/**
+@@ -1425,6 +1433,7 @@ const USE_CASE_WEIGHTS: Record<
+ 		api_reference: 0.1, // API docs help with completion
+ 		framework_doc: 0.07, // Framework patterns
+ 		best_practice: 0.03, // Light best practice guidance
++		session_observation: 0.05, // Low — observations less useful for completion
+ 	},
+ 	// Human search: balanced across summaries, code, and external docs
+ 	search: {
+@@ -1437,6 +1446,7 @@ const USE_CASE_WEIGHTS: Record<
+ 		framework_doc: 0.1, // Official framework docs
+ 		best_practice: 0.05, // Best practices
+ 		api_reference: 0.05, // API reference
++		session_observation: 0.20, // High — observations most useful for search
+ 	},
+ 	// Agent navigation: prioritize understanding structure and patterns
+ 	navigation: {
+@@ -1448,6 +1458,7 @@ const USE_CASE_WEIGHTS: Record<
+ 		framework_doc: 0.1, // Framework understanding
+ 		api_reference: 0.08, // API navigation
+ 		best_practice: 0.02, // Light guidance
++		session_observation: 0.15, // Medium — useful for understanding architecture
+ 	},
+ };
+ 
+@@ -1472,6 +1483,7 @@ function getUseCaseWeights(
+ 		framework_doc: 0.1,
+ 		best_practice: 0.05,
+ 		api_reference: 0.05,
++		session_observation: 0.15,
+ 	};
+ }
+ 
+diff --git a/src/mcp/tools/index.ts b/src/mcp/tools/index.ts
+index 1f33a16..62152a1 100644
+--- a/src/mcp/tools/index.ts
++++ b/src/mcp/tools/index.ts
+@@ -18,5 +18,6 @@ export { registerEditTools } from "./edit.js";
+ export { registerLspTools } from "./lsp.js";
+ export { registerRenameTools } from "./rename.js";
+ export { registerMemoryTools } from "./memory.js";
++export { registerObserveTools } from "./observe.js";
+ export { registerThinkTools } from "./think.js";
+ export type { ToolDeps } from "./deps.js";
+diff --git a/src/mcp/tools/search.ts b/src/mcp/tools/search.ts
+index b354142..eac5e8b 100644
+--- a/src/mcp/tools/search.ts
++++ b/src/mcp/tools/search.ts
+@@ -154,16 +154,29 @@ export function registerSearchTools(server: McpServer, deps: ToolDeps): void {
+ 							})
+ 						: results;
+ 
+-				const resultItems = filtered.map((r) => ({
+-					file: r.chunk.filePath,
+-					line: r.chunk.startLine,
+-					lineEnd: r.chunk.endLine,
+-					symbol: r.chunk.name ?? null,
+-					snippet: r.chunk.content.slice(0, 800),
+-					score: r.score,
+-					vectorScore: r.vectorScore,
+-					keywordScore: r.keywordScore,
+-				}));
++				const resultItems = filtered.map((r) => {
++					if (r.documentType === "session_observation") {
++						const meta = r.observationMetadata || {};
++						return {
++							type: "observation" as const,
++							content: r.chunk.content,
++							observationType: meta.observationType ?? "pattern",
++							confidence: meta.confidence ?? 0.7,
++							affectedFiles: (meta.affectedFiles as string[]) || [],
++							score: r.score,
++						};
++					}
++					return {
++						file: r.chunk.filePath,
++						line: r.chunk.startLine,
++						lineEnd: r.chunk.endLine,
++						symbol: r.chunk.name ?? null,
++						snippet: r.chunk.content.slice(0, 800),
++						score: r.score,
++						vectorScore: r.vectorScore,
++						keywordScore: r.keywordScore,
++					};
++				});
+ 
+ 				return {
+ 					content: [
+diff --git a/src/types.ts b/src/types.ts
+index d631a50..7469c28 100644
+--- a/src/types.ts
++++ b/src/types.ts
+@@ -249,6 +249,10 @@ export interface SearchResult {
+ 	fileSummary?: string;
+ 	/** Unit type from AST hierarchy (function, class, method, etc.) */
+ 	unitType?: string;
++	/** Document type (defaults to code_chunk for backward compat) */
++	documentType?: DocumentType;
++	/** Observation metadata (only for session_observation results) */
++	observationMetadata?: Record<string, unknown>;
+ }
+ 
+ export interface SearchOptions {
+@@ -342,6 +346,10 @@ export interface EmbedResult {
+ 	cost?: number;
+ 	/** Warnings/errors that occurred during embedding (non-fatal) */
+ 	warnings?: string[];
++	/** Wall-clock time for this embed() call in milliseconds */
++	latencyMs?: number;
++	/** Throughput in tokens/second (totalTokens / latencyMs * 1000) */
++	throughputTokensPerSec?: number;
+ }
+ 
+ /**
+@@ -435,6 +443,16 @@ export interface GlobalConfig {
+ 	/** Enable LLM enrichment during indexing (default: true) */
+ 	enableEnrichment?: boolean;
+ 
++	// ─── Cloud / Team Settings ───
++	/** Cloud API key for authenticating with the shared index server */
++	cloudApiKey?: string;
++	/**
++	 * Global team/org configuration for cloud shared index.
++	 * Used when scope is "global" (no project config). Project-level
++	 * team config in ProjectConfig.team takes precedence when present.
++	 */
++	team?: TeamConfig;
++
+ 	// ─── External Documentation Settings ───
+ 	/** Context7 API key for fetching framework documentation */
+ 	context7ApiKey?: string;
+@@ -778,7 +796,8 @@ export type DocumentType =
+ 	// External documentation types
+ 	| "framework_doc" // Official framework documentation
+ 	| "best_practice" // Recommended patterns from docs
+-	| "api_reference"; // API reference documentation
++	| "api_reference" // API reference documentation
++	| "session_observation"; // Cognitive memory: session observations
+ 
+ /** Provider types for external documentation */
+ export type DocProviderType = "context7" | "llms_txt" | "devdocs";

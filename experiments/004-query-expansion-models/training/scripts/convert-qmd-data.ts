@@ -1,6 +1,6 @@
 #!/usr/bin/env bun
 /**
- * Convert qmd training data to claudemem format.
+ * Convert qmd training data to mnemex format.
  *
  * qmd format:  {"query": "...", "output": [["lex", "..."], ["vec", "..."], ["hyde", "..."]]}
  * our format:  {"id", "seed_query", "model", "category", "lex", "vec", "hyde", "messages": [...]}

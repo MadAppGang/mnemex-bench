@@ -10,7 +10,7 @@
 
 ## Executive Summary
 
-Claudemem's 4-component query pipeline (router, expander, retriever, reranker) can be rigorously evaluated without building anything from scratch. Two key findings drive the entire plan.
+Mnemex's 4-component query pipeline (router, expander, retriever, reranker) can be rigorously evaluated without building anything from scratch. Two key findings drive the entire plan.
 
 First, the existing `src/benchmark-v2/` codebase already contains a production-grade evaluation harness with NDCG@K, MRR@K, paired Wilcoxon signed-rank tests, and per-query-type breakdowns. The implementation delta to support router/expander/reranker ablations is three files and one schema extension — not a new framework.
 
@@ -22,11 +22,11 @@ The comparison matrix is: 6 conditions (baseline through full pipeline) × 4 met
 
 ## Recommended Datasets
 
-Ranked by fit for evaluating claudemem's 4-component pipeline.
+Ranked by fit for evaluating mnemex's 4-component pipeline.
 
 ### Rank 1: Hybrid Internal Dataset (Build It) — PRIMARY
 
-**Name**: claudemem-code-search-bench v1 (internal)
+**Name**: mnemex-code-search-bench v1 (internal)
 **Size**: 500 queries total (300 router test set + 200 retrieval eval set)
 **Format**: BEIR JSONL (corpus.jsonl + queries.jsonl + qrels/test.tsv) + extended benchmark-v2 GeneratedQuery format
 **Build from**:
@@ -46,7 +46,7 @@ for inst in swe["test"]:
 ```
 ```bash
 # Synthetic queries from our 12 repos
-claudemem map --agent /path/to/repo | head -30  # get top PageRank symbols
+mnemex map --agent /path/to/repo | head -30  # get top PageRank symbols
 # Feed to query-generator.ts for 8 typed queries per symbol
 ```
 
@@ -167,7 +167,7 @@ HuggingFace: `code-search-net/code_search_net`
 | `src/benchmark-v2/extractors/query-generator.ts` | 8-type query generation with quality controls |
 | `src/benchmark-v2/types.ts` | `GeneratedQuery` with `type: QueryType` field — already schema-compatible |
 | `eval/embedding-benchmark.ts` | Cross-model comparison pattern |
-| `eval/agentbench-claudemem/` | End-to-end resolve rate (already built and proven) |
+| `eval/agentbench-mnemex/` | End-to-end resolve rate (already built and proven) |
 
 **What to add (minimal delta — 3 files + 1 type extension):**
 
@@ -192,7 +192,7 @@ groundTruthFiles?: string[];  // For SWE-bench file-level GT (nullable for funct
 pip install beir ranx datasets
 
 # 2. Verify TypeScript harness builds
-cd /Users/jack/mag/claudemem
+cd /Users/jack/mag/mnemex
 bun run build
 
 # 3. Create eval/code-search-harness/ directory
@@ -210,18 +210,18 @@ bun eval/code-search-harness/ablation.ts --condition A --dataset hybrid
 
 ### Secondary: BEIR + ranx (Python, for external comparison only)
 
-Use this layer only to compare claudemem's hybrid retrieval against published BM25/DPR baselines and to validate that internal NDCG numbers match external tooling.
+Use this layer only to compare mnemex's hybrid retrieval against published BM25/DPR baselines and to validate that internal NDCG numbers match external tooling.
 
 ```python
 from beir.retrieval.evaluation import EvaluateRetrieval
 
-class ClaudememRetriever:
+class MnemexRetriever:
     def retrieve(self, corpus, queries):
-        # Subprocess call to: claudemem search --agent --query <q>
+        # Subprocess call to: mnemex search --agent --query <q>
         # Parse ranked results into {query_id: {doc_id: score}} format
         return ranked_results
 
-evaluator = EvaluateRetrieval(ClaudememRetriever())
+evaluator = EvaluateRetrieval(MnemexRetriever())
 ndcg, _map, recall, precision = evaluator.evaluate(qrels, results, [5, 10, 100])
 ```
 
@@ -417,7 +417,7 @@ The `classify_query_type_heuristic()` function applies these rules in order:
 ```bash
 # For each of the 12 pre-indexed repos:
 for repo in $(cat agentbench/data/eval-repos.txt); do
-  claudemem map --agent $repo | head -30 > /tmp/symbols.txt
+  mnemex map --agent $repo | head -30 > /tmp/symbols.txt
   bun eval/code-search-harness/generate_queries.ts \
     --symbols /tmp/symbols.txt \
     --repo $repo \
@@ -447,7 +447,7 @@ retrieval_eval_set : 200 queries (50 per class, or SWE-bench natural distributio
 
 **Condition A: Pure hybrid retrieval (no router, no expander, no reranker)**
 
-Run claudemem's existing BM25+vector hybrid on all 200 retrieval eval queries with all pipeline components disabled.
+Run mnemex's existing BM25+vector hybrid on all 200 retrieval eval queries with all pipeline components disabled.
 
 What to record per query:
 - `reciprocal_rank` (for MRR)
@@ -537,7 +537,7 @@ The E vs F comparison isolates reranker contribution in the full-pipeline contex
 
 Run conditions using `scripts/agentbench/run_harness/run_condition.py`:
 - `no_plan` (baseline)
-- `claudemem_full` (existing)
+- `mnemex_full` (existing)
 - Best new router condition from Phase 2
 
 Metrics:
@@ -562,9 +562,9 @@ Run Condition A retrieval on CodeSearchNet Python test set (16,500 queries):
 - Compare MRR@10 with published CodeBERT baseline (MRR@10 ≈ 0.676 on Python)
 - This is NOT a comparison of our system to CodeBERT (different retrieval paradigm); it validates that our NDCG@10 is plausible
 
-If the claudemem hybrid retrieval MRR@10 on CodeSearchNet Python is dramatically lower than 0.4, there is likely a corpus indexing or chunking problem. If it exceeds 0.7, the dataset is likely too easy for our query distribution.
+If the mnemex hybrid retrieval MRR@10 on CodeSearchNet Python is dramatically lower than 0.4, there is likely a corpus indexing or chunking problem. If it exceeds 0.7, the dataset is likely too easy for our query distribution.
 
-**Expected cost**: ~2 hours to run (16,500 queries through claudemem retrieval; batch processing needed)
+**Expected cost**: ~2 hours to run (16,500 queries through mnemex retrieval; batch processing needed)
 
 ---
 
@@ -698,7 +698,7 @@ The smallest configuration that gives statistically meaningful results across al
    - Why high quality: Production code, directly inspected; 8-type taxonomy with quality controls
    - Confirmed by: Explorers 2+3 read the file directly
 
-9. **`eval/agentbench-claudemem/scripts/analyze.py`** — Quality: High, Date: 2026-03-05
+9. **`eval/agentbench-mnemex/scripts/analyze.py`** — Quality: High, Date: 2026-03-05
    - Used in: SWE-bench ground truth extraction design; end-to-end metrics
    - Why high quality: Production harness code; gold patch extraction already implemented
    - Confirmed by: Explorers 1+2+3

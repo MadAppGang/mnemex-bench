@@ -1,0 +1,59 @@
+{
+  "scenarioId": 12,
+  "repo": "mnemex",
+  "condition": "baseline",
+  "title": "Architecture: enrichment pipeline",
+  "task": "How does the LLM enrichment system work? What gets enriched, what prompts are used, and how are results stored? Do NOT make any code changes.",
+  "output": "Here's a complete breakdown of the LLM enrichment system:\n\n---\n\n## What Gets Enriched\n\nTwo document types are actively enriched per file, run **in parallel**:\n\n1. **`file_summary`** — one doc per file covering: `summary`, `responsibilities`, `exports`, `dependencies`, `patterns`\n2. **`symbol_summary`** — one doc per function/class/method (up to 20 per file) covering: `summary`, `parameters`, `returnDescription`, `sideEffects`, `usageContext`\n\nFour more types have defined prompts but are **not part of the default pipeline**: `idiom`, `usage_example`, `anti_pattern`, `project_doc`. Three more (`framework_doc`, `best_practice`, `api_reference`) are fetched externally, not via LLM.\n\n---\n\n## How Prompts Are Built\n\nAll prompts live in `src/llm/prompts/enrichment.ts`.\n\n**File summaries** (`buildFileSummaryPrompt`):\n- Sends file path + file content (truncated to 8,000 chars)\n- Content is sanitized against prompt injection (strips `[INST]`, `<|im_start|>`, role markers, etc.)\n- System prompt instructs: return JSON with `summary`, `responsibilities`, `exports`, `dependencies`, `patterns`\n\n**Symbol summaries** (`buildBatchedSymbolSummaryPrompt` / `buildSymbolSummaryPrompt`):\n- If 1 symbol → single call with the chunk + 10 lines of surrounding context\n- If 2+ symbols → **batched into one LLM call** (up to 20 symbols, 16,000 chars total budget shared across them)\n- System prompt instructs: return JSON array with `name`, `summary`, `parameters`, `returnDescription`, `sideEffects`, `usageContext`\n\nBoth use `llmClient.completeJSON<T>()` — structured JSON output via the LLM client.\n\n---\n\n## Processing Flow\n\n```\nenrichFiles(files)\n  │\n  ├─── [parallel]─────────────────────────────────────────┐\n  │    processFileSummaries()                              processSymbolSummaries()\n  │    • concurrency pool (15 cloud / 3 local)             • concurrency pool (same)\n  │    • FileSummaryExtractor.extract() per file           • pipeline.extractFile() per file\n  │    • 1 LLM call per file                               • SymbolSummaryExtractor.extract()\n  │                                                         • 1 batched LLM call per file\n  └─────────────────────────────────────────────────────────┘\n  │\n  ├─── embedDocuments()       ← all docs batched to embedding model\n  │\n  └─── vectorStore.addDocuments()  ← stored in LanceDB\n       tracker.trackDocuments()    ← file tracker updated\n```\n\n---\n\n## Storage\n\nResults are stored in **two places**:\n\n1. **LanceDB** (`vectorStore.addDocuments()`): each doc as a vector + structured metadata — `id`, `content` (human-readable text built from all fields), `documentType`, `filePath`, `fileHash`, `sourceIds` (linking back to `code_chunk` ids), plus type-specific fields (`summary`, `responsibilities`, etc.)\n\n2. **File tracker** (`tracker.trackDocuments()` + `tracker.setEnrichmentState()`): tracks which files have been enriched per document type, enabling **incremental re-indexing** — files where content hasn't changed are skipped via `extractor.needsUpdate(context)`.\n\nThe `content` field stored in LanceDB is a human-readable, concatenated text built from all summary fields — this is what gets embedded and searched.\n\n---\n\n## Iterative Refinement (`refineFailures`)\n\nAn optional second pass (`enricher.refineFailures()`) improves low-quality summaries:\n\n1. **Quality test**: embeds each summary and checks its **retrieval rank** against up to 20 competitor summaries from the index using cosine similarity. Success = ranked in top-K (default K=3, adjusted to top 50% for small pools).\n2. **Feedback generation**: if it fails, generates feedback showing: current rank, the test query, and the top-ranked competitor summary.\n3. **Refinement**: sends the original code + feedback + previous summary to the LLM with a focused system prompt (\"write concise, searchable summaries\"), temperature=0.3, max 500 tokens.\n4. **Loop**: repeats up to `maxRounds` (default 3) until the summary ranks well or rounds are exhausted.\n5. If refined, re-embeds the new summary and calls `vectorStore.updateDocumentContent()`. Scores success using a Brokk-style metric: `1.0 / log2(rounds + 2)`.",
+  "claudeJson": {
+    "type": "result",
+    "subtype": "success",
+    "is_error": false,
+    "duration_ms": 58365,
+    "duration_api_ms": 57634,
+    "num_turns": 12,
+    "result": "Here's a complete breakdown of the LLM enrichment system:\n\n---\n\n## What Gets Enriched\n\nTwo document types are actively enriched per file, run **in parallel**:\n\n1. **`file_summary`** — one doc per file covering: `summary`, `responsibilities`, `exports`, `dependencies`, `patterns`\n2. **`symbol_summary`** — one doc per function/class/method (up to 20 per file) covering: `summary`, `parameters`, `returnDescription`, `sideEffects`, `usageContext`\n\nFour more types have defined prompts but are **not part of the default pipeline**: `idiom`, `usage_example`, `anti_pattern`, `project_doc`. Three more (`framework_doc`, `best_practice`, `api_reference`) are fetched externally, not via LLM.\n\n---\n\n## How Prompts Are Built\n\nAll prompts live in `src/llm/prompts/enrichment.ts`.\n\n**File summaries** (`buildFileSummaryPrompt`):\n- Sends file path + file content (truncated to 8,000 chars)\n- Content is sanitized against prompt injection (strips `[INST]`, `<|im_start|>`, role markers, etc.)\n- System prompt instructs: return JSON with `summary`, `responsibilities`, `exports`, `dependencies`, `patterns`\n\n**Symbol summaries** (`buildBatchedSymbolSummaryPrompt` / `buildSymbolSummaryPrompt`):\n- If 1 symbol → single call with the chunk + 10 lines of surrounding context\n- If 2+ symbols → **batched into one LLM call** (up to 20 symbols, 16,000 chars total budget shared across them)\n- System prompt instructs: return JSON array with `name`, `summary`, `parameters`, `returnDescription`, `sideEffects`, `usageContext`\n\nBoth use `llmClient.completeJSON<T>()` — structured JSON output via the LLM client.\n\n---\n\n## Processing Flow\n\n```\nenrichFiles(files)\n  │\n  ├─── [parallel]─────────────────────────────────────────┐\n  │    processFileSummaries()                              processSymbolSummaries()\n  │    • concurrency pool (15 cloud / 3 local)             • concurrency pool (same)\n  │    • FileSummaryExtractor.extract() per file           • pipeline.extractFile() per file\n  │    • 1 LLM call per file                               • SymbolSummaryExtractor.extract()\n  │                                                         • 1 batched LLM call per file\n  └─────────────────────────────────────────────────────────┘\n  │\n  ├─── embedDocuments()       ← all docs batched to embedding model\n  │\n  └─── vectorStore.addDocuments()  ← stored in LanceDB\n       tracker.trackDocuments()    ← file tracker updated\n```\n\n---\n\n## Storage\n\nResults are stored in **two places**:\n\n1. **LanceDB** (`vectorStore.addDocuments()`): each doc as a vector + structured metadata — `id`, `content` (human-readable text built from all fields), `documentType`, `filePath`, `fileHash`, `sourceIds` (linking back to `code_chunk` ids), plus type-specific fields (`summary`, `responsibilities`, etc.)\n\n2. **File tracker** (`tracker.trackDocuments()` + `tracker.setEnrichmentState()`): tracks which files have been enriched per document type, enabling **incremental re-indexing** — files where content hasn't changed are skipped via `extractor.needsUpdate(context)`.\n\nThe `content` field stored in LanceDB is a human-readable, concatenated text built from all summary fields — this is what gets embedded and searched.\n\n---\n\n## Iterative Refinement (`refineFailures`)\n\nAn optional second pass (`enricher.refineFailures()`) improves low-quality summaries:\n\n1. **Quality test**: embeds each summary and checks its **retrieval rank** against up to 20 competitor summaries from the index using cosine similarity. Success = ranked in top-K (default K=3, adjusted to top 50% for small pools).\n2. **Feedback generation**: if it fails, generates feedback showing: current rank, the test query, and the top-ranked competitor summary.\n3. **Refinement**: sends the original code + feedback + previous summary to the LLM with a focused system prompt (\"write concise, searchable summaries\"), temperature=0.3, max 500 tokens.\n4. **Loop**: repeats up to `maxRounds` (default 3) until the summary ranks well or rounds are exhausted.\n5. If refined, re-embeds the new summary and calls `vectorStore.updateDocumentContent()`. Scores success using a Brokk-style metric: `1.0 / log2(rounds + 2)`.",
+    "stop_reason": "end_turn",
+    "session_id": "f92ad3e8-216d-4b8d-b2b0-f99b846ef0ae",
+    "total_cost_usd": 0.42394350000000003,
+    "usage": {
+      "input_tokens": 11,
+      "cache_creation_input_tokens": 47600,
+      "cache_read_input_tokens": 130327,
+      "output_tokens": 2449,
+      "server_tool_use": {
+        "web_search_requests": 0,
+        "web_fetch_requests": 0
+      },
+      "service_tier": "standard",
+      "cache_creation": {
+        "ephemeral_1h_input_tokens": 0,
+        "ephemeral_5m_input_tokens": 47600
+      },
+      "inference_geo": "",
+      "iterations": [],
+      "speed": "standard"
+    },
+    "modelUsage": {
+      "claude-sonnet-4-6": {
+        "inputTokens": 11,
+        "outputTokens": 2449,
+        "cacheReadInputTokens": 130327,
+        "cacheCreationInputTokens": 47600,
+        "webSearchRequests": 0,
+        "costUSD": 0.42394350000000003,
+        "contextWindow": 200000,
+        "maxOutputTokens": 32000
+      }
+    },
+    "permission_denials": [],
+    "fast_mode_state": "off",
+    "uuid": "b13ab2b5-7873-41ea-93c8-30138408ab2d"
+  },
+  "durationMs": 64884,
+  "tokensIn": 11,
+  "tokensOut": 2449,
+  "toolCalls": 12,
+  "costUsd": 0.42394350000000003,
+  "timestamp": "2026-03-05T23:16:53.520Z"
+}

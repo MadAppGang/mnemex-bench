@@ -14,7 +14,7 @@
 # ]
 # ///
 """
-SFT training for claudemem query expansion models.
+SFT training for mnemex query expansion models.
 
 Trains LoRA adapter, merges, pushes to HuggingFace Hub.
 
@@ -41,7 +41,7 @@ import sys
 MODELS = {
     "qwen3-4b-2507": {
         "base": "Qwen/Qwen3-4B",
-        "hub_name": "claudemem-expansion-qwen3-4b",
+        "hub_name": "mnemex-expansion-qwen3-4b",
         "lora_rank": 16,
         "lora_alpha": 32,
         "epochs": 5,
@@ -52,7 +52,7 @@ MODELS = {
     },
     "qwen3-1.7b": {
         "base": "Qwen/Qwen3-1.7B",
-        "hub_name": "claudemem-expansion-qwen3-1.7b",
+        "hub_name": "mnemex-expansion-qwen3-1.7b",
         "lora_rank": 16,
         "lora_alpha": 32,
         "epochs": 5,
@@ -63,7 +63,7 @@ MODELS = {
     },
     "lfm2-1.2b": {
         "base": "LiquidAI/LFM2.5-1.2B-Instruct",
-        "hub_name": "claudemem-expansion-lfm2-1.2b",
+        "hub_name": "mnemex-expansion-lfm2-1.2b",
         "lora_rank": 16,
         "lora_alpha": 32,
         "epochs": 5,
@@ -74,7 +74,7 @@ MODELS = {
     },
     "lfm2-700m": {
         "base": "LiquidAI/LFM2-700M",
-        "hub_name": "claudemem-expansion-lfm2-700m",
+        "hub_name": "mnemex-expansion-lfm2-700m",
         "lora_rank": 16,
         "lora_alpha": 32,
         "epochs": 5,
@@ -86,7 +86,7 @@ MODELS = {
     # ── Round 2 ──────────────────────────────────────────────
     "qwen3.5-9b": {
         "base": "Qwen/Qwen3.5-9B",
-        "hub_name": "claudemem-expansion-qwen3.5-9b",
+        "hub_name": "mnemex-expansion-qwen3.5-9b",
         "lora_rank": 16,
         "lora_alpha": 32,
         "epochs": 5,
@@ -98,7 +98,7 @@ MODELS = {
     },
     "qwen3.5-4b": {
         "base": "Qwen/Qwen3.5-4B",
-        "hub_name": "claudemem-expansion-qwen3.5-4b",
+        "hub_name": "mnemex-expansion-qwen3.5-4b",
         "lora_rank": 16,
         "lora_alpha": 32,
         "epochs": 5,
@@ -110,7 +110,7 @@ MODELS = {
     },
     "qwen3.5-2b": {
         "base": "Qwen/Qwen3.5-2B",
-        "hub_name": "claudemem-expansion-qwen3.5-2b",
+        "hub_name": "mnemex-expansion-qwen3.5-2b",
         "lora_rank": 16,
         "lora_alpha": 32,
         "epochs": 5,
@@ -122,7 +122,7 @@ MODELS = {
     },
     "phi4-mini": {
         "base": "microsoft/Phi-4-mini-instruct",
-        "hub_name": "claudemem-expansion-phi4-mini",
+        "hub_name": "mnemex-expansion-phi4-mini",
         "lora_rank": 16,
         "lora_alpha": 32,
         "epochs": 5,
@@ -133,7 +133,7 @@ MODELS = {
     },
     "qwen3-8b": {
         "base": "Qwen/Qwen3-8B",
-        "hub_name": "claudemem-expansion-qwen3-8b",
+        "hub_name": "mnemex-expansion-qwen3-8b",
         "lora_rank": 16,
         "lora_alpha": 32,
         "epochs": 5,
@@ -150,7 +150,7 @@ args = parser.parse_args()
 
 cfg = MODELS[args.model]
 HF_USER = "jackrudenko"
-DATASET_REPO = f"{HF_USER}/claudemem-expansion-data"
+DATASET_REPO = f"{HF_USER}/mnemex-expansion-data"
 OUTPUT_MODEL = f"{HF_USER}/{cfg['hub_name']}"
 
 # ─── Auth ─────────────────────────────────────────────────────────────

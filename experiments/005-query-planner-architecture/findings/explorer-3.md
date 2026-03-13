@@ -153,7 +153,7 @@ validity.
 | Llama-3.1-8B | ~78-82% | ~62-72% |
 | Qwen2.5-Coder-7B | ~84-86% | ~70-78% |
 
-**Key finding for claudemem**: The claudemem query planner would select from ~5-6 tools
+**Key finding for mnemex**: The mnemex query planner would select from ~5-6 tools
 (BM25, vector, AST, LSP, symbol graph, code summaries). With a constrained schema,
 format is not the problem. The semantic accuracy at 1.7B (60-68%) means about 1 in 3
 plans will select suboptimally — potentially acceptable for a "best effort" planner,
@@ -174,7 +174,7 @@ but not for a high-reliability production system.
 ### Finding 4: ReAct vs Single-Shot Planning for Small Models
 
 **Summary**: Multi-step ReAct planning (Reason + Act loops) is feasible at 7-8B but
-unreliable below 4B. For claudemem's query planner specifically, single-shot planning
+unreliable below 4B. For mnemex's query planner specifically, single-shot planning
 (one call to generate a complete retrieval plan) is the correct approach for small
 models. ReAct's overhead of repeated model calls also conflicts with latency goals.
 
@@ -199,7 +199,7 @@ in order." This is strictly simpler than ReAct because:
 3. Fixed output schema (easier to constrain)
 4. Faster (target <200ms on consumer hardware)
 
-**The claudemem use case is simpler than general ReAct**:
+**The mnemex use case is simpler than general ReAct**:
 - The query planner does NOT need to process tool outputs (that's the retrieval layer)
 - It only needs to produce an ordered plan: ["bm25", "vector", "ast"]
 - This is closer to query classification than full agentic reasoning
@@ -271,7 +271,7 @@ LLM as a query planner.
   which then navigates the repo map
 - The file/symbol selection is entirely deterministic (PageRank + token budget)
 - Source: github.com/paul-gauthier/aider, aider/repomap.py (open source)
-- This is architecturally similar to claudemem's `map` command
+- This is architecturally similar to mnemex's `map` command
 
 **Continue.dev**:
 - Context providers are rule-based plugins: FileContext, CodebaseContext, GitContext
@@ -291,7 +291,7 @@ LLM as a query planner.
    or (c) large cloud model for the full query understanding task
 3. Latency targets in production are typically 1-5s (not 500ms), so cloud models are
    acceptable
-4. The "local-first" constraint that claudemem has is unusual — most production tools
+4. The "local-first" constraint that mnemex has is unusual — most production tools
    are cloud-dependent
 
 **Sources**:
@@ -299,7 +299,7 @@ LLM as a query planner.
 - [Sourcegraph Cody: github.com/sourcegraph/cody](https://github.com/sourcegraph/cody) - Quality: High
 - [Continue.dev: github.com/continuedev/continue](https://github.com/continuedev/continue) - Quality: High
 - [GitHub Code Search blog post (2023)](https://github.blog/2023-02-06-the-technology-behind-githubs-new-code-search/) - Quality: High
-- Local: agentbench claudemem_planner.py (claudemem's own production approach) - Quality: High
+- Local: agentbench mnemex_planner.py (mnemex's own production approach) - Quality: High
 - [Source: Training knowledge, cutoff Aug 2025]
 
 **Confidence**: High (Aider, Continue.dev, Cody — open source), Medium (Cursor, Greptile)
@@ -337,7 +337,7 @@ the "novel" compositional reasoning more than the "familiar" pattern repetition.
 This is why the 92% format accuracy for qmd's lex:/vec:/hyde: task holds even with
 Q4 quantization — the format is simple and highly regularized.
 
-**Practical recommendation for claudemem query planner**:
+**Practical recommendation for mnemex query planner**:
 - If using a local model: prefer Q8 over Q4, especially below 4B
 - Q4 is acceptable for models 7B+; degradation is within noise
 - Consider using Q8 as the default with Q4 as a fallback for low-memory devices
@@ -455,10 +455,10 @@ Long natural language query (>6 words) → Vector + HyDE
 approaches (PageRank + token budget for aider; rule-based context providers for Continue.dev)
 and achieve competitive retrieval quality without LLM query planners.
 
-**The claudemem agentbench eval evidence**:
-From the agentbench eval harness (claudemem_planner.py), the current approach is:
-1. Run `claudemem map --agent` (get top PageRank symbols) — deterministic
-2. Run `claudemem search <query>` (hybrid BM25+vector) — single strategy, no routing
+**The mnemex agentbench eval evidence**:
+From the agentbench eval harness (mnemex_planner.py), the current approach is:
+1. Run `mnemex map --agent` (get top PageRank symbols) — deterministic
+2. Run `mnemex search <query>` (hybrid BM25+vector) — single strategy, no routing
 3. Combine into AGENTS.md — no LLM query planner needed at this layer
 
 The eval results show this approach works well without a query planner — suggesting the
@@ -470,8 +470,8 @@ question is whether a planner adds marginal value vs the added latency and compl
 - When the user explicitly invokes a "deep search" mode
 
 **Sources**:
-- Local: agentbench claudemem_planner.py (production evidence) - Quality: High
-- Local: dev-research-compare-claudemem-qmd / qmd approach (deterministic expansion) - Quality: High
+- Local: agentbench mnemex_planner.py (production evidence) - Quality: High
+- Local: dev-research-compare-mnemex-qmd / qmd approach (deterministic expansion) - Quality: High
 - [Continue.dev context providers: github.com/continuedev/continue](https://github.com/continuedev/continue) - Quality: High
 - [Aider repo map: aider/repomap.py](https://github.com/paul-gauthier/aider/blob/main/aider/repomap.py) - Quality: High
 - [Source: Training knowledge, cutoff Aug 2025]
@@ -483,7 +483,7 @@ question is whether a planner adds marginal value vs the added latency and compl
 
 ## Architecture Recommendation (Q4+Q5 Synthesis)
 
-Based on the research, here is the ranked recommendation for claudemem's query planner:
+Based on the research, here is the ranked recommendation for mnemex's query planner:
 
 **Recommended: Option A-Enhanced (Enhanced parallel query expander, no LLM planner)**
 - Continue using the existing Qwen3-1.7B fine-tuned query expander for parallel retrieval
@@ -532,7 +532,7 @@ Based on the research, here is the ranked recommendation for claudemem's query p
 15. Local: /ai-docs/sessions/dev-research-sft-models-20260304/findings/explorer-1.md - High, Mar 2026
 16. Local: /ai-docs/sessions/dev-research-query-expansion-model-tiers-20260303.../findings/explorer-1.md - High
 17. Local: /ai-docs/sessions/dev-research-query-expansion-model-tiers-20260303.../findings/explorer-2.md - High
-18. Local: agentbench claudemem_planner.py - High, Mar 2026
+18. Local: agentbench mnemex_planner.py - High, Mar 2026
 19. Local: agentbench dynamic_cheatsheet.py (dc_planner architecture) - High, Mar 2026
 20. [Phi-4 Technical Report arXiv:2412.08905](https://arxiv.org/abs/2412.08905) - High, Dec 2024
 21. Local: src/mcp/tools/search.ts (current search architecture) - High, Mar 2026
@@ -577,4 +577,4 @@ What this research did NOT find with certainty:
 - Key gap: BFCL leaderboard is continuously updated; rankings may have changed significantly
   between August 2025 and March 2026 with new model releases
 - Notable strength: Local codebase investigation revealed the actual production architecture
-  (claudemem_planner.py, search.ts) — more valuable than abstract web research for this topic
+  (mnemex_planner.py, search.ts) — more valuable than abstract web research for this topic

@@ -1,17 +1,17 @@
 # mnemex-bench — Benchmark & Evaluation Hub
 
-Benchmark experiments for claudemem (semantic code search tool). Each experiment lives in `experiments/NNN-short-name/` with its own README, harness scripts, results, and research.
+Benchmark experiments for mnemex (semantic code search tool). Each experiment lives in `experiments/NNN-short-name/` with its own README, harness scripts, results, and research.
 
 ## Project Context
 
-This repo evaluates components of the **claudemem search pipeline**:
+This repo evaluates components of the **mnemex search pipeline**:
 - **Embedding models** — local code search on Apple Silicon
 - **Query expansion** — small LLM rewrites queries into better search terms (lex/vec/HyDE)
 - **Query routing** — classifying query type to boost the right retrieval method
 - **Reranking** — reorder search results by relevance
 - **End-to-end** — does the full pipeline actually help agents solve tasks?
 
-The claudemem source code lives at `../claudemem/`. The agentbench eval harness lives at `../agentbench/`.
+The mnemex source code lives at `../mnemex/`. The agentbench eval harness lives at `../agentbench/`.
 
 ## Experiments
 
@@ -22,7 +22,7 @@ The claudemem source code lives at `../claudemem/`. The agentbench eval harness 
 | 003 | Query Expansion & Planner | Custom LLM for query expansion + planner architecture | Complete |
 | 004 | Code Search Test Harness | Ablation harness design for search pipeline | Design complete |
 | 005 | Embedding Models | Model research + evaluation methodology | Complete |
-| 009 | Claudemem vs Serena | Head-to-head MCP tool comparison (efficiency) | Round 1 complete |
+| 009 | Mnemex vs Serena | Head-to-head MCP tool comparison (efficiency) | Round 1 complete |
 | 010 | MCP vs CLI Efficiency | MCP tools vs CLI (Bash) for same tasks | Ready to run |
 
 ## Current Status & Next Steps
@@ -30,7 +30,7 @@ The claudemem source code lives at `../claudemem/`. The agentbench eval harness 
 ### Ready to implement (high priority)
 
 1. **Build the code search test harness** (from experiment 004 design)
-   - Extend `../claudemem/src/benchmark-v2/` with 3 new files: `loader.ts`, `ablation.ts`, `reporter.ts`
+   - Extend `../mnemex/src/benchmark-v2/` with 3 new files: `loader.ts`, `ablation.ts`, `reporter.ts`
    - 224-query benchmark: 24 SWE-bench instances + 200 synthetic from 12 repos
    - 6 ablation conditions to measure each pipeline component's contribution
    - See: `experiments/004-code-search-test-harness/report.md` for full spec

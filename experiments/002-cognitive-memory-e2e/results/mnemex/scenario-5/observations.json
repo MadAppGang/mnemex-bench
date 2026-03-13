@@ -1,0 +1,59 @@
+{
+  "scenarioId": 5,
+  "repo": "mnemex",
+  "condition": "observations",
+  "title": "Trace: indexing pipeline",
+  "task": "I need to understand the full indexing pipeline from when a user runs `mnemex index` to when chunks are stored. Trace the execution path and list the key functions in order. Do NOT make any code changes.",
+  "output": "I now have a complete picture. Here's the full execution path:\n\n---\n\n## `mnemex index` Execution Path\n\n### 1. `cli.ts` — Entry & Dispatch\n\n**`handleIndex(args)`** (`cli.ts:682`)\n- Parses flags (`--force`, `--no-llm`, `--concurrency`, etc.)\n- Checks vector mode and API key availability\n- Calls `createIndexer({ projectPath, enableEnrichment, ... })` → returns an `Indexer` instance\n- Calls `indexer.index(force)` and prints results\n\n---\n\n### 2. `src/core/indexer.ts` — Orchestration\n\n**`Indexer.index(force)`** (`:303`)\n- Acquires a filesystem lock via `createIndexLock()` + `lock.acquire()`\n- Delegates to `indexInternal(force, startTime)`\n- Releases lock in `finally`\n\n**`Indexer.indexInternal(force, startTime)`** (`:345`)\n\n#### Setup\n- **`this.initialize()`** (`:229`)\n  - `getParserManager().initialize()` — loads tree-sitter parsers\n  - `createCodeUnitExtractor()` — AST symbol extractor\n  - `createFileTracker(indexDbPath)` — SQLite-backed change tracker\n  - `createEmbeddingsClient({ model })` — OpenRouter/Ollama client\n  - `createVectorStore(vectorStorePath)` + `store.initialize()` — opens LanceDB\n  - `createEnricher(llmClient, embeddingsClient, vectorStore, fileTracker)` — optional LLM enrichment\n\n#### File Discovery\n- **`this.discoverFiles()`** — walks the project tree, applying include/exclude patterns\n- **`fileTracker.getChanges(allFiles)`** — diffs against SQLite state → `newFiles`, `modifiedFiles`, `deletedFiles`\n- For modified files: **`vectorStore.getChunksWithVectors(file)`** — fetches old vectors into `oldChunksCache` (smart incremental reuse), then `vectorStore.deleteByFile(file)`\n\n#### Per-Batch Loop (500 files/batch)\n\n**Phase 1 — Parse & Chunk:**\n- For each file: `readFileSync` → **`chunkFileByPath(content, filePath, fileHash)`** (`chunker.ts`)\n  - Uses tree-sitter AST to split file into semantic `CodeChunk[]` objects\n\n**Phase 2 — Embed:**\n- Chunks with matching `contentHash` in `oldChunksCache` → vector reused (no API call)\n- New/changed chunks → **`embeddingsClient.embed(texts)`** (`embeddings.ts`) → `number[][]`\n\n**Phase 2b — Code Units (AST symbols):**\n- **`codeUnitExtractor.extractUnits(content, filePath, language, fileHash)`** (`ast/code-unit-extractor.ts`)\n  - Extracts named symbols (functions, classes, etc.) with metadata\n- **`embeddingsClient.embed(unitTexts)`** → embed each unit\n- **`vectorStore.addCodeUnits(unitsWithEmbeddings)`** — stored in LanceDB `code_unit` table\n\n**Phase 3 — Store Chunks:**\n- **`vectorStore.addChunks(chunksWithEmbeddings)`** (`store.ts`) — stores `CodeChunk + vector` in LanceDB `code_chunk` table\n\n**Phase 4 — Track:**\n- **`fileTracker.markIndexed(filePath, fileHash, chunkIds)`** — updates SQLite with new hashes/chunk IDs\n\n#### Post-Batch\n\n**Phase 4.5+5 — Symbol Graph & Enrichment** (run sequentially, or in parallel if local embeddings + cloud LLM):\n- **`this.extractSymbolGraph(filesToIndex, force)`** — builds symbol reference graph with PageRank\n- **`enricher.enrichFiles(fileChunksForEnrichment)`** (`enrichment/index.ts`) — calls LLM to generate file summaries, stores result vectors back into LanceDB\n\n**Phase 6 — External Docs** (if manifest files changed):\n- **`this.fetchExternalDocs()`** — fetches dependency docs, embeds, and stores\n\n#### Finalize\n- `fileTracker.setMetadata(\"embeddingModel\", ...)` + `\"lastIndexed\"`\n- `setIndexVersion(projectPath, CURRENT_INDEX_VERSION)`\n- Returns `EnrichedIndexResult` with counts, cost, duration\n\n---\n\n### Key function summary in order:\n\n| # | Function | File |\n|---|----------|------|\n| 1 | `handleIndex` | `cli.ts:682` |\n| 2 | `Indexer.index` | `indexer.ts:303` |\n| 3 | `Indexer.initialize` | `indexer.ts:229` |\n| 4 | `Indexer.discoverFiles` | `indexer.ts` |\n| 5 | `fileTracker.getChanges` | `tracker.ts` |\n| 6 | `chunkFileByPath` | `chunker.ts` |\n| 7 | `embeddingsClient.embed` | `embeddings.ts` |\n| 8 | `codeUnitExtractor.extractUnits` | `ast/code-unit-extractor.ts` |\n| 9 | `vectorStore.addChunks` | `store.ts` |\n| 10 | `vectorStore.addCodeUnits` | `store.ts` |\n| 11 | `fileTracker.markIndexed` | `tracker.ts` |\n| 12 | `extractSymbolGraph` | `indexer.ts` |\n| 13 | `enricher.enrichFiles` | `enrichment/index.ts` |",
+  "claudeJson": {
+    "type": "result",
+    "subtype": "success",
+    "is_error": false,
+    "duration_ms": 70092,
+    "duration_api_ms": 68420,
+    "num_turns": 15,
+    "result": "I now have a complete picture. Here's the full execution path:\n\n---\n\n## `mnemex index` Execution Path\n\n### 1. `cli.ts` — Entry & Dispatch\n\n**`handleIndex(args)`** (`cli.ts:682`)\n- Parses flags (`--force`, `--no-llm`, `--concurrency`, etc.)\n- Checks vector mode and API key availability\n- Calls `createIndexer({ projectPath, enableEnrichment, ... })` → returns an `Indexer` instance\n- Calls `indexer.index(force)` and prints results\n\n---\n\n### 2. `src/core/indexer.ts` — Orchestration\n\n**`Indexer.index(force)`** (`:303`)\n- Acquires a filesystem lock via `createIndexLock()` + `lock.acquire()`\n- Delegates to `indexInternal(force, startTime)`\n- Releases lock in `finally`\n\n**`Indexer.indexInternal(force, startTime)`** (`:345`)\n\n#### Setup\n- **`this.initialize()`** (`:229`)\n  - `getParserManager().initialize()` — loads tree-sitter parsers\n  - `createCodeUnitExtractor()` — AST symbol extractor\n  - `createFileTracker(indexDbPath)` — SQLite-backed change tracker\n  - `createEmbeddingsClient({ model })` — OpenRouter/Ollama client\n  - `createVectorStore(vectorStorePath)` + `store.initialize()` — opens LanceDB\n  - `createEnricher(llmClient, embeddingsClient, vectorStore, fileTracker)` — optional LLM enrichment\n\n#### File Discovery\n- **`this.discoverFiles()`** — walks the project tree, applying include/exclude patterns\n- **`fileTracker.getChanges(allFiles)`** — diffs against SQLite state → `newFiles`, `modifiedFiles`, `deletedFiles`\n- For modified files: **`vectorStore.getChunksWithVectors(file)`** — fetches old vectors into `oldChunksCache` (smart incremental reuse), then `vectorStore.deleteByFile(file)`\n\n#### Per-Batch Loop (500 files/batch)\n\n**Phase 1 — Parse & Chunk:**\n- For each file: `readFileSync` → **`chunkFileByPath(content, filePath, fileHash)`** (`chunker.ts`)\n  - Uses tree-sitter AST to split file into semantic `CodeChunk[]` objects\n\n**Phase 2 — Embed:**\n- Chunks with matching `contentHash` in `oldChunksCache` → vector reused (no API call)\n- New/changed chunks → **`embeddingsClient.embed(texts)`** (`embeddings.ts`) → `number[][]`\n\n**Phase 2b — Code Units (AST symbols):**\n- **`codeUnitExtractor.extractUnits(content, filePath, language, fileHash)`** (`ast/code-unit-extractor.ts`)\n  - Extracts named symbols (functions, classes, etc.) with metadata\n- **`embeddingsClient.embed(unitTexts)`** → embed each unit\n- **`vectorStore.addCodeUnits(unitsWithEmbeddings)`** — stored in LanceDB `code_unit` table\n\n**Phase 3 — Store Chunks:**\n- **`vectorStore.addChunks(chunksWithEmbeddings)`** (`store.ts`) — stores `CodeChunk + vector` in LanceDB `code_chunk` table\n\n**Phase 4 — Track:**\n- **`fileTracker.markIndexed(filePath, fileHash, chunkIds)`** — updates SQLite with new hashes/chunk IDs\n\n#### Post-Batch\n\n**Phase 4.5+5 — Symbol Graph & Enrichment** (run sequentially, or in parallel if local embeddings + cloud LLM):\n- **`this.extractSymbolGraph(filesToIndex, force)`** — builds symbol reference graph with PageRank\n- **`enricher.enrichFiles(fileChunksForEnrichment)`** (`enrichment/index.ts`) — calls LLM to generate file summaries, stores result vectors back into LanceDB\n\n**Phase 6 — External Docs** (if manifest files changed):\n- **`this.fetchExternalDocs()`** — fetches dependency docs, embeds, and stores\n\n#### Finalize\n- `fileTracker.setMetadata(\"embeddingModel\", ...)` + `\"lastIndexed\"`\n- `setIndexVersion(projectPath, CURRENT_INDEX_VERSION)`\n- Returns `EnrichedIndexResult` with counts, cost, duration\n\n---\n\n### Key function summary in order:\n\n| # | Function | File |\n|---|----------|------|\n| 1 | `handleIndex` | `cli.ts:682` |\n| 2 | `Indexer.index` | `indexer.ts:303` |\n| 3 | `Indexer.initialize` | `indexer.ts:229` |\n| 4 | `Indexer.discoverFiles` | `indexer.ts` |\n| 5 | `fileTracker.getChanges` | `tracker.ts` |\n| 6 | `chunkFileByPath` | `chunker.ts` |\n| 7 | `embeddingsClient.embed` | `embeddings.ts` |\n| 8 | `codeUnitExtractor.extractUnits` | `ast/code-unit-extractor.ts` |\n| 9 | `vectorStore.addChunks` | `store.ts` |\n| 10 | `vectorStore.addCodeUnits` | `store.ts` |\n| 11 | `fileTracker.markIndexed` | `tracker.ts` |\n| 12 | `extractSymbolGraph` | `indexer.ts` |\n| 13 | `enricher.enrichFiles` | `enrichment/index.ts` |",
+    "stop_reason": "end_turn",
+    "session_id": "9107b3ac-39d6-4cba-9190-8144418f07b6",
+    "total_cost_usd": 0.35430325000000007,
+    "usage": {
+      "input_tokens": 15,
+      "cache_creation_input_tokens": 30309,
+      "cache_read_input_tokens": 161544,
+      "output_tokens": 3361,
+      "server_tool_use": {
+        "web_search_requests": 0,
+        "web_fetch_requests": 0
+      },
+      "service_tier": "standard",
+      "cache_creation": {
+        "ephemeral_1h_input_tokens": 0,
+        "ephemeral_5m_input_tokens": 30309
+      },
+      "inference_geo": "",
+      "iterations": [],
+      "speed": "standard"
+    },
+    "modelUsage": {
+      "claude-sonnet-4-6": {
+        "inputTokens": 15,
+        "outputTokens": 3361,
+        "cacheReadInputTokens": 161544,
+        "cacheCreationInputTokens": 30309,
+        "webSearchRequests": 0,
+        "costUSD": 0.35430325000000007,
+        "contextWindow": 200000,
+        "maxOutputTokens": 32000
+      }
+    },
+    "permission_denials": [],
+    "fast_mode_state": "off",
+    "uuid": "e113370f-6926-499c-94e9-1e111387ccad"
+  },
+  "durationMs": 74505,
+  "tokensIn": 15,
+  "tokensOut": 3361,
+  "toolCalls": 15,
+  "costUsd": 0.35430325000000007,
+  "timestamp": "2026-03-05T23:11:40.282Z"
+}

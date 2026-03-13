@@ -2,7 +2,7 @@
 
 ## Objective
 
-Design a rigorous evaluation framework for claudemem's 4 query-time components:
+Design a rigorous evaluation framework for mnemex's 4 query-time components:
 - **Query router/classifier** (3 methods: regex rules, learned classifier, LLM planner)
 - **Query expander** (3 tiers: LFM2-700M, Qwen3-1.7B-FT, LFM2-2.6B)
 - **Retrieval** (hybrid BM25 + vector)
@@ -122,7 +122,7 @@ Candidates to investigate:
 
 ### Approach B: Generate Labeled Queries from Our 12 Repos
 
-**Method using claudemem itself**:
+**Method using mnemex itself**:
 1. For each high-PageRank symbol in our 12 repos, generate 3 query variants:
    - Type 1 (symbol): "find the `{symbol_name}` function" / "where is `{class_name}` defined"
    - Type 2 (semantic): LLM-generated docstring → query (paraphrase what this function does)
@@ -220,11 +220,11 @@ Total: ~2,860 (query, ground_truth) pairs across 3 query types
 4. Derive (issue_text → patch_files) pairs from our 24 agentbench instances
    - Script: parse SWE-bench JSON, extract issue body + modified files from patch
 5. Generate synthetic symbol/semantic queries from our 12 repos
-   - Use claudemem `map` + `symbol` output as seed; deepseek for paraphrase generation
+   - Use mnemex `map` + `symbol` output as seed; deepseek for paraphrase generation
 6. Annotate 50 example queries per type for router training seed set
 
 ### Priority 3: Harness implementation
-7. Implement BEIR-compatible evaluation wrapper for claudemem retrieval
+7. Implement BEIR-compatible evaluation wrapper for mnemex retrieval
    - Input: BEIR JSONL corpus + queries + qrels
    - Output: NDCG@5, NDCG@10, MRR@10, Recall@100
 8. Implement per-component evaluation isolation

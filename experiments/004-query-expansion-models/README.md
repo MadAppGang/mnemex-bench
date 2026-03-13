@@ -5,7 +5,7 @@
 
 ## Motivation
 
-claudemem's hybrid search pipeline needs a small local LLM to expand user queries into three retrieval variants:
+mnemex's hybrid search pipeline needs a small local LLM to expand user queries into three retrieval variants:
 - `lex:` keywords for BM25 search
 - `vec:` semantic rephrasing for vector search
 - `hyde:` hypothetical code snippet for HyDE embedding
@@ -146,10 +146,10 @@ hf jobs uv run --flavor a10g-large --secrets HF_TOKEN --timeout 2h \
     seeds/                <- Seed queries
   research/               <- Research notes & plans
     model-tiers.md        <- Tier comparison matrix
-    qmd-comparison.md     <- claudemem vs qmd comparison
+    qmd-comparison.md     <- mnemex vs qmd comparison
     sft-candidates.md     <- LoRA SFT candidate analysis
     sft-models-research.md <- SFT model deep research
     small-lm-candidates-code-expansion-march2026.md <- LM candidates survey
     NEXT-TRAINING-PLAN.md <- Round 2 training plan
-    original-README.md    <- Original README from claudemem repo
+    original-README.md    <- Original README from mnemex repo
 ```

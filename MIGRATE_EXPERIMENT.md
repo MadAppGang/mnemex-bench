@@ -1,6 +1,6 @@
 # Experiment Migration Prompt
 
-Use this prompt when migrating a completed experiment from its source location (typically inside a feature repo like `claudemem`) into the `mnemex-bench` experiments archive.
+Use this prompt when migrating a completed experiment from its source location (typically inside a feature repo like `mnemex`) into the `mnemex-bench` experiments archive.
 
 ---
 
@@ -10,10 +10,10 @@ Use this prompt when migrating a completed experiment from its source location (
 You are migrating a completed AI/ML experiment into the mnemex-bench experiments archive.
 
 REPO: /Users/jack/mag/mnemex-bench
-SOURCE: <path to experiment source, e.g. /Users/jack/mag/claudemem/eval/cognitive-e2e>
+SOURCE: <path to experiment source, e.g. /Users/jack/mag/mnemex/eval/cognitive-e2e>
 EXPERIMENT_NAME: <short human name, e.g. "cognitive-memory-e2e">
 EXPERIMENT_SLUG: <kebab-case slug, e.g. "cognitive-memory-e2e">
-GOLDEN_INDEX_PATHS: <comma-separated paths to .claudemem/ dirs to archive, or "none">
+GOLDEN_INDEX_PATHS: <comma-separated paths to .mnemex/ dirs to archive, or "none">
 
 Work through these steps in order. Do NOT delete source files until all verification checks pass.
 
@@ -69,7 +69,7 @@ Copy any remaining files not covered above to their natural location in ${EXPERI
 
 If GOLDEN_INDEX_PATHS != "none":
   For each path in GOLDEN_INDEX_PATHS:
-    SLUG=$(basename of parent dir, e.g. "claudemem")
+    SLUG=$(basename of parent dir, e.g. "mnemex")
     ARCHIVE_NAME="${SLUG}-golden-index-$(date +%Y%m%d).tar.gz"
 
     Compress:

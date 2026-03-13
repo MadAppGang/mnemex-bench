@@ -1,0 +1,14 @@
+{
+  "id": "mnemex",
+  "name": "mnemex",
+  "description": "Semantic code search + AST analysis MCP server",
+  "requires_preindex": true,
+  "designated_tool_prefix": "mcp__mnemex__",
+  "min_designated_calls": 1,
+  "version_command": "mnemex --version",
+  "setup_timeout_seconds": 60,
+  "env": {
+    "MNEMEX_LSP": "true"
+  },
+  "notes": "Index must exist at {repo_path}/.mnemex/ before running. setup.sh validates this."
+}

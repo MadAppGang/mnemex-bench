@@ -5,7 +5,7 @@
 
 ## Motivation
 
-Find the best small embedding model for claudemem's local code search. Must run on consumer hardware (Apple Silicon), support code-specific embeddings, and balance quality vs latency.
+Find the best small embedding model for mnemex's local code search. Must run on consumer hardware (Apple Silicon), support code-specific embeddings, and balance quality vs latency.
 
 ## Key Findings
 

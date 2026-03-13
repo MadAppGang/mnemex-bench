@@ -34,7 +34,7 @@ From arxiv:2508.21290 (Jina code embeddings paper, evaluated August 2025, Table 
 **Sources**:
 - [arxiv:2508.21290](https://arxiv.org/abs/2508.21290) (Jina code embeddings paper) - Quality: High, Date: August 2025
 - [jinaai/jina-code-embeddings-1.5b HuggingFace](https://huggingface.co/jinaai/jina-code-embeddings-1.5b) - Quality: High, Date: August 2025
-- [ai-docs/sessions/dev-research-embedding-models-benchmarks-20260305/embedding-model-benchmarks-march2026.md](/Users/jack/mag/claudemem/ai-docs/sessions/dev-research-embedding-models-benchmarks-20260305/embedding-model-benchmarks-march2026.md) - Quality: High, Date: 2026-03-05
+- [ai-docs/sessions/dev-research-embedding-models-benchmarks-20260305/embedding-model-benchmarks-march2026.md](/Users/jack/mag/mnemex/ai-docs/sessions/dev-research-embedding-models-benchmarks-20260305/embedding-model-benchmarks-march2026.md) - Quality: High, Date: 2026-03-05
 
 **Confidence**: High
 **Multi-source**: Yes (academic paper + model cards + local research synthesis)
@@ -98,7 +98,7 @@ From nomic-embed-code README and arxiv:2412.01007 (CodeSearchNet benchmark):
 **Sources**:
 - [nomic-ai/nomic-embed-code README](https://huggingface.co/nomic-ai/nomic-embed-code) - Quality: High, Date: March 2025
 - [arxiv:2412.01007](https://arxiv.org/abs/2412.01007) - Quality: High
-- [ai-docs/sessions/dev-research-embedding-models-benchmarks-20260305/embedding-model-benchmarks-march2026.md](/Users/jack/mag/claudemem/ai-docs/sessions/dev-research-embedding-models-benchmarks-20260305/embedding-model-benchmarks-march2026.md) - Quality: High
+- [ai-docs/sessions/dev-research-embedding-models-benchmarks-20260305/embedding-model-benchmarks-march2026.md](/Users/jack/mag/mnemex/ai-docs/sessions/dev-research-embedding-models-benchmarks-20260305/embedding-model-benchmarks-march2026.md) - Quality: High
 
 **Confidence**: High
 **Multi-source**: Yes
@@ -148,7 +148,7 @@ Metric definitions:
 - [nomic-embed-code README](https://huggingface.co/nomic-ai/nomic-embed-code) - Quality: High (row 6, 9 CSN data)
 - [Qwen3 Embedding Blog](https://qwenlm.github.io/blog/qwen3-embedding/) - Quality: High (row 8, 10 MTEB-Code)
 - [Mistral Codestral Embed announcement](https://mistral.ai/news/codestral-embed/) - Quality: Medium/vendor (row 5)
-- [ai-docs/embedding-model-research-20260304/small-embedding-models-march2026.md](/Users/jack/mag/claudemem/ai-docs/embedding-model-research-20260304/small-embedding-models-march2026.md) - Quality: High
+- [ai-docs/embedding-model-research-20260304/small-embedding-models-march2026.md](/Users/jack/mag/mnemex/ai-docs/embedding-model-research-20260304/small-embedding-models-march2026.md) - Quality: High
 
 **Confidence**: High for rows with published numbers; Medium for estimated rows
 **Multi-source**: Yes
@@ -173,7 +173,7 @@ Direct comparison from the same evaluation suite (Jina paper, August 2025):
 
 **Takeaway**: A 0.5B code-specialist (78.41) outperforms a 3.8B general model with code adapter (74.11) by 4.3 points. Code training objectives matter more than scale at these parameter counts.
 
-**Second data point** — claudemem's internal NDCG benchmark (from prior research session explorer-2.md):
+**Second data point** — mnemex's internal NDCG benchmark (from prior research session explorer-2.md):
 
 | Model | NDCG % | Type |
 |---|---|---|
@@ -187,8 +187,8 @@ Baseline = 100% (comparison baseline unstated, likely BM25-only). voyage-code-3 
 
 **Sources**:
 - [arxiv:2508.21290](https://arxiv.org/abs/2508.21290) - Quality: High (CoIR comparison)
-- [explorer-2.md — prior claudemem research](/Users/jack/mag/claudemem/ai-docs/sessions/dev-research-compare-claudemem-qmd-20260303-213614-8cd8fe67/findings/explorer-2.md) - Quality: High (internal NDCG benchmark)
-- [explorer-3b.md](/Users/jack/mag/claudemem/ai-docs/sessions/dev-research-session-memory-eval-tools-20260304-143828-32240234/findings/explorer-3b.md) - Quality: High (confirmed benchmark numbers)
+- [explorer-2.md — prior mnemex research](/Users/jack/mag/mnemex/ai-docs/sessions/dev-research-compare-mnemex-qmd-20260303-213614-8cd8fe67/findings/explorer-2.md) - Quality: High (internal NDCG benchmark)
+- [explorer-3b.md](/Users/jack/mag/mnemex/ai-docs/sessions/dev-research-session-memory-eval-tools-20260304-143828-32240234/findings/explorer-3b.md) - Quality: High (confirmed benchmark numbers)
 
 **Confidence**: High
 **Multi-source**: Yes
@@ -214,7 +214,7 @@ From SFR-Embedding-Code README (November 2024), older CoIR benchmark:
 
 **Sources**:
 - [SFR-Embedding-Code README](https://huggingface.co/Salesforce/SFR-Embedding-Code) - Quality: High, Date: November 2024
-- [ai-docs/sessions/dev-research-embedding-models-benchmarks-20260305/embedding-model-benchmarks-march2026.md](/Users/jack/mag/claudemem/ai-docs/sessions/dev-research-embedding-models-benchmarks-20260305/embedding-model-benchmarks-march2026.md) - Quality: High
+- [ai-docs/sessions/dev-research-embedding-models-benchmarks-20260305/embedding-model-benchmarks-march2026.md](/Users/jack/mag/mnemex/ai-docs/sessions/dev-research-embedding-models-benchmarks-20260305/embedding-model-benchmarks-march2026.md) - Quality: High
 
 **Confidence**: High
 **Multi-source**: Yes (both sources agree the 2024/2025 suites are incompatible)
@@ -248,7 +248,7 @@ From Mistral's own benchmark (mistral.ai/news/codestral-embed, May 2025):
 
 **Sources**:
 - [Mistral Codestral Embed announcement](https://mistral.ai/news/codestral-embed/) - Quality: Medium (vendor-self-reported), Date: May 2025
-- [ai-docs/embedding-model-research-20260304/openrouter-embedding-models-comparison.md](/Users/jack/mag/claudemem/ai-docs/embedding-model-research-20260304/openrouter-embedding-models-comparison.md) - Quality: High (analysis)
+- [ai-docs/embedding-model-research-20260304/openrouter-embedding-models-comparison.md](/Users/jack/mag/mnemex/ai-docs/embedding-model-research-20260304/openrouter-embedding-models-comparison.md) - Quality: High (analysis)
 
 **Confidence**: Low (for Codestral Embed claims); High (for the absence of independent validation)
 **Multi-source**: Yes
@@ -305,7 +305,7 @@ CoIR Score
 
 **Sources**:
 - [arxiv:2508.21290](https://arxiv.org/abs/2508.21290) - Quality: High, Date: August 2025
-- [ai-docs/sessions/dev-research-embedding-models-benchmarks-20260305/embedding-model-benchmarks-march2026.md](/Users/jack/mag/claudemem/ai-docs/sessions/dev-research-embedding-models-benchmarks-20260305/embedding-model-benchmarks-march2026.md) - Quality: High
+- [ai-docs/sessions/dev-research-embedding-models-benchmarks-20260305/embedding-model-benchmarks-march2026.md](/Users/jack/mag/mnemex/ai-docs/sessions/dev-research-embedding-models-benchmarks-20260305/embedding-model-benchmarks-march2026.md) - Quality: High
 
 **Confidence**: High
 **Multi-source**: Yes
@@ -338,7 +338,7 @@ CoIR Score
 **Sources**:
 - [arxiv:2508.21290](https://arxiv.org/abs/2508.21290) - Quality: High (jina-code-0.5b, Qwen3-0.6B)
 - [nomic-ai/nomic-embed-code README](https://huggingface.co/nomic-ai/nomic-embed-code) - Quality: High (CodeRankEmbed-137M)
-- [ai-docs/embedding-model-research-20260304/small-embedding-models-march2026.md](/Users/jack/mag/claudemem/ai-docs/embedding-model-research-20260304/small-embedding-models-march2026.md) - Quality: High (Qwen3-0.6B scores, local model sizes)
+- [ai-docs/embedding-model-research-20260304/small-embedding-models-march2026.md](/Users/jack/mag/mnemex/ai-docs/embedding-model-research-20260304/small-embedding-models-march2026.md) - Quality: High (Qwen3-0.6B scores, local model sizes)
 
 **Confidence**: High (published scores); Medium (estimated scores for bge-m3, nomic, snowflake)
 **Multi-source**: Yes
@@ -363,9 +363,9 @@ CoIR Score
 8. [SFR-Embedding-Code README](https://huggingface.co/Salesforce/SFR-Embedding-Code) — Official model card, Quality: High, Date: November 2024
 9. [Mistral Codestral Embed](https://mistral.ai/news/codestral-embed/) — Vendor blog, Quality: Medium (self-reported), Date: May 2025
 10. [Voyage Code 3 blog](https://blog.voyageai.com/2024/12/04/voyage-code-3/) — Vendor blog, Quality: Medium, Date: December 2024
-11. [ai-docs/embedding-model-research-20260304/small-embedding-models-march2026.md](/Users/jack/mag/claudemem/ai-docs/embedding-model-research-20260304/small-embedding-models-march2026.md) — Local research, Quality: High, Date: 2026-03-05
-12. [ai-docs/sessions/dev-research-embedding-models-benchmarks-20260305/embedding-model-benchmarks-march2026.md](/Users/jack/mag/claudemem/ai-docs/sessions/dev-research-embedding-models-benchmarks-20260305/embedding-model-benchmarks-march2026.md) — Local research, Quality: High, Date: 2026-03-05
-13. [explorer-3b.md (claudemem internal NDCG benchmark)](/Users/jack/mag/claudemem/ai-docs/sessions/dev-research-session-memory-eval-tools-20260304-143828-32240234/findings/explorer-3b.md) — Local research/internal data, Quality: High, Date: 2026-03-04
+11. [ai-docs/embedding-model-research-20260304/small-embedding-models-march2026.md](/Users/jack/mag/mnemex/ai-docs/embedding-model-research-20260304/small-embedding-models-march2026.md) — Local research, Quality: High, Date: 2026-03-05
+12. [ai-docs/sessions/dev-research-embedding-models-benchmarks-20260305/embedding-model-benchmarks-march2026.md](/Users/jack/mag/mnemex/ai-docs/sessions/dev-research-embedding-models-benchmarks-20260305/embedding-model-benchmarks-march2026.md) — Local research, Quality: High, Date: 2026-03-05
+13. [explorer-3b.md (mnemex internal NDCG benchmark)](/Users/jack/mag/mnemex/ai-docs/sessions/dev-research-session-memory-eval-tools-20260304-143828-32240234/findings/explorer-3b.md) — Local research/internal data, Quality: High, Date: 2026-03-04
 
 ---
 
@@ -379,7 +379,7 @@ CoIR Score
 
 3. **nomic CodeRankEmbed-137M full benchmark profile**: Only CodeSearchNet scores published (77.9). No CoIR evaluation, no MTEB-Code score, no context length published. This model may be highly competitive at 137M parameters. Suggested query: `"nomic CodeRankEmbed-137M CoIR MTEB benchmark"`
 
-4. **Jina code-0.5B commercial license**: CC-BY-NC-4.0 blocks production claudemem use. No Apache/MIT licensed alternative at the same CoIR performance level exists under 1B parameters. Suggested query: `"jina code embeddings commercial license exception"`
+4. **Jina code-0.5B commercial license**: CC-BY-NC-4.0 blocks production mnemex use. No Apache/MIT licensed alternative at the same CoIR performance level exists under 1B parameters. Suggested query: `"jina code embeddings commercial license exception"`
 
 5. **Per-language breakdown for Jina code models**: The Jina paper reports CSN overall but uses CSN* (subset). The full 6-language breakdown matching the nomic-embed-code table format is not available for Jina models.
 

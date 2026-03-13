@@ -1,0 +1,9 @@
+{
+  "test_id": "02-find-references",
+  "mcp_server": "mnemex",
+  "duration_seconds": 105,
+  "exit_code": 0,
+  "total_mcp_tool_calls": 9,
+  "transcript_lines":       42,
+  "timeout_seconds": 180
+}

@@ -12,18 +12,18 @@
 
 ### 1. SWE-bench Issue-to-Patch Pairs Are the Best Real-Developer Retrieval Ground Truth [CONSENSUS: UNANIMOUS]
 
-**Summary**: The SWE-bench schema maps directly to a (query, relevant_files) retrieval benchmark with zero annotation cost. Every SWE-bench instance gives a `problem_statement` (NL query) and a `patch` (unified diff → extract modified file paths as ground truth). This is confirmed from three independent sources: the agentbench `swebench.py` schema, the claudemem `analyze.py` gold-patch extraction, and the research plan's Approach A.
+**Summary**: The SWE-bench schema maps directly to a (query, relevant_files) retrieval benchmark with zero annotation cost. Every SWE-bench instance gives a `problem_statement` (NL query) and a `patch` (unified diff → extract modified file paths as ground truth). This is confirmed from three independent sources: the agentbench `swebench.py` schema, the mnemex `analyze.py` gold-patch extraction, and the research plan's Approach A.
 
 **Evidence**:
 - The `SweBenchInstance.task` field = `problem_statement` (the GitHub issue text — the retrieval query) [Source: `agentbench/benchmarks/swebench.py`]
-- `analyze.py` extracts `gold_patch.get_file_names()` as ground truth files already [Source: local `eval/agentbench-claudemem/scripts/analyze.py`]
+- `analyze.py` extracts `gold_patch.get_file_names()` as ground truth files already [Source: local `eval/agentbench-mnemex/scripts/analyze.py`]
 - 24 instances available immediately (12 repos × 2), 500 via `princeton-nlp/SWE-bench_Verified`, ~2,294 via full SWE-bench [Source: `run_condition.py` FILTER + HuggingFace dataset card]
 - No published paper has formally packaged SWE-bench as a standalone retrieval benchmark — this is genuinely novel [Confirmed by all 3 explorers]
 - Limitation: file-level granularity (not function-level); patches touch auxiliary files (tests, docs) alongside core implementation files
 
 **Supporting Sources**:
 - `/Users/jack/mag/agentbench/src/agentbench/benchmarks/swebench.py` — High, 2026-03-06
-- `/Users/jack/mag/claudemem/eval/agentbench-claudemem/scripts/analyze.py` — High, 2026-03-06
+- `/Users/jack/mag/mnemex/eval/agentbench-mnemex/scripts/analyze.py` — High, 2026-03-06
 - [SWE-bench HuggingFace (princeton-nlp/SWE-bench_Verified)](https://huggingface.co/datasets/princeton-nlp/SWE-bench_Verified) — High, 2024
 - [SWE-bench paper arXiv:2310.06770](https://arxiv.org/abs/2310.06770) — High, 2023
 
@@ -33,7 +33,7 @@
 
 ### 2. No Published Code Search Dataset Has Query Type Labels — Must Generate [CONSENSUS: UNANIMOUS]
 
-**Summary**: Every major code search dataset (CodeSearchNet, CoSQA, AdvTest, RepoQA, CoIR) was surveyed across all 3 explorers. None provide explicit symbol_lookup / semantic_search / structural / exploratory type labels. The field's query type taxonomy is newer than the datasets. The claudemem codebase's existing `query-generator.ts` (8 query types) and heuristic auto-labeling (regex patterns on issue text) are the recommended solutions.
+**Summary**: Every major code search dataset (CodeSearchNet, CoSQA, AdvTest, RepoQA, CoIR) was surveyed across all 3 explorers. None provide explicit symbol_lookup / semantic_search / structural / exploratory type labels. The field's query type taxonomy is newer than the datasets. The mnemex codebase's existing `query-generator.ts` (8 query types) and heuristic auto-labeling (regex patterns on issue text) are the recommended solutions.
 
 **Evidence**:
 - Survey of all major datasets confirms: CodeSearchNet (docstrings only = all semantic), CoSQA (Bing queries, no type labels), RepoQA (function descriptions only = all semantic), CoIR (mixed but unlabeled), SWE-bench (partial: bug/feature = proxy for type) [Source: Explorer 1, Finding 6, full survey table]
@@ -43,7 +43,7 @@
 
 **Supporting Sources**:
 - [CoIR benchmark paper arXiv:2407.02883](https://arxiv.org/abs/2407.02883) — High, July 2024
-- `/Users/jack/mag/claudemem/src/benchmark-v2/extractors/query-generator.ts` — High, 2026-02-25
+- `/Users/jack/mag/mnemex/src/benchmark-v2/extractors/query-generator.ts` — High, 2026-02-25
 - Research plan `/research-plan.md` Section 1 "Query Type Label Gap" — High, 2026-03-06
 - Prior research session `dev-research-query-planner-code-search-20260306-013647-95ad5665/report.md` — High, 2026-03-06
 
@@ -53,7 +53,7 @@
 
 ### 3. Extend benchmark-v2 as Primary Harness — Already Has NDCG, MRR, Wilcoxon [CONSENSUS: STRONG]
 
-**Summary**: The claudemem `src/benchmark-v2/` directory contains a production-grade evaluation pipeline with NDCG@K, MRR@K, P@K, paired Wilcoxon signed-rank tests, and per-query-type breakdowns. Extending this is lower effort than adopting an external harness. The required additions are: (a) real qrels loader from BEIR JSONL format, (b) component isolation toggles (router/expander/reranker on/off), (c) BEIR-compatible output writer for external comparison. BEIR and ranx serve as compatibility layers, not replacements.
+**Summary**: The mnemex `src/benchmark-v2/` directory contains a production-grade evaluation pipeline with NDCG@K, MRR@K, P@K, paired Wilcoxon signed-rank tests, and per-query-type breakdowns. Extending this is lower effort than adopting an external harness. The required additions are: (a) real qrels loader from BEIR JSONL format, (b) component isolation toggles (router/expander/reranker on/off), (c) BEIR-compatible output writer for external comparison. BEIR and ranx serve as compatibility layers, not replacements.
 
 **Evidence**:
 - `src/benchmark-v2/evaluators/retrieval/index.ts` implements NDCG@K, per-query-type breakdown [Source: Explorer 2, Finding 5 — direct code read]
@@ -62,10 +62,10 @@
 - `src/benchmark-v2/types.ts` has `EvaluationWeights` and `GeneratedQuery` with `type: QueryType` field — schema supports query-type-labeled evaluation without changes [Source: Explorer 3, Finding 8]
 
 **Supporting Sources**:
-- `/Users/jack/mag/claudemem/src/benchmark-v2/evaluators/retrieval/index.ts` — High, 2026-02-25
-- `/Users/jack/mag/claudemem/src/benchmark-v2/scorers/statistics.ts` — High, 2026-02-25
-- `/Users/jack/mag/claudemem/src/benchmark-v2/types.ts` — High, 2026-02-25
-- `/Users/jack/mag/claudemem/eval/embedding-benchmark.ts` — High, 2026-02-25
+- `/Users/jack/mag/mnemex/src/benchmark-v2/evaluators/retrieval/index.ts` — High, 2026-02-25
+- `/Users/jack/mag/mnemex/src/benchmark-v2/scorers/statistics.ts` — High, 2026-02-25
+- `/Users/jack/mag/mnemex/src/benchmark-v2/types.ts` — High, 2026-02-25
+- `/Users/jack/mag/mnemex/eval/embedding-benchmark.ts` — High, 2026-02-25
 
 **Confidence**: High (direct code inspection)
 
@@ -82,7 +82,7 @@
 - Research plan Section 3 specifies "200 queries sufficient to detect 5% MRR improvement with 80% power" [Source: research-plan.md]
 
 **Supporting Sources**:
-- `/Users/jack/mag/claudemem/src/benchmark-v2/scorers/statistics.ts` — High, 2026-02-25
+- `/Users/jack/mag/mnemex/src/benchmark-v2/scorers/statistics.ts` — High, 2026-02-25
 - `research-plan.md` Section 3 — High, 2026-03-06
 - `dev-research-embed-eval-methods-20260305-085036-2fea1a92/findings/explorer-2.md` Finding 7 — High, 2026-03-05
 
@@ -102,7 +102,7 @@
 - Vocabulary contamination risk: `doc_api_lookup` and `specific_behavior` query types have high identifier leakage risk; `vague`, `wrong_terminology`, `problem_based` are low risk [Source: Explorer 3, Finding 3 + prior research]
 
 **Supporting Sources**:
-- `/Users/jack/mag/claudemem/src/benchmark-v2/extractors/query-generator.ts` — High, 2026-02-25
+- `/Users/jack/mag/mnemex/src/benchmark-v2/extractors/query-generator.ts` — High, 2026-02-25
 - `dev-research-embed-eval-methods-20260305-085036-2fea1a92/findings/explorer-2.md` — High, 2026-03-05
 - `research-plan.md` Section 3 Approach C — High, 2026-03-06
 - MEMORY.md (12 repos, ~39K symbols confirmed) — High, 2026-03-06
@@ -171,7 +171,7 @@ Layer 4: Comparison
 - `scorers/statistics.ts`: Wilcoxon signed-rank, paired t-test, effect size
 - `extractors/query-generator.ts`: 8-type query generation, quality controls
 - `eval/embedding-benchmark.ts`: Cross-model comparison pattern
-- `eval/agentbench-claudemem/`: End-to-end resolve rate (already built)
+- `eval/agentbench-mnemex/`: End-to-end resolve rate (already built)
 
 **What to add** (minimal delta):
 1. `eval/code-search-harness/loader.ts` — load BEIR JSONL qrels into benchmark-v2 format
@@ -182,16 +182,16 @@ Layer 4: Comparison
 ### Secondary: BEIR + ranx (Python, for external comparison)
 
 ```python
-# Wrap claudemem retrieval as BEIR-compatible retriever
+# Wrap mnemex retrieval as BEIR-compatible retriever
 from beir.retrieval.evaluation import EvaluateRetrieval
 
-class Claudemem Retriever:
+class Mnemex Retriever:
     def retrieve(self, corpus, queries):
-        # Call claudemem CLI via subprocess with --agent flag
+        # Call mnemex CLI via subprocess with --agent flag
         # Parse ranked results
         return {query_id: {doc_id: score, ...}, ...}
 
-evaluator = EvaluateRetrieval(ClaudememRetriever())
+evaluator = EvaluateRetrieval(MnemexRetriever())
 ndcg, map, recall, precision = evaluator.evaluate(qrels, results, [5, 10, 100])
 ```
 
@@ -228,7 +228,7 @@ for instance in load_24_agentbench_instances():
 **Step 2: Generate synthetic queries from 12 repos**
 ```bash
 # For each repo, get top-30 PageRank symbols:
-claudemem map --agent /path/to/repo | head -30
+mnemex map --agent /path/to/repo | head -30
 # Feed to query-generator.ts → 8 queries per symbol
 # Apply quality filters: identifier leakage, length, diversity
 ```
@@ -240,7 +240,7 @@ claudemem map --agent /path/to/repo | head -30
 ### Phase 1: Baseline (Day 2-3)
 
 **Condition A: Pure hybrid retrieval (no router, no expander, no reranker)**
-- Run claudemem retrieval on all 200 retrieval eval queries
+- Run mnemex retrieval on all 200 retrieval eval queries
 - Record per-query MRR, NDCG@10, Recall@100
 - Target: MRR@10 baseline in 0.4-0.6 range (too easy <0.7, too hard >0.8 — need discriminable range)
 - If baseline is outside range: adjust corpus size or query difficulty
@@ -277,7 +277,7 @@ claudemem map --agent /path/to/repo | head -30
 ### Phase 4: End-to-End Validation (Day 5-6)
 
 **Use existing agentbench harness** with 24 SWE-bench instances:
-- Run conditions: no_plan vs claudemem_full vs best-new-router
+- Run conditions: no_plan vs mnemex_full vs best-new-router
 - Metrics: resolve_rate + files_retrieved_that_were_patched (new metric)
 - Statistical note: 24 instances only detects ≥18% resolve rate delta — interpret with caution; use for directional signal only
 
@@ -388,7 +388,7 @@ claudemem map --agent /path/to/repo | head -30
 
 3. **Extract SWE-bench pairs** (1 hour): Write a 20-line Python script using the agentbench `swebench.py` schema to output `(problem_statement, patch_files, auto_label)` for all 24 instances. This is the immediate pilot dataset.
 
-4. **Run Condition A baseline** (2 hours): Run existing claudemem retrieval on the 24 SWE-bench queries, record Recall@1 and Recall@5. This validates the pipeline before building the full harness.
+4. **Run Condition A baseline** (2 hours): Run existing mnemex retrieval on the 24 SWE-bench queries, record Recall@1 and Recall@5. This validates the pipeline before building the full harness.
 
 **Architecture decisions** (confirmed):
 - Extend `benchmark-v2/` rather than building from scratch

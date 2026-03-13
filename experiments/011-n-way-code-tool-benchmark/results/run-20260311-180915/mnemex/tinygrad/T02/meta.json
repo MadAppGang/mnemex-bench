@@ -1,0 +1,20 @@
+{
+  "test_id": "T02",
+  "tool": "mnemex",
+  "repo": "tinygrad",
+  "run_id": "run-20260311-180915",
+  "duration_seconds": 0,
+  "exit_code": 0,
+  "timed_out": false,
+  "total_tool_calls": 6,
+  "designated_tool_calls": 4,
+  "unauthorized_mcp_calls": 0,
+  "compliance_passed": true,
+  "designated_tool_prefix": "mcp__mnemex__",
+  "token_score": 0.0,
+  "input_tokens": 0,
+  "output_tokens": 0,
+  "cost_usd": 0.0,
+  "task_category": "symbol-lookup",
+  "task_difficulty": "medium"
+}

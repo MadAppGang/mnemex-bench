@@ -5,7 +5,7 @@
 #   bash harness/run.sh [OPTIONS]
 #
 # Options:
-#   --tools   claudemem,bare-claude  (comma-separated tool IDs, or "all")
+#   --tools   mnemex,bare-claude  (comma-separated tool IDs, or "all")
 #   --repos   fastmcp,tinygrad       (comma-separated repo names, or "all")
 #   --tasks   T01,T02                (comma-separated task IDs, or "all")
 #   --timeout 300                    (seconds per session, default 300)

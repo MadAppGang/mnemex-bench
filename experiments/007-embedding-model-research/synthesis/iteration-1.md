@@ -20,7 +20,7 @@
 - Size at Q4 GGUF: **~350MB** [Sources: explorer-1, explorer-2]
 - NOT on Ollama registry — requires GGUF manual import or LM Studio [Sources: explorer-1, explorer-2]
 
-**Critical limitation**: License is **CC-BY-NC-4.0** (non-commercial use only). For production claudemem distribution, this is a blocker unless commercial license obtained from Jina AI.
+**Critical limitation**: License is **CC-BY-NC-4.0** (non-commercial use only). For production mnemex distribution, this is a blocker unless commercial license obtained from Jina AI.
 
 **Supporting Sources**: 3 (arxiv paper + 2 HF model cards)
 **Quality**: High
@@ -54,7 +54,7 @@
 **Evidence**:
 - Jina code-0.5B (500M, code-specialist) CoIR 78.41 > Jina v4 (3.8B, general) CoIR 74.11 [Sources: arxiv:2508.21290]
 - Jina code-0.5B (500M) CoIR 78.41 > Qwen3-0.6B (600M, general) CoIR 73.49 [Sources: arxiv:2508.21290]
-- claudemem internal NDCG: voyage-code-3 outperforms text-embedding-3-small by 24% relative on real code queries [Sources: explorer-2 citing internal benchmark]
+- mnemex internal NDCG: voyage-code-3 outperforms text-embedding-3-small by 24% relative on real code queries [Sources: explorer-2 citing internal benchmark]
 - nomic-embed-text (our current baseline, 137M, general) estimated CoIR ~44 — massive gap to code-specialized models [Sources: explorer-1, explorer-2]
 
 **Supporting Sources**: 3
@@ -87,7 +87,7 @@
 - Tier A: jina-code-0.5B (78.41), jina-code-1.5B (79.04), Voyage Code 3 API (79.23) [Sources: arxiv:2508.21290]
 - Tier B: Qwen3-0.6B (73.49), Jina v4 (74.11), Gemini 001 API (77.38) [Sources: arxiv:2508.21290]
 - Tier C: nomic-embed-text v1.5 (~44 est.), snowflake-arctic-embed2 (~50 est.) [Sources: explorer-1, explorer-2]
-- Current claudemem default (nomic-embed-text) is Tier C — any candidate upgrade is a massive improvement [Sources: explorer-1, explorer-2]
+- Current mnemex default (nomic-embed-text) is Tier C — any candidate upgrade is a massive improvement [Sources: explorer-1, explorer-2]
 
 **Supporting Sources**: 3
 **Quality**: High
@@ -100,7 +100,7 @@ Sorted by expected code retrieval quality (CoIR when available, CSN avg otherwis
 
 | Rank | Model | Params | Size (Q4) | CoIR | MTEB-Code | CSN Avg | Context | License | Ollama | Release | Notes |
 |------|-------|--------|-----------|------|-----------|---------|---------|---------|--------|---------|-------|
-| 1 | voyage-3.5-lite (baseline) | API | Cloud | ~50 est. | — | — | 32K | Commercial | No | 2024 | Current claudemem cloud baseline; MRR 0.500 internal |
+| 1 | voyage-3.5-lite (baseline) | API | Cloud | ~50 est. | — | — | 32K | Commercial | No | 2024 | Current mnemex cloud baseline; MRR 0.500 internal |
 | 2 | jina-code-embeddings-1.5b | 1.5B | ~1.0GB | **79.04** | 78.94 | 91.38* | 32K | **CC-BY-NC** | No (GGUF) | Aug 2025 | Best open-weight code model; non-commercial only |
 | 3 | jina-code-embeddings-0.5b | 0.5B | ~350MB | **78.41** | 78.72 | 90.68* | 32K | **CC-BY-NC** | No (GGUF) | Aug 2025 | Best sub-1B code model; non-commercial only |
 | 4 | nomic-embed-code | 7B | ~4.5GB | — | — | 81.2 | 8K | Apache 2.0 | No (GGUF) | Mar 2025 | Best Apache 2.0 code model; too large for most |
@@ -110,7 +110,7 @@ Sorted by expected code retrieval quality (CoIR when available, CSN avg otherwis
 | 8 | SFR-Embedding-Code-400M | 400M | ~800MB | 61.9** | — | — | ? | Apache 2.0 | No | Jan 2025 | Older CoIR suite; lower quality |
 | 9 | CodeSage Large v2 | 1.3B | ~1.3GB | 64.2** | — | 74.3 | ? | Apache 2.0 | No | 2024 | Older CoIR suite; exceeds 1B constraint |
 | 10 | snowflake-arctic-embed2 | 568M | ~309MB | ~50 est. | ~48 est. | — | 8K | Apache 2.0 | **YES** | 2024 | Best simple Ollama option; general model |
-| 11 | nomic-embed-text v1.5 (baseline) | 137M | 274MB | ~44 est. | ~44 est. | — | 8K | Apache 2.0 | **YES** | 2023 | Current claudemem local default |
+| 11 | nomic-embed-text v1.5 (baseline) | 137M | 274MB | ~44 est. | ~44 est. | — | 8K | Apache 2.0 | **YES** | 2023 | Current mnemex local default |
 | 12 | nomic-embed-text-v2-moe | 475M | — | — | — | — | **512** | Apache 2.0 | No | Feb 2025 | **DISQUALIFIED** — 512-token context |
 | 13 | embeddinggemma (baseline) | ~300M | ~300MB | — | — | — | ? | ? | No | 2024 | Current test; MRR 0.127 internal |
 
@@ -142,7 +142,7 @@ Sorted by expected code retrieval quality (CoIR when available, CSN avg otherwis
 
 ### 2. jina-code-embeddings-0.5b — Best Code Quality if CC-BY-NC Acceptable
 
-**Why**: The only sub-1B model in Tier A (CoIR 78.41). Outperforms qwen3-0.6b by +4.92 CoIR points for code-specific retrieval. At ~350MB GGUF, it is smaller than qwen3-0.6b on Ollama. If claudemem is used only internally/non-commercially, this is the optimal local model.
+**Why**: The only sub-1B model in Tier A (CoIR 78.41). Outperforms qwen3-0.6b by +4.92 CoIR points for code-specific retrieval. At ~350MB GGUF, it is smaller than qwen3-0.6b on Ollama. If mnemex is used only internally/non-commercially, this is the optimal local model.
 
 **Key stats**: 500M params, ~350MB Q4 GGUF, CoIR 78.41, MTEB-Code 78.72, 32K ctx, CC-BY-NC
 **Setup**: GGUF import via Ollama or LM Studio (one-time, ~5 minutes)
@@ -165,7 +165,7 @@ Sorted by expected code retrieval quality (CoIR when available, CSN avg otherwis
 **Why**: Already on Ollama (309MB), Apache 2.0, better MTEB retrieval (~56.5) than nomic-embed-text (~49.8). Serves as the "zero-config upgrade" comparison point — validates whether qwen3-0.6b's extra setup is worth the quality gain.
 
 **Key stats**: 568M params, 309MB Ollama, ~50 CoIR est., 8K ctx, Apache 2.0
-**Setup**: `ollama pull snowflake-arctic-embed2` (already supported in claudemem codebase)
+**Setup**: `ollama pull snowflake-arctic-embed2` (already supported in mnemex codebase)
 **Risk**: 8K context window limits large file indexing; general model not code-specialized
 
 ---
@@ -244,7 +244,7 @@ Sorted by expected code retrieval quality (CoIR when available, CSN avg otherwis
 
 ### IMPORTANT Gaps (should investigate)
 
-3. **Jina code models commercial license path**: CC-BY-NC-4.0 blocks claudemem distribution. Does Jina offer a commercial license?
+3. **Jina code models commercial license path**: CC-BY-NC-4.0 blocks mnemex distribution. Does Jina offer a commercial license?
    - Suggested action: Contact jina.ai/contact or check enterprise pricing
    - Priority: IMPORTANT (affects whether jina-code models can be recommended to users)
 
@@ -253,7 +253,7 @@ Sorted by expected code retrieval quality (CoIR when available, CSN avg otherwis
    - Priority: IMPORTANT (4B and 8B variants may be strong mid-tier candidates)
 
 5. **Independent Codestral Embed 2505 CoIR evaluation**: Only self-reported Mistral benchmarks exist. May be best cloud code model with 8K context limitation.
-   - Suggested action: Run claudemem benchmark empirically against Mistral API
+   - Suggested action: Run mnemex benchmark empirically against Mistral API
    - Priority: IMPORTANT
 
 ### NICE-TO-HAVE Gaps
@@ -290,7 +290,7 @@ Sorted by expected code retrieval quality (CoIR when available, CSN avg otherwis
 3. Run benchmark with: qwen3-0.6b, jina-code-0.5b (GGUF), snowflake-arctic-embed2, nomic-embed-text v1.5 (baseline)
 
 **Benchmark Design**:
-- Use existing claudemem internal NDCG evaluation framework (already has MRR metric)
+- Use existing mnemex internal NDCG evaluation framework (already has MRR metric)
 - Add jina-code-0.5b via GGUF Ollama import (`ollama pull hf.co/jinaai/jina-code-embeddings-0.5b-GGUF:Q4_K_M`)
 - Test Qwen3-0.6b WITH instruction prefix vs. without to quantify prefix impact
 - Run all candidates against same test set to get comparable MRR values

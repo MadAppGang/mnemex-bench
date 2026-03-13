@@ -1,0 +1,59 @@
+{
+  "scenarioId": 1,
+  "repo": "mnemex",
+  "condition": "no-index",
+  "title": "Bug: --agent flag ordering",
+  "task": "The `--agent` flag doesn't seem to work when placed after the command name (e.g., `mnemex search --agent`). Investigate why and explain the root cause. Do NOT make any code changes.",
+  "output": "Now I have the full picture. Here's the root cause:\n\n---\n\n## Root Cause\n\nThe `--agent` flag **actually is** correctly detected regardless of position. The check at `cli.ts:188` uses `args.includes(\"--agent\")`, which scans the entire array:\n\n```typescript\nif (args.includes(\"--agent\")) {\n    agentMode = true;\n    args = args.filter((a) => a !== \"--agent\");\n}\n```\n\nSo `mnemex search --agent` sets `agentMode = true` just as well as `mnemex --agent search`.\n\nThe perceived failure comes from the **\"no query\" error path** in `handleSearch` at `cli.ts:1385-1389`:\n\n```typescript\nif (!query) {\n    console.error(\"Error: No search query provided.\");\n    console.error('Usage: mnemex search \"your query\"');\n    process.exit(1);\n}\n```\n\nWhen you run `mnemex search --agent` with no query text:\n1. `--agent` is stripped and `agentMode = true` is set ✓\n2. `handleSearch([])` is called with an empty args slice\n3. The query resolves to `\"\"` and this error fires — **unconditionally, without checking `agentMode`**\n\nThis makes it _appear_ that `--agent` had no effect, because the output is raw `console.error` instead of agent-mode format.\n\nCompare this to other command handlers which correctly respect `agentMode` for their missing-argument errors — e.g. `handleSymbol` at `cli.ts:4050`:\n\n```typescript\nif (!symbolName) {\n    if (agentMode) {\n        agentOutput.error(\"Usage: mnemex --agent symbol <name>\");\n    } else {\n        console.error(\"Usage: mnemex symbol <name> [--file <hint>]\");\n    }\n    process.exit(1);\n}\n```\n\n`handleSearch` is the inconsistent one. The flag placement is a red herring — the actual issue is that `handleSearch`'s no-query error path ignores `agentMode` entirely.",
+  "claudeJson": {
+    "type": "result",
+    "subtype": "success",
+    "is_error": false,
+    "duration_ms": 359050,
+    "duration_api_ms": 355752,
+    "num_turns": 16,
+    "result": "Now I have the full picture. Here's the root cause:\n\n---\n\n## Root Cause\n\nThe `--agent` flag **actually is** correctly detected regardless of position. The check at `cli.ts:188` uses `args.includes(\"--agent\")`, which scans the entire array:\n\n```typescript\nif (args.includes(\"--agent\")) {\n    agentMode = true;\n    args = args.filter((a) => a !== \"--agent\");\n}\n```\n\nSo `mnemex search --agent` sets `agentMode = true` just as well as `mnemex --agent search`.\n\nThe perceived failure comes from the **\"no query\" error path** in `handleSearch` at `cli.ts:1385-1389`:\n\n```typescript\nif (!query) {\n    console.error(\"Error: No search query provided.\");\n    console.error('Usage: mnemex search \"your query\"');\n    process.exit(1);\n}\n```\n\nWhen you run `mnemex search --agent` with no query text:\n1. `--agent` is stripped and `agentMode = true` is set ✓\n2. `handleSearch([])` is called with an empty args slice\n3. The query resolves to `\"\"` and this error fires — **unconditionally, without checking `agentMode`**\n\nThis makes it _appear_ that `--agent` had no effect, because the output is raw `console.error` instead of agent-mode format.\n\nCompare this to other command handlers which correctly respect `agentMode` for their missing-argument errors — e.g. `handleSymbol` at `cli.ts:4050`:\n\n```typescript\nif (!symbolName) {\n    if (agentMode) {\n        agentOutput.error(\"Usage: mnemex --agent symbol <name>\");\n    } else {\n        console.error(\"Usage: mnemex symbol <name> [--file <hint>]\");\n    }\n    process.exit(1);\n}\n```\n\n`handleSearch` is the inconsistent one. The flag placement is a red herring — the actual issue is that `handleSearch`'s no-query error path ignores `agentMode` entirely.",
+    "stop_reason": "end_turn",
+    "session_id": "e9d97d6e-8215-458a-a0b2-ca602de97693",
+    "total_cost_usd": 0.9906915,
+    "usage": {
+      "input_tokens": 20,
+      "cache_creation_input_tokens": 50046,
+      "cache_read_input_tokens": 312758,
+      "output_tokens": 20857,
+      "server_tool_use": {
+        "web_search_requests": 0,
+        "web_fetch_requests": 0
+      },
+      "service_tier": "standard",
+      "cache_creation": {
+        "ephemeral_1h_input_tokens": 0,
+        "ephemeral_5m_input_tokens": 50046
+      },
+      "inference_geo": "",
+      "iterations": [],
+      "speed": "standard"
+    },
+    "modelUsage": {
+      "claude-sonnet-4-6": {
+        "inputTokens": 20,
+        "outputTokens": 20857,
+        "cacheReadInputTokens": 312758,
+        "cacheCreationInputTokens": 50046,
+        "webSearchRequests": 0,
+        "costUSD": 0.9906915,
+        "contextWindow": 200000,
+        "maxOutputTokens": 32000
+      }
+    },
+    "permission_denials": [],
+    "fast_mode_state": "off",
+    "uuid": "d1c95e92-a12e-4650-805f-4c0b803465ca"
+  },
+  "durationMs": 363410,
+  "tokensIn": 20,
+  "tokensOut": 20857,
+  "toolCalls": 16,
+  "costUsd": 0.9906915,
+  "timestamp": "2026-03-05T21:55:25.610Z"
+}

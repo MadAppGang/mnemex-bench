@@ -13,8 +13,8 @@
 - `src/benchmark-v2/types.ts` (High, current)
 - `eval/embedding-benchmark.ts` (High, current)
 - `eval/cognitive-mvp/validate.ts` (High, current)
-- `eval/agentbench-claudemem/scripts/evaluate.py` (High, current)
-- `eval/agentbench-claudemem/scripts/analyze.py` (High, current)
+- `eval/agentbench-mnemex/scripts/evaluate.py` (High, current)
+- `eval/agentbench-mnemex/scripts/analyze.py` (High, current)
 - `research-plan.md` (High, session context)
 - Prior CoIR/MTEB/BEIR synthesis in explorer-1 from embed-eval session
 
@@ -45,7 +45,7 @@ For code search adaptation, the mapping is:
 - `queries.jsonl` → natural language developer queries (or docstrings)
 - `qrels/test.tsv` → (query_id, function_id, 1) for ground-truth pairs
 
-BEIR supports plugging in custom retrieval pipelines via its `EvaluateRetrieval` class — the harness calls `retriever.retrieve(corpus, queries)` and the caller provides a dict mapping `{query_id: {doc_id: score}}`. This means claudemem's hybrid BM25+vector retrieval can be wrapped with minimal glue code (expose `retrieve()` method returning ranked doc_ids).
+BEIR supports plugging in custom retrieval pipelines via its `EvaluateRetrieval` class — the harness calls `retriever.retrieve(corpus, queries)` and the caller provides a dict mapping `{query_id: {doc_id: score}}`. This means mnemex's hybrid BM25+vector retrieval can be wrapped with minimal glue code (expose `retrieve()` method returning ranked doc_ids).
 
 BEIR's built-in metrics (from prior research, explorer-1 of embed-eval session, Finding 1):
 - NDCG@10 (primary — canonical for all BEIR tasks, inherited by MTEB)
@@ -130,12 +130,12 @@ Only `context_recall` is usable without an answer — but it requires manually a
 
 For code search specifically, "ground truth" is a code chunk (not a natural language answer), and there is no sensible answer generation step to evaluate. RAGAS adds complexity without benefit.
 
-**Alternative for end-to-end eval**: The existing agentbench harness (eval/agentbench-claudemem) already provides end-to-end task completion metrics (resolve rate) that capture retrieval contribution implicitly. This is more informative than RAGAS context metrics for our use case.
+**Alternative for end-to-end eval**: The existing agentbench harness (eval/agentbench-mnemex) already provides end-to-end task completion metrics (resolve rate) that capture retrieval contribution implicitly. This is more informative than RAGAS context metrics for our use case.
 
 **Sources**:
 - `research-plan.md` (Section 2) — Quality: High, 2026-03-06
 - [github.com/explodinggradients/ragas](https://github.com/explodinggradients/ragas) — Quality: High (referenced in research plan; within knowledge cutoff)
-- `eval/agentbench-claudemem/scripts/evaluate.py` — Quality: High (local alternative)
+- `eval/agentbench-mnemex/scripts/evaluate.py` — Quality: High (local alternative)
 
 **Confidence**: High (on RAGAS not fitting; unanimous across all sources)
 **Multi-source**: Yes
@@ -177,10 +177,10 @@ results = evaluate(qrels, run, ["ndcg@10", "mrr@10", "recall@100", "map@100"])
 | ir-measures | Python / TREC TSV | Limited | trec_eval binary | TREC-compatible workflows |
 | trec_eval | TSV files | External | C binary | Official TREC submissions |
 
-**Integration with claudemem**:
-The `eval/embedding-benchmark.ts` already implements P@K, MRR from scratch (TypeScript). For Python-based harness code (which will wrap claudemem's retrieval via subprocess), `ranx` would replace the metric computation while providing statistical significance testing.
+**Integration with mnemex**:
+The `eval/embedding-benchmark.ts` already implements P@K, MRR from scratch (TypeScript). For Python-based harness code (which will wrap mnemex's retrieval via subprocess), `ranx` would replace the metric computation while providing statistical significance testing.
 
-The claudemem `src/benchmark-v2/scorers/statistics.ts` implements: paired t-test, Wilcoxon signed-rank test (with continuity correction), Cohen's Kappa, Pearson/Spearman correlation — independently of external libraries. The ranx library would be redundant for the TypeScript benchmark but essential for a BEIR-compatible Python harness.
+The mnemex `src/benchmark-v2/scorers/statistics.ts` implements: paired t-test, Wilcoxon signed-rank test (with continuity correction), Cohen's Kappa, Pearson/Spearman correlation — independently of external libraries. The ranx library would be redundant for the TypeScript benchmark but essential for a BEIR-compatible Python harness.
 
 **Sources**:
 - [github.com/AmenRa/ranx](https://github.com/AmenRa/ranx) — Quality: High (referenced in research plan queries; within knowledge cutoff)
@@ -195,7 +195,7 @@ The claudemem `src/benchmark-v2/scorers/statistics.ts` implements: paired t-test
 
 ---
 
-### Finding 5: claudemem Already Has a Production-Grade Retrieval Evaluation Harness (benchmark-v2)
+### Finding 5: mnemex Already Has a Production-Grade Retrieval Evaluation Harness (benchmark-v2)
 
 **Summary**: The `src/benchmark-v2/` directory contains a complete, production-grade evaluation pipeline that computes NDCG@K, MRR@K, P@K, Wilcoxon signed-rank tests, and per-query-type breakdowns. This is directly extensible for router/expander/reranker ablations. The framework already handles cross-model competition, statistical significance testing, and query-type stratification. No external harness is needed — we need to extend this framework with (a) real qrels from CoSQA/SWE-bench, and (b) isolation wrappers for each pipeline component.
 
@@ -249,10 +249,10 @@ From `eval/cognitive-mvp/validate.ts`:
 3. **BEIR-compatible output**: Add a reporter that writes `{query_id: {doc_id: score}}` run files to disk; import into ranx/BEIR for standardized metric comparison with published baselines.
 
 **Sources**:
-- `/Users/jack/mag/claudemem/src/benchmark-v2/evaluators/retrieval/index.ts` — Quality: High (read directly)
-- `/Users/jack/mag/claudemem/src/benchmark-v2/scorers/statistics.ts` — Quality: High (read directly)
-- `/Users/jack/mag/claudemem/eval/embedding-benchmark.ts` — Quality: High (read directly)
-- `/Users/jack/mag/claudemem/eval/cognitive-mvp/validate.ts` — Quality: High (read directly)
+- `/Users/jack/mag/mnemex/src/benchmark-v2/evaluators/retrieval/index.ts` — Quality: High (read directly)
+- `/Users/jack/mag/mnemex/src/benchmark-v2/scorers/statistics.ts` — Quality: High (read directly)
+- `/Users/jack/mag/mnemex/eval/embedding-benchmark.ts` — Quality: High (read directly)
+- `/Users/jack/mag/mnemex/eval/cognitive-mvp/validate.ts` — Quality: High (read directly)
 - `ai-docs/sessions/dev-research-embed-eval-methods-20260305-085036-2fea1a92/findings/explorer-2.md` (Finding 7) — Quality: High
 
 **Confidence**: High (direct code inspection)
@@ -281,7 +281,7 @@ The UniXcoder (2022) evaluation follows identical protocol to CodeBERT, using th
 - CodeXGLUE: `github.com/microsoft/CodeXGLUE` (contains AdvTest evaluation)
 
 **Practical adaptation**:
-Claudemem's retrieval can be wrapped to output `predictions.jsonl` format:
+Mnemex's retrieval can be wrapped to output `predictions.jsonl` format:
 ```
 {"query": "...", "doc_ids": ["func_001", "func_002", ...]}  // top-10 ranked
 ```
@@ -300,7 +300,7 @@ Then feed to Microsoft's `evaluate.py` for official MRR@10 on the CodeSearchNet 
 
 ### Finding 7: Ablation Testing Pattern — The Paired Evaluation Protocol Already Implemented Locally
 
-**Summary**: The standard method for measuring individual component contribution (router, expander, reranker) is a paired evaluation: run the full pipeline on N queries with the component enabled and disabled, compute per-query metric values, then apply Wilcoxon signed-rank test to the paired differences. The claudemem codebase already implements this pattern in `statistics.ts`. The agentbench harness implements condition-based A/B comparison (no_plan vs claudemem_full vs dc_planner vs ace_planner). Both patterns are directly applicable to router/expander/reranker ablations.
+**Summary**: The standard method for measuring individual component contribution (router, expander, reranker) is a paired evaluation: run the full pipeline on N queries with the component enabled and disabled, compute per-query metric values, then apply Wilcoxon signed-rank test to the paired differences. The mnemex codebase already implements this pattern in `statistics.ts`. The agentbench harness implements condition-based A/B comparison (no_plan vs mnemex_full vs dc_planner vs ace_planner). Both patterns are directly applicable to router/expander/reranker ablations.
 
 **Evidence**:
 
@@ -313,9 +313,9 @@ export function wilcoxonSignedRankTest(
 ```
 The function implements: rank absolute differences, handle ties, W+ statistic, normal approximation with continuity correction, two-tailed p-value, effect size `r = Z/sqrt(N)`.
 
-From `eval/agentbench-claudemem/scripts/analyze.py` and `run_condition.py`, the condition-based pattern:
+From `eval/agentbench-mnemex/scripts/analyze.py` and `run_condition.py`, the condition-based pattern:
 ```python
-# Run condition "no_plan" vs "claudemem_full" vs "dc_planner" vs "ace_planner"
+# Run condition "no_plan" vs "mnemex_full" vs "dc_planner" vs "ace_planner"
 # Each condition modifies what planning/retrieval context is available
 # Metrics: resolve_rate (per-instance boolean → aggregate)
 ```
@@ -357,9 +357,9 @@ Metric: NDCG@5 before/after (top-5 matters most for code search)
 **Key requirement**: All conditions must use the SAME query set evaluated on the SAME corpus for the paired comparison to be valid.
 
 **Sources**:
-- `/Users/jack/mag/claudemem/src/benchmark-v2/scorers/statistics.ts` — Quality: High (read directly, Wilcoxon implementation)
-- `/Users/jack/mag/claudemem/eval/agentbench-claudemem/scripts/analyze.py` — Quality: High (read directly, condition comparison)
-- `/Users/jack/mag/claudemem/eval/agentbench-claudemem/scripts/generate.py` — Quality: High (read directly, condition execution)
+- `/Users/jack/mag/mnemex/src/benchmark-v2/scorers/statistics.ts` — Quality: High (read directly, Wilcoxon implementation)
+- `/Users/jack/mag/mnemex/eval/agentbench-mnemex/scripts/analyze.py` — Quality: High (read directly, condition comparison)
+- `/Users/jack/mag/mnemex/eval/agentbench-mnemex/scripts/generate.py` — Quality: High (read directly, condition execution)
 - `research-plan.md` (Section 4 — metrics per component) — Quality: High
 
 **Confidence**: High (direct code inspection + research plan alignment)
@@ -430,7 +430,7 @@ From the research plan (Section 3 — minimum viable dataset size):
 
 From `src/benchmark-v2/scorers/statistics.ts` (Finding 7 in embed-eval session):
 > "N=50 provides reliable detection at α=0.05 with 85% power [for 5-point NDCG difference]"
-> "For claudemem-scale evaluation (37 code units, 296 queries): standard error is higher; differences of 2+ MRR points are meaningful"
+> "For mnemex-scale evaluation (37 code units, 296 queries): standard error is higher; differences of 2+ MRR points are meaningful"
 
 The Wilcoxon signed-rank test (already implemented) is preferred over paired t-test for MRR because:
 1. MRR values are bounded [0, 1] — not normally distributed (violates t-test assumptions)
@@ -446,7 +446,7 @@ The Wilcoxon signed-rank test (already implemented) is preferred over paired t-t
 
 **Sources**:
 - `research-plan.md` (Section 4 — statistical power) — Quality: High
-- `/Users/jack/mag/claudemem/src/benchmark-v2/scorers/statistics.ts` — Quality: High (local Wilcoxon implementation)
+- `/Users/jack/mag/mnemex/src/benchmark-v2/scorers/statistics.ts` — Quality: High (local Wilcoxon implementation)
 - `ai-docs/sessions/dev-research-embed-eval-methods-20260305-085036-2fea1a92/findings/explorer-2.md` (Finding 7) — Quality: High
 
 **Confidence**: High
@@ -464,13 +464,13 @@ The Wilcoxon signed-rank test (already implemented) is preferred over paired t-t
 
 **Source List**:
 1. `research-plan.md` — Quality: High, Date: 2026-03-06, Type: Session research plan
-2. `/Users/jack/mag/claudemem/src/benchmark-v2/evaluators/retrieval/index.ts` — Quality: High, Date: Current, Type: Source code (read directly)
-3. `/Users/jack/mag/claudemem/src/benchmark-v2/scorers/statistics.ts` — Quality: High, Date: Current, Type: Source code (read directly)
-4. `/Users/jack/mag/claudemem/eval/embedding-benchmark.ts` — Quality: High, Date: Current, Type: Source code (read directly)
-5. `/Users/jack/mag/claudemem/eval/cognitive-mvp/validate.ts` — Quality: High, Date: Current, Type: Source code (read directly)
-6. `/Users/jack/mag/claudemem/eval/agentbench-claudemem/scripts/evaluate.py` — Quality: High, Date: Current, Type: Source code (read directly)
-7. `/Users/jack/mag/claudemem/eval/agentbench-claudemem/scripts/analyze.py` — Quality: High, Date: Current, Type: Source code (read directly)
-8. `/Users/jack/mag/claudemem/eval/agentbench-claudemem/scripts/generate.py` — Quality: High, Date: Current, Type: Source code (read directly)
+2. `/Users/jack/mag/mnemex/src/benchmark-v2/evaluators/retrieval/index.ts` — Quality: High, Date: Current, Type: Source code (read directly)
+3. `/Users/jack/mag/mnemex/src/benchmark-v2/scorers/statistics.ts` — Quality: High, Date: Current, Type: Source code (read directly)
+4. `/Users/jack/mag/mnemex/eval/embedding-benchmark.ts` — Quality: High, Date: Current, Type: Source code (read directly)
+5. `/Users/jack/mag/mnemex/eval/cognitive-mvp/validate.ts` — Quality: High, Date: Current, Type: Source code (read directly)
+6. `/Users/jack/mag/mnemex/eval/agentbench-mnemex/scripts/evaluate.py` — Quality: High, Date: Current, Type: Source code (read directly)
+7. `/Users/jack/mag/mnemex/eval/agentbench-mnemex/scripts/analyze.py` — Quality: High, Date: Current, Type: Source code (read directly)
+8. `/Users/jack/mag/mnemex/eval/agentbench-mnemex/scripts/generate.py` — Quality: High, Date: Current, Type: Source code (read directly)
 9. `ai-docs/sessions/dev-research-embed-eval-methods-20260305-085036-2fea1a92/findings/explorer-1.md` — Quality: High, Date: 2026-03-05, Type: Prior research (8 findings)
 10. `ai-docs/sessions/dev-research-embed-eval-methods-20260305-085036-2fea1a92/findings/explorer-2.md` — Quality: High, Date: 2026-03-05, Type: Prior research (11 findings)
 11. [github.com/beir-cellar/beir](https://github.com/beir-cellar/beir) — Quality: High, Type: Primary source (referenced in plan)

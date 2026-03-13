@@ -1,7 +1,7 @@
 {
   "model": {
     "name": "qwen3-8b-FT",
-    "lmsKey": "jackrudenko/claudemem-expansion-qwen3-8b",
+    "lmsKey": "jackrudenko/mnemex-expansion-qwen3-8b",
     "family": "qwen3-ft",
     "paramsB": 8
   },

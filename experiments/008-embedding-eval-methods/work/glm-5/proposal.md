@@ -9,7 +9,7 @@
 
 ---
 
-## Embedding Model Evaluation Architecture for claudemem
+## Embedding Model Evaluation Architecture for mnemex
 
 I'll propose a comprehensive evaluation system that addresses all 9 areas. This is a **design proposal**, not a review — I'm proposing concrete solutions.
 
@@ -22,7 +22,7 @@ I'll propose a comprehensive evaluation system that addresses all 9 areas. This 
 | Metric | K Values | Rationale |
 |--------|----------|-----------|
 | **NDCG@K** | 1, 5, 10 | Academic standard (CoIR, MTEB). Captures rank position with discount. Primary comparison metric. |
-| **MRR** | — | Critical for "single correct answer" retrieval (claudemem's dominant use case: find THE function) |
+| **MRR** | — | Critical for "single correct answer" retrieval (mnemex's dominant use case: find THE function) |
 | **Precision@K** | 1, 3, 5 | Practical: "did user find what they needed on first screen?" P@1 = exact match rate |
 | **Win Rate** | — | Cross-model competition: % of queries where this model ranked #1 among all models |
 
@@ -36,7 +36,7 @@ I'll propose a comprehensive evaluation system that addresses all 9 areas. This 
 
 **Why this combination**:
 - NDCG@10 enables comparison with academic benchmarks (CoIR, MTEB)
-- MRR aligns with claudemem's "find the one function" use case
+- MRR aligns with mnemex's "find the one function" use case
 - Win Rate enables direct A/B comparison between models on the same queries
 - P@1/P@5 are user-meaningful: "first result correct" / "first page correct"
 
@@ -61,7 +61,7 @@ interface EmbeddingEvalMetrics {
 
 | Tier | Source | % of Queries | Example |
 |------|--------|--------------|---------|
-| **Human-Written** | Curated from real claudemem usage logs | 20% | "how does authentication work" |
+| **Human-Written** | Curated from real mnemex usage logs | 20% | "how does authentication work" |
 | **LLM-Generated (Diverse)** | Multiple generation strategies | 50% | See below |
 | **Template-Based** | Programmatic variations | 30% | "function that {verb} {noun}" |
 
@@ -85,7 +85,7 @@ const QUERY_GENERATION_STRATEGIES = [
 ```
 
 **Human Query Collection Mechanism**:
-1. Opt-in telemetry: Log anonymized search queries from real claudemem users
+1. Opt-in telemetry: Log anonymized search queries from real mnemex users
 2. Manual curation: Create a `human-queries.json` file with ~100 high-quality queries per repo
 3. Cross-validation: Use a judge LLM to verify human queries map to correct code units
 
@@ -178,14 +178,14 @@ Each distractor set gets a computed `difficultyScore` (0-1) based on the weighte
 ### 4. Cross-Codebase Testing: Multi-Repo Evaluation
 
 **Minimum Viable**: 3 repos across different languages
-**Recommended**: 5-7 repos covering claudemem's target user base
+**Recommended**: 5-7 repos covering mnemex's target user base
 **Ideal**: 12 repos (use existing agentbench infrastructure)
 
 **Proposed Repo Selection**:
 
 | Category | Example Repos | Languages | Why |
 |----------|---------------|-----------|-----|
-| **TypeScript/JS Web** | `vercel/next.js`, `facebook/react` | TS, JS | Largest claudemem user segment |
+| **TypeScript/JS Web** | `vercel/next.js`, `facebook/react` | TS, JS | Largest mnemex user segment |
 | **Python Data/AI** | `huggingface/transformers`, `pytorch/pytorch` | Python | ML/AI developers |
 | **Go Systems** | `docker/docker`, `kubernetes/kubernetes` | Go | Infrastructure engineers |
 | **Rust Systems** | `rust-lang/rust`, `tokio-rs/tokio` | Rust | Performance-critical code |
@@ -228,7 +228,7 @@ Flag models with high cross-repo variance (>0.1 std dev in MRR). A model that wi
 
 ### 5. Hybrid Search Testing: BM25 + Vector Combined
 
-**Why**: claudemem uses hybrid search in production. Embedding-only evaluation doesn't reflect actual retrieval.
+**Why**: mnemex uses hybrid search in production. Embedding-only evaluation doesn't reflect actual retrieval.
 
 **Proposed Test Modes**:
 
@@ -413,7 +413,7 @@ function pairedSignificanceTest(
 
 **Core Command**:
 ```bash
-claudemem embed-eval [options]
+mnemex embed-eval [options]
 
 Options:
   --models <model1,model2,...>   Models to compare (default: all available)
@@ -432,10 +432,10 @@ Options:
 **Example Usage**:
 ```bash
 # Quick comparison of 3 models on current repo
-claudemem embed-eval --models qwen3-embedding-0.6b,voyage-code-3,nomic-embed-code
+mnemex embed-eval --models qwen3-embedding-0.6b,voyage-code-3,nomic-embed-code
 
 # Full multi-repo evaluation with CI
-claudemem embed-eval \
+mnemex embed-eval \
   --models qwen3-embedding-8b,voyage-code-3 \
   --repos ./test/repos/ts-web,./test/repos/python-ml,./test/repos/go-infra \
   --queries 200 \
@@ -444,7 +444,7 @@ claudemem embed-eval \
   --output markdown > eval-report.md
 
 # MRL dimension sweep
-claudemem embed-eval --models qwen3-embedding-0.6b --mrl --mode embedding-only
+mnemex embed-eval --models qwen3-embedding-0.6b --mrl --mode embedding-only
 ```
 
 **Output Format** (Markdown):

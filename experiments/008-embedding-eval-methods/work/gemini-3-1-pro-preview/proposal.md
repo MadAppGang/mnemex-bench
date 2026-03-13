@@ -7,15 +7,15 @@
 
 `─────────────────────────────────────────────────`
 
-Here is my independent architecture proposal for the `claudemem` embedding model evaluation system.
+Here is my independent architecture proposal for the `mnemex` embedding model evaluation system.
 
-## claudemem Embedding Evaluation Architecture (v3)
+## mnemex Embedding Evaluation Architecture (v3)
 
 To move beyond the flawed single-codebase LLM-summary evaluation, we need a system optimized specifically for testing embedding representations of code across realistic conditions.
 
 ### 1. Metrics
 *   **Primary Metric: NDCG@10**. Industry standard for code retrieval (CoIR, MTEB). It heavily penalizes models that bury the correct code chunk beneath similar-sounding distractors.
-*   **Secondary Metrics: MRR and Precision@1/5**. MRR is highly interpretable for "exact match" code-to-function searches, while P@1/5 maps directly to the user experience in the `claudemem` TUI (what fits on the first screen).
+*   **Secondary Metrics: MRR and Precision@1/5**. MRR is highly interpretable for "exact match" code-to-function searches, while P@1/5 maps directly to the user experience in the `mnemex` TUI (what fits on the first screen).
 *   **Implementation**: Treat evaluation as binary relevance for MRR/P@K, but use graded relevance for NDCG if partial matches (e.g., an interface vs. implementation) are identified.
 
 ### 2. Query Design (The Hybrid Corpus)
@@ -57,10 +57,10 @@ The CLI should separate dataset compilation from evaluation to allow rapid itera
 
 ```bash
 # 1. Compile the test dataset across the 12 repos
-claudemem eval-build --repos agentbench-all --out benchmark-v3.db
+mnemex eval-build --repos agentbench-all --out benchmark-v3.db
 
 # 2. Run the evaluation
-claudemem eval-embed \
+mnemex eval-embed \
   --db benchmark-v3.db \
   --models voyage-code-3,ollama/qwen3-embedding:0.6b \
   --hybrid-bm25 true \

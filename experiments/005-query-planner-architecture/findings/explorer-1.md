@@ -3,7 +3,7 @@
 **Researcher**: Explorer 1
 **Date**: 2026-03-06
 **Model Strategy**: native (training knowledge + local source inspection; no live web search)
-**Queries Executed**: 8 conceptual + local source areas (agentbench planners, claudemem search pipeline, prior research sessions)
+**Queries Executed**: 8 conceptual + local source areas (agentbench planners, mnemex search pipeline, prior research sessions)
 
 ---
 
@@ -15,9 +15,9 @@
 
 3. **Three key academic papers directly inform the design: Self-RAG (2023), FLARE (2023), IRCoT (2022).** All three show that sequential/adaptive retrieval outperforms parallel retrieval for complex multi-hop queries. However, the gains are largest for questions requiring reasoning across multiple documents — simpler lookup queries (which dominate code search) show little benefit from multi-step planning.
 
-4. **claudemem's own agentbench eval (dc_planner, ace_planner) provides concrete evidence that sequential planning outperforms one-shot retrieval for complex coding tasks.** These planners (read directly from local source) use LLM-driven sequential reasoning across multiple instances, accumulating a "cheatsheet" or "playbook" that improves over time. This is a meta-planner pattern (planning how to plan), not a retrieval-time planner.
+4. **mnemex's own agentbench eval (dc_planner, ace_planner) provides concrete evidence that sequential planning outperforms one-shot retrieval for complex coding tasks.** These planners (read directly from local source) use LLM-driven sequential reasoning across multiple instances, accumulating a "cheatsheet" or "playbook" that improves over time. This is a meta-planner pattern (planning how to plan), not a retrieval-time planner.
 
-5. **The optimal design for claudemem is Option C (Hybrid): LLM generates a retrieval plan that parallelizes independent steps.** A small (<2B) local model can reliably classify queries into retrieval strategies (lexical, semantic, structural, navigation) with latency under 100ms at 4-bit quantization. The LLM should only orchestrate; all retrieval runs fast and deterministic.
+5. **The optimal design for mnemex is Option C (Hybrid): LLM generates a retrieval plan that parallelizes independent steps.** A small (<2B) local model can reliably classify queries into retrieval strategies (lexical, semantic, structural, navigation) with latency under 100ms at 4-bit quantization. The LLM should only orchestrate; all retrieval runs fast and deterministic.
 
 ---
 
@@ -44,7 +44,7 @@
 - Source: Cursor blog "How Cursor handles codebase context" (2024), [Source: Training knowledge, Medium quality].
 
 **aider** (open source, Paul Gauthier):
-- Uses a "repo map" generated from tree-sitter AST + PageRank (very similar to claudemem's current approach).
+- Uses a "repo map" generated from tree-sitter AST + PageRank (very similar to mnemex's current approach).
 - The repo map is always generated; files are selected based on relevance to the current conversation history (simple TF-IDF style mention matching).
 - aider does NOT use an LLM query planner. The repo map construction is deterministic (AST parsing + PageRank ranking). File selection is done by a greedy token-budget algorithm.
 - Key code: `aider/repomap.py` (public GitHub). The repo map is a static context document injected into every LLM call — there is no dynamic retrieval orchestration.
@@ -95,7 +95,7 @@
 - Two variants: `LLMSingleSelector` (picks one tool) and `LLMMultiSelector` (picks multiple tools, results are fused).
 - Default uses a frontier model (GPT-4, Claude, etc.). Latency for routing alone: 200-600ms with API call overhead.
 - Also offers `PydanticSingleSelector`: uses structured output / function calling to parse the tool selection. Faster and more reliable than free-text parsing.
-- Sub-question query engine: decomposes complex queries into sub-questions, each routed to different sources. Designed for "Which restaurant has the best rating?" style multi-hop queries across structured data — closer to claudemem's multi-source code search.
+- Sub-question query engine: decomposes complex queries into sub-questions, each routed to different sources. Designed for "Which restaurant has the best rating?" style multi-hop queries across structured data — closer to mnemex's multi-source code search.
 - Source: [LlamaIndex docs: Router Query Engine](https://docs.llamaindex.ai/en/stable/examples/query_engine/RouterQueryEngine/). Quality: High (official docs).
 
 **LangChain Adaptive RAG**:
@@ -113,7 +113,7 @@
 - Applicability to code search: Very relevant. Code has a natural entity graph (symbols, files, modules). GraphRAG's local/global distinction maps cleanly to "find this function" (local) vs "explain the authentication system" (global).
 - Source: [Microsoft GraphRAG paper](https://arxiv.org/abs/2404.16130) - Quality: High, Date: April 2024.
 
-**Key Observation for claudemem**: LlamaIndex and LangChain demonstrate that LLM-based routing is production-viable, but they use frontier models (200ms+ API latency). The key question is whether a 1-2B local model can do the routing fast enough (<100ms on Apple Silicon) to make it worthwhile.
+**Key Observation for mnemex**: LlamaIndex and LangChain demonstrate that LLM-based routing is production-viable, but they use frontier models (200ms+ API latency). The key question is whether a 1-2B local model can do the routing fast enough (<100ms on Apple Silicon) to make it worthwhile.
 
 **Sources**:
 - [LlamaIndex Router Query Engine docs](https://docs.llamaindex.ai/en/stable/examples/query_engine/RouterQueryEngine/) - Quality: High, Date: 2024
@@ -136,7 +136,7 @@
 - Core idea: Train a single LLM to generate "reflection tokens" that decide (a) whether to retrieve at all, (b) whether retrieved content is relevant, (c) whether the generated output is supported by evidence.
 - Reflection tokens: `[Retrieve]` (yes/no), `[IsREL]` (relevant/irrelevant), `[IsSUP]` (supported/not), `[IsUSE]` (useful/not)
 - Self-RAG outperforms RAG on knowledge-intensive tasks (TriviaQA, PopQA, FEVER) and on long-form generation (ARC-C, ASQA).
-- Key finding for claudemem: Self-RAG's biggest gains come from the `[Retrieve]` decision — knowing *when not to retrieve* is as important as knowing what to retrieve. This is directly applicable: a code search planner that skips retrieval for simple lookups is better than one that always retrieves.
+- Key finding for mnemex: Self-RAG's biggest gains come from the `[Retrieve]` decision — knowing *when not to retrieve* is as important as knowing what to retrieve. This is directly applicable: a code search planner that skips retrieval for simple lookups is better than one that always retrieves.
 - Downside: Requires fine-tuning the generation model itself (not just a router), making it impractical for integration without custom model training.
 - Source: [Self-RAG paper arXiv:2310.11511](https://arxiv.org/abs/2310.11511) - Quality: High, Date: Oct 2023.
 
@@ -158,7 +158,7 @@
 **HyDE (Gao et al., 2022 — arXiv:2212.10496, ACL 2023)**:
 - Core idea: Hypothetical Document Embeddings. Generate a hypothetical document (answer/code snippet) without any retrieved context, then embed that hypothetical document and use it as the query vector.
 - HyDE works because embedding space encodes semantic similarity: a hypothetical code snippet for "auth middleware" will be closer in embedding space to real auth middleware code than a query string.
-- Already adopted by claudemem's query expander (`hyde:` field). Well-proven.
+- Already adopted by mnemex's query expander (`hyde:` field). Well-proven.
 - Source: [HyDE paper arXiv:2212.10496](https://arxiv.org/abs/2212.10496) - Quality: High, Date: Dec 2022.
 
 **ToolFormer (Schick et al., 2023 — arXiv:2302.04761)**:
@@ -171,7 +171,7 @@
 - These code-specific embedding models are the academic baseline for code search embedding quality.
 - GraphCodeBERT (2021) adds data flow graphs as additional structure, improving code search by ~5% on CodeSearchNet.
 - UniXCoder (2022) is a unified model for code understanding and generation, using AST structure directly.
-- Relevance for claudemem: These are the academic baseline that OpenRouter/Ollama embedding models are compared against. The key insight is that code-specific training matters, but a modern general embedding model (e.g., nomic-embed-text) may match or exceed these specialized models on practical retrieval tasks.
+- Relevance for mnemex: These are the academic baseline that OpenRouter/Ollama embedding models are compared against. The key insight is that code-specific training matters, but a modern general embedding model (e.g., nomic-embed-text) may match or exceed these specialized models on practical retrieval tasks.
 - Source: [GraphCodeBERT arXiv:2009.08366](https://arxiv.org/abs/2009.08366) - Quality: High, Date: 2021.
 
 **Sources**:
@@ -188,16 +188,16 @@
 
 ---
 
-### Finding 4: claudemem's Own Agentbench Planners Provide Local Evidence About Sequential vs Parallel Planning
+### Finding 4: mnemex's Own Agentbench Planners Provide Local Evidence About Sequential vs Parallel Planning
 
-**Summary**: Reading the dc_planner and ace_planner source code directly from the agentbench repo reveals they are meta-planners (planning context injection, not retrieval routing). claudemem_planner runs parallel map+search then stops. The planners that outperform use sequential, LLM-driven context accumulation across instances.
+**Summary**: Reading the dc_planner and ace_planner source code directly from the agentbench repo reveals they are meta-planners (planning context injection, not retrieval routing). mnemex_planner runs parallel map+search then stops. The planners that outperform use sequential, LLM-driven context accumulation across instances.
 
 **Evidence** (from direct source code reading at `/Users/jack/mag/agentbench/`):
 
 **baseline_planner / no_plan**: No planning — context is the raw task description. Baseline.
 
-**claudemem_planner** (`src/agentbench/planners/claudemem_planner.py`):
-- Hardcoded parallel pipeline: runs `claudemem map` + `claudemem search` simultaneously.
+**mnemex_planner** (`src/agentbench/planners/mnemex_planner.py`):
+- Hardcoded parallel pipeline: runs `mnemex map` + `mnemex search` simultaneously.
 - One-shot: generates AGENTS.md before agent starts, no adaptation.
 - This is exactly "Option A" from the research plan — parallel, fixed.
 - The `update_plan()` method is a no-op — there is no feedback loop.
@@ -215,7 +215,7 @@
 - More structured than dc_planner: tracks success/failure patterns, deduplication, relevance filtering.
 - Also sequential (workers=1), cross-instance learning.
 
-**Key Insight for claudemem's query planner**:
+**Key Insight for mnemex's query planner**:
 These planners operate at the *task level* (planning what context to inject before an agent session), not the *query level* (planning which retrieval tools to call for a user's search query). They're related architectures but at different timescales:
 - Task-level planner: runs once per GitHub issue, may take 30-60 seconds
 - Query-level planner: runs per search query, must complete in <500ms
@@ -223,7 +223,7 @@ These planners operate at the *task level* (planning what context to inject befo
 The dc/ace approach of "accumulate patterns across instances" is not directly applicable to per-query retrieval planning. However, their core insight — that sequential LLM-driven planning outperforms fixed parallel execution — is relevant.
 
 **Sources**:
-- `/Users/jack/mag/agentbench/src/agentbench/planners/claudemem_planner.py` - Quality: High, Date: 2026-03-06 (local source)
+- `/Users/jack/mag/agentbench/src/agentbench/planners/mnemex_planner.py` - Quality: High, Date: 2026-03-06 (local source)
 - `/Users/jack/mag/agentbench/src/agentbench/planners/dynamic_cheatsheet/dynamic_cheatsheet.py` - Quality: High, Date: 2026-03-06 (local source)
 - `/Users/jack/mag/agentbench/src/agentbench/planners/ace/ace.py` - Quality: High, Date: 2026-03-06 (local source)
 - `/Users/jack/mag/agentbench/scripts/agentbench/run_harness/run_condition.py` - Quality: High (local source)
@@ -233,11 +233,11 @@ The dc/ace approach of "accumulate patterns across instances" is not directly ap
 
 ---
 
-### Finding 5: claudemem's Current Architecture Is Option A (Parallel, No LLM Planner)
+### Finding 5: mnemex's Current Architecture Is Option A (Parallel, No LLM Planner)
 
-**Summary**: The current claudemem search pipeline runs BM25 + vector search in parallel with a static query expander generating parallel expansion terms. There is no LLM call at query time for routing decisions.
+**Summary**: The current mnemex search pipeline runs BM25 + vector search in parallel with a static query expander generating parallel expansion terms. There is no LLM call at query time for routing decisions.
 
-**Evidence** (from direct source reading at `/Users/jack/mag/claudemem/`):
+**Evidence** (from direct source reading at `/Users/jack/mag/mnemex/`):
 
 **Current search flow** (inferred from `src/mcp/tools/search.ts` + `src/core/indexer.ts`):
 1. Receive query string
@@ -257,18 +257,18 @@ The dc/ace approach of "accumulate patterns across instances" is not directly ap
 **LLM enrichment** happens at *index time* (via `src/llm/prompts/enrichment.ts`): file summaries, symbol summaries, idioms — all pre-computed. The search pipeline at query time uses these pre-computed enrichments as search targets but does not call an LLM for query routing.
 
 **Sources**:
-- `/Users/jack/mag/claudemem/src/mcp/tools/search.ts` - Quality: High, Date: 2026-03-06 (local source)
-- `/Users/jack/mag/claudemem/src/core/indexer.ts` - Quality: High, Date: 2026-03-06 (local source)
-- `/Users/jack/mag/claudemem/src/llm/prompts/enrichment.ts` - Quality: High, Date: 2026-03-06 (local source)
+- `/Users/jack/mag/mnemex/src/mcp/tools/search.ts` - Quality: High, Date: 2026-03-06 (local source)
+- `/Users/jack/mag/mnemex/src/core/indexer.ts` - Quality: High, Date: 2026-03-06 (local source)
+- `/Users/jack/mag/mnemex/src/llm/prompts/enrichment.ts` - Quality: High, Date: 2026-03-06 (local source)
 
 **Confidence**: High (direct source reading)
 **Multi-source**: Yes
 
 ---
 
-### Finding 6: Architecture Options Analysis — Which Approach Fits claudemem's Constraints
+### Finding 6: Architecture Options Analysis — Which Approach Fits mnemex's Constraints
 
-**Summary**: Based on the literature and local codebase evidence, Option C (Hybrid plan-then-parallel) is best for claudemem, implemented with a small local model (<2B) doing query classification, not a full LLM planner.
+**Summary**: Based on the literature and local codebase evidence, Option C (Hybrid plan-then-parallel) is best for mnemex, implemented with a small local model (<2B) doing query classification, not a full LLM planner.
 
 **Evidence**:
 
@@ -303,11 +303,11 @@ The dc/ace approach of "accumulate patterns across instances" is not directly ap
 - BFCL benchmarks show that 7-8B models reliably follow tool-call schemas at ~85-90% accuracy
 - 1-2B models achieve 60-75% accuracy on structured tool-call schemas (without fine-tuning)
 - After LoRA fine-tuning on query classification examples: 1-2B models can reach 90%+ accuracy on a narrow 4-way classification task
-- For claudemem's use case (4 retrieval strategies, well-defined query types), fine-tuned Qwen3-0.6B is a viable planner
+- For mnemex's use case (4 retrieval strategies, well-defined query types), fine-tuned Qwen3-0.6B is a viable planner
 - Source: [Berkeley BFCL leaderboard](https://gorilla.cs.berkeley.edu/leaderboard.html) - Quality: High, Date: 2024.
 
 **Key Design Principle from Literature**:
-The Self-RAG paper's most actionable finding: *"Knowing when NOT to retrieve is as important as knowing what to retrieve."* For claudemem, this means the planner should be able to route simple exact-match queries directly to BM25 without triggering vector search — reducing both latency and result noise.
+The Self-RAG paper's most actionable finding: *"Knowing when NOT to retrieve is as important as knowing what to retrieve."* For mnemex, this means the planner should be able to route simple exact-match queries directly to BM25 without triggering vector search — reducing both latency and result noise.
 
 **Sources**:
 - [Berkeley BFCL leaderboard](https://gorilla.cs.berkeley.edu/leaderboard.html) - Quality: High, Date: 2024
@@ -335,7 +335,7 @@ The Self-RAG paper's most actionable finding: *"Knowing when NOT to retrieve is 
 
 **RepoAgent (2024)**: An LLM agent that traverses a repository's file structure intelligently for documentation generation. Uses sequential LLM calls to decide which files to read next based on import graphs. Shows that sequential LLM-driven traversal works for code understanding tasks.
 
-**Key gap**: No paper or production system specifically applies a *lightweight* LLM router (1-2B model) to select among BM25, vector, AST, LSP, and graph retrieval strategies for interactive code search. This represents a genuine contribution opportunity for claudemem.
+**Key gap**: No paper or production system specifically applies a *lightweight* LLM router (1-2B model) to select among BM25, vector, AST, LSP, and graph retrieval strategies for interactive code search. This represents a genuine contribution opportunity for mnemex.
 
 **Sources**:
 - [CodeAct (2024)](https://arxiv.org/abs/2402.01030) - Quality: High, Date: Feb 2024
@@ -359,8 +359,8 @@ The Self-RAG paper's most actionable finding: *"Knowing when NOT to retrieve is 
 | LlamaIndex RouterQueryEngine | LLM (frontier model) | Sequential (LLM selects) | LLM-based | Tool-specific | Yes (sub-questions) |
 | LangChain Adaptive RAG | LLM (any size) | Conditional sequential | LLM-based | LLM grader | Yes |
 | GraphRAG | Rule-based | Sequential (local vs global) | Rule-based | None | Yes |
-| claudemem (current) | None (raw query) | Parallel (BM25 + vector) | None | Score combination | No |
-| claudemem_planner (eval) | Raw task description | Parallel (map + search) | None | None | No |
+| mnemex (current) | None (raw query) | Parallel (BM25 + vector) | None | Score combination | No |
+| mnemex_planner (eval) | Raw task description | Parallel (map + search) | None | None | No |
 | dc_planner (eval) | LLM (cross-instance) | Single (context injection) | LLM cross-instance | None | No |
 
 ---
@@ -377,10 +377,10 @@ The Self-RAG paper's most actionable finding: *"Knowing when NOT to retrieve is 
    Interleaved retrieval and CoT reasoning. Direct template for sequential code retrieval: each reasoning step triggers a new retrieval based on what's been learned so far.
 
 4. **HyDE** (Gao et al., 2022) — arXiv:2212.10496, ACL 2023
-   Hypothetical document embedding. Already used in claudemem. The `hyde:` field in query expansion implements this.
+   Hypothetical document embedding. Already used in mnemex. The `hyde:` field in query expansion implements this.
 
 5. **GraphRAG** (Edge et al., 2024) — arXiv:2404.16130
-   Graph-augmented retrieval with local/global routing. The local/global distinction maps to claudemem's symbol lookup vs architectural overview query types.
+   Graph-augmented retrieval with local/global routing. The local/global distinction maps to mnemex's symbol lookup vs architectural overview query types.
 
 6. **ToolFormer** (Schick et al., 2023) — arXiv:2302.04761
    LLMs learn to use tools via self-supervised training. Inspires fine-tuning a small model to call `search()`, `symbol_lookup()`, `callers()` as tools.
@@ -401,7 +401,7 @@ The Self-RAG paper's most actionable finding: *"Knowing when NOT to retrieve is 
 
 ## Architecture Recommendation
 
-Based on all evidence, the recommended architecture for claudemem is:
+Based on all evidence, the recommended architecture for mnemex is:
 
 **Option C: Hybrid Plan-Then-Parallel with Lightweight Local Classifier**
 
@@ -470,7 +470,7 @@ User query
 16. [continuedev/continue GitHub](https://github.com/continuedev/continue) - Quality: High, Type: Open source
 17. [GitHub Blog: Code search powered by AI](https://github.blog/2023-02-06-the-technology-behind-githubs-new-code-search/) - Quality: Medium, Date: 2023
 18. [Cursor blog](https://cursor.sh/blog) - Quality: Medium, Date: 2024, Type: Product blog
-19. `/Users/jack/mag/agentbench/src/agentbench/planners/claudemem_planner.py` - Quality: High, Date: 2026-03-06, Type: Local source
+19. `/Users/jack/mag/agentbench/src/agentbench/planners/mnemex_planner.py` - Quality: High, Date: 2026-03-06, Type: Local source
 20. `/Users/jack/mag/agentbench/src/agentbench/planners/dynamic_cheatsheet/dynamic_cheatsheet.py` - Quality: High, Date: 2026-03-06, Type: Local source
 21. `/Users/jack/mag/agentbench/src/agentbench/planners/ace/ace.py` - Quality: High, Date: 2026-03-06, Type: Local source
 22. Prior research session: query expansion model tiers (2026-03-03) - Quality: High, Type: Internal research
@@ -497,7 +497,7 @@ What this research did NOT find (requiring web search to verify):
 
 - Model: claude-sonnet-4-6 (native, no web search)
 - Web search: unavailable (MODEL_STRATEGY=openrouter, but no claudish CLI available in this environment)
-- Local search: performed (agentbench planners, claudemem source files, prior research sessions)
+- Local search: performed (agentbench planners, mnemex source files, prior research sessions)
 - Knowledge cutoff: August 2025 — papers and tools published after this date not covered
 - Notable limitation: Sourcegraph Cody and Continue.dev code was not directly read (would require web access); descriptions are from training knowledge
 - Query refinement: Pivoted from abstract web searches to direct local source analysis (more reliable given no web access)

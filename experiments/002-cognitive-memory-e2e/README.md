@@ -2,13 +2,13 @@
 
 **Date:** 2026-03-04 to 2026-03-06
 **Status:** Round 1 complete — null result (see findings)
-**Repo under test:** claudemem (this repo) + jlowin/fastmcp
+**Repo under test:** mnemex (this repo) + jlowin/fastmcp
 
 ---
 
 ## Motivation
 
-Validate whether claudemem's semantic index and session observations actually help real Claude Code sessions solve tasks better. Specifically: does adding a pre-built code index, a generated CLAUDE.md, or seeded session observations improve task quality or efficiency vs. a raw codebase?
+Validate whether mnemex's semantic index and session observations actually help real Claude Code sessions solve tasks better. Specifically: does adding a pre-built code index, a generated CLAUDE.md, or seeded session observations improve task quality or efficiency vs. a raw codebase?
 
 ---
 
@@ -18,14 +18,14 @@ Validate whether claudemem's semantic index and session observations actually he
 
 | Condition | Setup | Hypothesis |
 |-----------|-------|------------|
-| **no-index** | Raw repo, no .claudemem at all | Baseline: agent must grep manually |
-| **baseline** | Golden claudemem index (v2) | Semantic search available |
-| **skill-doc** | Index + CLAUDE.md via `claudemem doctor` | Index + project context in system prompt |
+| **no-index** | Raw repo, no .mnemex at all | Baseline: agent must grep manually |
+| **baseline** | Golden mnemex index (v2) | Semantic search available |
+| **skill-doc** | Index + CLAUDE.md via `mnemex doctor` | Index + project context in system prompt |
 | **observations** | Index + seeded session observations | Index + targeted architecture notes |
 
 ### Repos under test
 
-- **claudemem** — 8 scenarios (bug investigation, architecture, features, debugging)
+- **mnemex** — 8 scenarios (bug investigation, architecture, features, debugging)
 - **jlowin/fastmcp** — 8 scenarios (same task types on a Python codebase)
 
 ### Scenario types
@@ -49,16 +49,16 @@ Each session: `claude -p "<task>" --model sonnet --permission-mode bypassPermiss
 ### Golden indexes
 
 Pre-built once, reused across all sessions. Stored at:
-`eval/cognitive-e2e/golden-indexes/<slug>/.claudemem/`
+`eval/cognitive-e2e/golden-indexes/<slug>/.mnemex/`
 
 Index specs:
 - **Format:** v2 (AST metadata + hierarchical code units)
 - **Embeddings:** qwen/qwen3-embedding-8b via OpenRouter
 - **LLM enrichment:** deepseek/deepseek-v3.2 via OpenRouter
-- **claudemem:** voyage-3.5-lite recorded in config.json but overridden at build time
+- **mnemex:** voyage-3.5-lite recorded in config.json but overridden at build time
 
 Indexing cost (see `logs/preindex.log`):
-- claudemem: 715 files, 6417 chunks, $0.13 embeddings + $0.004 enrichment
+- mnemex: 715 files, 6417 chunks, $0.13 embeddings + $0.004 enrichment
 - fastmcp: 417 files, 5027 chunks, $0.06 embeddings
 
 ---
@@ -115,7 +115,7 @@ claude-sonnet-4-6 achieves perfect scores regardless of condition. The model is 
 
 2. **Tasks not challenging enough** — All 16 scenarios had clear, localizable answers (1-3 key files). A smart grep sequence finds them without semantic search.
 
-3. **Repos too small** — claudemem (~700 files) and fastmcp (~400 files) are small enough that brute-force exploration works fine. The index benefit becomes more pronounced on 10k+ file repos.
+3. **Repos too small** — mnemex (~700 files) and fastmcp (~400 files) are small enough that brute-force exploration works fine. The index benefit becomes more pronounced on 10k+ file repos.
 
 4. **Skill-doc slightly worse** — The generated CLAUDE.md steered the agent toward wrong files in 1 case (scenario 1). CLAUDE.md quality depends on observation accuracy.
 
@@ -129,7 +129,7 @@ claude-sonnet-4-6 achieves perfect scores regardless of condition. The model is 
 
 ## Problems encountered during setup
 
-1. **v1 vs v2 index**: Initial claudemem golden index was v1 (no `config.json`). `claudemem observe` requires v2 (code_units schema). Rebuilt with current claudemem.
+1. **v1 vs v2 index**: Initial mnemex golden index was v1 (no `config.json`). `mnemex observe` requires v2 (code_units schema). Rebuilt with current mnemex.
 
 2. **Haiku + $5 budget = sessions never end**: Haiku is so cheap that $5 buys 100+ turns. Sessions ran 25-40 min each. Switched to Sonnet at $3 budget.
 
@@ -168,23 +168,23 @@ Confirm the observations seeded in condition D actually surface in search result
 
 ```bash
 # Build golden indexes (one-time, ~40 min)
-cd /Users/jack/mag/claudemem
+cd /Users/jack/mag/mnemex
 OPENROUTER_API_KEY=... bun eval/cognitive-e2e/run.ts --preindex
 
 # Or copy from this experiment (already built):
-# golden-indexes not included here (too large — use eval/cognitive-e2e/golden-indexes/ in claudemem repo)
+# golden-indexes not included here (too large — use eval/cognitive-e2e/golden-indexes/ in mnemex repo)
 ```
 
 ### Run eval
 
 ```bash
-cd /Users/jack/mag/claudemem
+cd /Users/jack/mag/mnemex
 
 # Single scenario, all conditions
 bun eval/cognitive-e2e/run.ts --scenario 1
 
-# All claudemem scenarios
-bun eval/cognitive-e2e/run.ts --repo claudemem --all
+# All mnemex scenarios
+bun eval/cognitive-e2e/run.ts --repo mnemex --all
 
 # Everything (64 sessions, ~4-6 hours, ~$50)
 bun eval/cognitive-e2e/run.ts --all
@@ -209,7 +209,7 @@ harness/
 
 results/
   grades.json                     — all 64 grades with scores and notes
-  claudemem/scenario-{N}/         — raw session JSON per condition (8 scenarios × 4 conditions)
+  mnemex/scenario-{N}/         — raw session JSON per condition (8 scenarios × 4 conditions)
   jlowin_fastmcp/scenario-{N}/    — raw session JSON per condition (8 scenarios × 4 conditions)
 
 logs/

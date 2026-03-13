@@ -172,11 +172,11 @@ IndexSize = num_chunks × dimensions × bytes_per_float × quantization_factor
 
 ---
 
-### 9. CLI Design: `claudemem eval-embed`
+### 9. CLI Design: `mnemex eval-embed`
 
 **Core Command**:
 ```bash
-claudemem eval-embed \
+mnemex eval-embed \
   --models "voyage-code-3,qwen3-embedding-8b,jina-code-1.5b" \
   --repos "agentbench/data/eval-repos/*" \
   --queries 500 \
@@ -192,16 +192,16 @@ claudemem eval-embed \
 **Subcommands**:
 ```bash
 # Quick smoke test on single repo
-claudemem eval-embed quick --model "qwen3-embedding-8b" --repo ./my-project
+mnemex eval-embed quick --model "qwen3-embedding-8b" --repo ./my-project
 
 # Full benchmark across all configured repos
-claudemem eval-embed full --config eval-embed.config.json
+mnemex eval-embed full --config eval-embed.config.json
 
 # Compare two models with statistical testing
-claudemem eval-embed compare --model-a "model1" --model-b "model2" --paired-test
+mnemex eval-embed compare --model-a "model1" --model-b "model2" --paired-test
 
 # Generate recommendation report
-claudemem eval-embed recommend --constraints "max-cost:0.05,quality-tolerance:0.02"
+mnemex eval-embed recommend --constraints "max-cost:0.05,quality-tolerance:0.02"
 ```
 
 **Output Formats**:

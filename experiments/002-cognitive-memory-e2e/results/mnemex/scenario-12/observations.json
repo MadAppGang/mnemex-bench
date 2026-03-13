@@ -1,0 +1,59 @@
+{
+  "scenarioId": 12,
+  "repo": "mnemex",
+  "condition": "observations",
+  "title": "Architecture: enrichment pipeline",
+  "task": "How does the LLM enrichment system work? What gets enriched, what prompts are used, and how are results stored? Do NOT make any code changes.",
+  "output": "Here's a complete breakdown of the LLM enrichment system:\n\n---\n\n## What Gets Enriched\n\nTwo document types are actively enriched via LLM (run in **parallel** for throughput):\n\n| Type | Input | What's extracted |\n|---|---|---|\n| `file_summary` | Full file content | summary, responsibilities, exports, dependencies, patterns |\n| `symbol_summary` | Functions/classes/methods (up to 20/file) | summary, parameters, returnDescription, sideEffects, usageContext |\n\nFour additional types have prompts defined (`idiom`, `usage_example`, `anti_pattern`, `project_doc`) but are not part of the default extraction pipeline. Three types (`framework_doc`, `best_practice`, `api_reference`) are fetched from external sources, not LLM-generated.\n\n---\n\n## Prompts\n\nAll prompts live in `src/llm/prompts/enrichment.ts`. The pattern is **system prompt + user prompt → JSON response**.\n\n**File summary** (`file_summary` system prompt):\n> \"You are a code documentation expert... output must be valid JSON with `{summary, responsibilities, exports, dependencies, patterns}`\"\n\nUser prompt includes the file path + full content (truncated to 8,000 chars), sanitized against prompt injection.\n\n**Symbol summary** (`symbol_summary` system prompt):\n> \"You are a code documentation expert... output must be valid JSON with `{summary, parameters, returnDescription, sideEffects, usageContext}`\"\n\nFor a single symbol: includes code + 10 lines of surrounding context. For multiple symbols (2+): batched into a single call using `BATCHED_SYMBOL_SUMMARY_SYSTEM_PROMPT`, asking for a JSON array response with one object per symbol.\n\n**Batching**: Both extractors support batching — file summaries use `buildBatchedFileSummaryPrompt` (24K chars split across files), symbol summaries use `buildBatchedSymbolSummaryPrompt` (16K chars split across symbols). Single-symbol/single-file cases use non-batched prompts.\n\n**Prompt injection protection**: All code content is run through `sanitizeCodeContent()` which strips/escapes LLM control tokens (`[INST]`, `<|im_start|>`, role markers like `System:`, etc.) by inserting zero-width spaces.\n\n---\n\n## Execution Flow\n\n```\nenrichFiles(files)\n  ├── processFileSummaries()   ─┐  (parallel via Promise.all)\n  └── processSymbolSummaries() ─┘\n       ↓\n  embedDocuments()   ← all docs batched to embeddings API\n       ↓\n  vectorStore.addDocuments()   ← stored in LanceDB\n       ↓\n  tracker.trackDocuments()     ← file tracker updated\n```\n\nConcurrency is controlled by `runWithPool()` — cloud providers default to 15 concurrent files, local LLMs to 3.\n\n---\n\n## Storage\n\nEnriched documents are stored in **LanceDB** via `IVectorStore`. Each document has:\n- A content string built from all the extracted fields (this is what gets embedded and searched)\n- The raw structured fields (`summary`, `parameters`, etc.) as separate properties\n- `vector`: the embedding of the content string\n- `sourceIds`: references back to the `code_chunk` IDs it was derived from\n- `filePath`, `fileHash`, `createdAt`, `enrichedAt`\n\nThe `IFileTracker` records which document types have been enriched for each file (`\"complete\"` state), enabling incremental re-indexing (skipping files whose content hasn't changed).\n\n---\n\n## Iterative Refinement (optional post-pass)\n\n`enricher.refineFailures()` runs a quality loop inspired by Brokk's edit-test methodology:\n\n1. Load all summaries from the vector store\n2. **Test quality**: embed each summary and rank it against up to 20 competitor summaries using cosine similarity. A summary \"passes\" if it ranks in the top-K (default top 3, adjusted to top 50% for small pools)\n3. **Refine failures**: for failing summaries, generate feedback (showing rank, the test query, and the top-ranked competitor), then ask the LLM to rewrite the summary (system prompt: `REFINEMENT_SYSTEM_PROMPT`, temp=0.3, max 500 tokens)\n4. Re-embed and re-store successful rewrites in LanceDB\n5. Repeat up to `maxRounds` (default 3)\n\nScore is `1.0 / log2(rounds + 2)` — higher is better (fewer rounds = higher quality on first attempt).",
+  "claudeJson": {
+    "type": "result",
+    "subtype": "success",
+    "is_error": false,
+    "duration_ms": 56298,
+    "duration_api_ms": 55842,
+    "num_turns": 12,
+    "result": "Here's a complete breakdown of the LLM enrichment system:\n\n---\n\n## What Gets Enriched\n\nTwo document types are actively enriched via LLM (run in **parallel** for throughput):\n\n| Type | Input | What's extracted |\n|---|---|---|\n| `file_summary` | Full file content | summary, responsibilities, exports, dependencies, patterns |\n| `symbol_summary` | Functions/classes/methods (up to 20/file) | summary, parameters, returnDescription, sideEffects, usageContext |\n\nFour additional types have prompts defined (`idiom`, `usage_example`, `anti_pattern`, `project_doc`) but are not part of the default extraction pipeline. Three types (`framework_doc`, `best_practice`, `api_reference`) are fetched from external sources, not LLM-generated.\n\n---\n\n## Prompts\n\nAll prompts live in `src/llm/prompts/enrichment.ts`. The pattern is **system prompt + user prompt → JSON response**.\n\n**File summary** (`file_summary` system prompt):\n> \"You are a code documentation expert... output must be valid JSON with `{summary, responsibilities, exports, dependencies, patterns}`\"\n\nUser prompt includes the file path + full content (truncated to 8,000 chars), sanitized against prompt injection.\n\n**Symbol summary** (`symbol_summary` system prompt):\n> \"You are a code documentation expert... output must be valid JSON with `{summary, parameters, returnDescription, sideEffects, usageContext}`\"\n\nFor a single symbol: includes code + 10 lines of surrounding context. For multiple symbols (2+): batched into a single call using `BATCHED_SYMBOL_SUMMARY_SYSTEM_PROMPT`, asking for a JSON array response with one object per symbol.\n\n**Batching**: Both extractors support batching — file summaries use `buildBatchedFileSummaryPrompt` (24K chars split across files), symbol summaries use `buildBatchedSymbolSummaryPrompt` (16K chars split across symbols). Single-symbol/single-file cases use non-batched prompts.\n\n**Prompt injection protection**: All code content is run through `sanitizeCodeContent()` which strips/escapes LLM control tokens (`[INST]`, `<|im_start|>`, role markers like `System:`, etc.) by inserting zero-width spaces.\n\n---\n\n## Execution Flow\n\n```\nenrichFiles(files)\n  ├── processFileSummaries()   ─┐  (parallel via Promise.all)\n  └── processSymbolSummaries() ─┘\n       ↓\n  embedDocuments()   ← all docs batched to embeddings API\n       ↓\n  vectorStore.addDocuments()   ← stored in LanceDB\n       ↓\n  tracker.trackDocuments()     ← file tracker updated\n```\n\nConcurrency is controlled by `runWithPool()` — cloud providers default to 15 concurrent files, local LLMs to 3.\n\n---\n\n## Storage\n\nEnriched documents are stored in **LanceDB** via `IVectorStore`. Each document has:\n- A content string built from all the extracted fields (this is what gets embedded and searched)\n- The raw structured fields (`summary`, `parameters`, etc.) as separate properties\n- `vector`: the embedding of the content string\n- `sourceIds`: references back to the `code_chunk` IDs it was derived from\n- `filePath`, `fileHash`, `createdAt`, `enrichedAt`\n\nThe `IFileTracker` records which document types have been enriched for each file (`\"complete\"` state), enabling incremental re-indexing (skipping files whose content hasn't changed).\n\n---\n\n## Iterative Refinement (optional post-pass)\n\n`enricher.refineFailures()` runs a quality loop inspired by Brokk's edit-test methodology:\n\n1. Load all summaries from the vector store\n2. **Test quality**: embed each summary and rank it against up to 20 competitor summaries using cosine similarity. A summary \"passes\" if it ranks in the top-K (default top 3, adjusted to top 50% for small pools)\n3. **Refine failures**: for failing summaries, generate feedback (showing rank, the test query, and the top-ranked competitor), then ask the LLM to rewrite the summary (system prompt: `REFINEMENT_SYSTEM_PROMPT`, temp=0.3, max 500 tokens)\n4. Re-embed and re-store successful rewrites in LanceDB\n5. Repeat up to `maxRounds` (default 3)\n\nScore is `1.0 / log2(rounds + 2)` — higher is better (fewer rounds = higher quality on first attempt).",
+    "stop_reason": "end_turn",
+    "session_id": "8f3e9d66-baa3-4f69-964b-352923b3dbd2",
+    "total_cost_usd": 0.42247975000000004,
+    "usage": {
+      "input_tokens": 11,
+      "cache_creation_input_tokens": 47549,
+      "cache_read_input_tokens": 130137,
+      "output_tokens": 2407,
+      "server_tool_use": {
+        "web_search_requests": 0,
+        "web_fetch_requests": 0
+      },
+      "service_tier": "standard",
+      "cache_creation": {
+        "ephemeral_1h_input_tokens": 0,
+        "ephemeral_5m_input_tokens": 47549
+      },
+      "inference_geo": "",
+      "iterations": [],
+      "speed": "standard"
+    },
+    "modelUsage": {
+      "claude-sonnet-4-6": {
+        "inputTokens": 11,
+        "outputTokens": 2407,
+        "cacheReadInputTokens": 130137,
+        "cacheCreationInputTokens": 47549,
+        "webSearchRequests": 0,
+        "costUSD": 0.42247975000000004,
+        "contextWindow": 200000,
+        "maxOutputTokens": 32000
+      }
+    },
+    "permission_denials": [],
+    "fast_mode_state": "off",
+    "uuid": "2c6f6788-3a10-4ae5-81de-42610bf1c810"
+  },
+  "durationMs": 61453,
+  "tokensIn": 11,
+  "tokensOut": 2407,
+  "toolCalls": 12,
+  "costUsd": 0.42247975000000004,
+  "timestamp": "2026-03-05T23:19:14.020Z"
+}

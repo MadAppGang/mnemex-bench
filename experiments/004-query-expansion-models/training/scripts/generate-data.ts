@@ -169,8 +169,8 @@ async function callOpenRouter(
 		headers: {
 			"Content-Type": "application/json",
 			Authorization: `Bearer ${apiKey}`,
-			"HTTP-Referer": "https://github.com/claudemem",
-			"X-Title": "claudemem-datagen",
+			"HTTP-Referer": "https://github.com/mnemex",
+			"X-Title": "mnemex-datagen",
 		},
 		body: JSON.stringify({
 			model: model.id,

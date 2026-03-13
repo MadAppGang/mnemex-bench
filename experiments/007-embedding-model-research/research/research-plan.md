@@ -166,7 +166,7 @@ Once candidates are ranked, conduct hands-on evaluation:
 2. **Benchmark on Code Corpus**: Run retrieval experiments against our standard test set
 3. **Profile Performance**: Measure inference time, memory, embedding quality
 4. **Document Results**: Create empirical comparison table with real-world numbers
-5. **Recommendation**: Select top 2-3 for integration into claudemem
+5. **Recommendation**: Select top 2-3 for integration into mnemex
 
 ---
 

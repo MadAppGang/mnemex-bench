@@ -1,0 +1,59 @@
+{
+  "scenarioId": 2,
+  "repo": "mnemex",
+  "condition": "skill-doc",
+  "title": "Feature: dead-code CSV output",
+  "task": "Add a `--format csv` option to the `dead-code` command that outputs results as CSV (columns: symbol,file,line,pageRank,callerCount) instead of the default table format.",
+  "output": "The diagnostics are pre-existing environment issues (missing `@types/node`, missing deps) unrelated to my changes. The edits are correct.\n\nHere's what was changed in `src/cli.ts`:\n\n1. **`handleDeadCode`** — added `--format` flag parsing, then added a `else if (format === \"csv\")` branch that:\n   - Prints the header: `symbol,file,line,pageRank,callerCount`\n   - For each result, emits a CSV row with proper RFC 4180 escaping (wraps values containing `,`, `\"`, or newlines in double quotes, doubling any internal quotes)\n   - `callerCount` is always `0` since dead code by definition has no callers\n\n2. **Help text** — added `--format <fmt>` entry under `CODE ANALYSIS OPTIONS` documenting `table|csv`",
+  "claudeJson": {
+    "type": "result",
+    "subtype": "success",
+    "is_error": false,
+    "duration_ms": 86973,
+    "duration_api_ms": 84124,
+    "num_turns": 14,
+    "result": "The diagnostics are pre-existing environment issues (missing `@types/node`, missing deps) unrelated to my changes. The edits are correct.\n\nHere's what was changed in `src/cli.ts`:\n\n1. **`handleDeadCode`** — added `--format` flag parsing, then added a `else if (format === \"csv\")` branch that:\n   - Prints the header: `symbol,file,line,pageRank,callerCount`\n   - For each result, emits a CSV row with proper RFC 4180 escaping (wraps values containing `,`, `\"`, or newlines in double quotes, doubling any internal quotes)\n   - `callerCount` is always `0` since dead code by definition has no callers\n\n2. **Help text** — added `--format <fmt>` entry under `CODE ANALYSIS OPTIONS` documenting `table|csv`",
+    "stop_reason": "end_turn",
+    "session_id": "3fc39c14-1037-4b11-9dab-17bf3405d6e5",
+    "total_cost_usd": 0.3479145,
+    "usage": {
+      "input_tokens": 19,
+      "cache_creation_input_tokens": 23354,
+      "cache_read_input_tokens": 190664,
+      "output_tokens": 4261,
+      "server_tool_use": {
+        "web_search_requests": 0,
+        "web_fetch_requests": 0
+      },
+      "service_tier": "standard",
+      "cache_creation": {
+        "ephemeral_1h_input_tokens": 0,
+        "ephemeral_5m_input_tokens": 23354
+      },
+      "inference_geo": "",
+      "iterations": [],
+      "speed": "standard"
+    },
+    "modelUsage": {
+      "claude-sonnet-4-6": {
+        "inputTokens": 19,
+        "outputTokens": 4261,
+        "cacheReadInputTokens": 190664,
+        "cacheCreationInputTokens": 23354,
+        "webSearchRequests": 0,
+        "costUSD": 0.3479145,
+        "contextWindow": 200000,
+        "maxOutputTokens": 32000
+      }
+    },
+    "permission_denials": [],
+    "fast_mode_state": "off",
+    "uuid": "51859917-236d-4b04-bb48-9da8d612f57f"
+  },
+  "durationMs": 91160,
+  "tokensIn": 19,
+  "tokensOut": 4261,
+  "toolCalls": 14,
+  "costUsd": 0.3479145,
+  "timestamp": "2026-03-05T22:44:10.284Z"
+}

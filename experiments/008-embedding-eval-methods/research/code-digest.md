@@ -1,4 +1,4 @@
-# claudemem benchmark-v2: Code Digest for Review
+# mnemex benchmark-v2: Code Digest for Review
 
 ## Purpose
 Review the benchmark-v2 system's embedding evaluation methodology.
@@ -25,7 +25,7 @@ Tested 9 embedding models on 1147 summaries, 296 queries, 37 code units (single 
 | nomic-embed-text | 768 | .716 | .848 | .772 |
 
 ## Problem
-- Test was on single codebase (claudemem itself)
+- Test was on single codebase (mnemex itself)
 - MTEB/CoIR scores don't match our real-world results
 - qwen3-embedding-0.6b ranked 8th despite being MTEB-Code #1 family
 - Need proper multi-codebase evaluation
@@ -2675,7 +2675,7 @@ export class OpenRouterEmbeddingsClient extends BaseEmbeddingsClient {
 		const apiKey = options.apiKey || getApiKey();
 		if (!apiKey) {
 			throw new Error(
-				"OpenRouter API key required. Set OPENROUTER_API_KEY environment variable or run 'claudemem init'",
+				"OpenRouter API key required. Set OPENROUTER_API_KEY environment variable or run 'mnemex init'",
 			);
 		}
 		this.apiKey = apiKey;
@@ -3483,7 +3483,7 @@ const EMBEDDING_MODELS = [
 
 // Use the Dec 2025 run (31 models, 37 code units, 296 queries — harder)
 const RUN_ID = "b8bc58da-b0ef-4c6b-b3fe-70ad64ad4170";
-const DB_PATH = ".claudemem/benchmark.db";
+const DB_PATH = ".mnemex/benchmark.db";
 const K_VALUES = [1, 3, 5, 10];
 
 // ============================================================================

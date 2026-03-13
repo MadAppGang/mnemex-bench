@@ -7,7 +7,7 @@
 
 `─────────────────────────────────────────────────`
 
-Excellent brief. Here’s a concrete redesign for an **embedding-first evaluation system** tailored to claudemem.
+Excellent brief. Here’s a concrete redesign for an **embedding-first evaluation system** tailored to mnemex.
 
 ## 1) Metrics: what to measure and why
 
@@ -163,10 +163,10 @@ Require significance + practical threshold:
 
 Proposed command family:
 
-- `claudemem embed-eval run`
-- `claudemem embed-eval report`
-- `claudemem embed-eval compare`
-- `claudemem embed-eval list-runs`
+- `mnemex embed-eval run`
+- `mnemex embed-eval report`
+- `mnemex embed-eval compare`
+- `mnemex embed-eval list-runs`
 
 Core flags:
 - `--models <list>`

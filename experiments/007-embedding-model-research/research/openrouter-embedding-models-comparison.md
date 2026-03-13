@@ -1,7 +1,7 @@
 # OpenRouter Embedding Models: Comparison for Code Search
 
 **Research Date**: 2026-03-04
-**Purpose**: Select the best embedding model on OpenRouter for semantic code search in claudemem
+**Purpose**: Select the best embedding model on OpenRouter for semantic code search in mnemex
 **Current Defaults**: OpenRouter: `qwen/qwen3-embedding-8b`, Voyage: `voyage-3.5-lite`, Ollama: `nomic-embed-text`
 
 ---
@@ -54,7 +54,7 @@ These models have a 512-token context window, making them **not suitable for cod
 
 Verified by querying both `GET /api/v1/models` (all models) and `GET /api/v1/embeddings/models` (embedding-specific). Zero results for "voyage" in either endpoint as of 2026-03-04.
 
-Voyage models must be accessed directly via the Voyage AI API (`https://api.voyageai.com/v1/embeddings`) with a separate `VOYAGE_API_KEY`. This is already implemented in claudemem's `VoyageEmbeddingsClient`.
+Voyage models must be accessed directly via the Voyage AI API (`https://api.voyageai.com/v1/embeddings`) with a separate `VOYAGE_API_KEY`. This is already implemented in mnemex's `VoyageEmbeddingsClient`.
 
 **Voyage pricing** (from codebase `embeddings.ts`):
 | Model | Price/1M | Context | Best For |
@@ -138,7 +138,7 @@ OpenRouter acts as a proxy to underlying providers. Speed varies by:
 | `qwen/qwen3-embedding-4b` | 4B | Moderate | 4B parameters |
 | `qwen/qwen3-embedding-8b` | 8B | Slowest | 8B parameters |
 
-**Note**: claudemem processes batches of 20 chunks at a time with 5 parallel batches. For indexing a typical 500-file repo:
+**Note**: mnemex processes batches of 20 chunks at a time with 5 parallel batches. For indexing a typical 500-file repo:
 - 500 files × ~10 chunks = ~5,000 chunks
 - At 20/batch × 5 parallel = 100 chunks per round-trip
 - 50 round trips total
@@ -150,7 +150,7 @@ The current `CURATED_PICKS.fastest` in the codebase is Mistral Embed at ~1.84s p
 
 ## 5. Context Length Comparison
 
-For code chunk embedding, context length is critical. claudemem's chunker creates chunks of varying sizes. Functions can range from 50 to 2,000+ tokens.
+For code chunk embedding, context length is critical. mnemex's chunker creates chunks of varying sizes. Functions can range from 50 to 2,000+ tokens.
 
 | Model | Context (tokens) | Adequate for Code? |
 |---|---|---|
@@ -303,7 +303,7 @@ The current default of `voyage-3.5-lite` is reasonable for a budget Voyage optio
 
 ## 10. Model Discovery Data Errors to Fix
 
-In `/Users/jack/mag/claudemem/src/models/model-discovery.ts`:
+In `/Users/jack/mag/mnemex/src/models/model-discovery.ts`:
 
 1. **`bestBalanced` ID is wrong**: Set to `google/gemini-embedding-001` but code comment says `qwen/qwen3-embedding-8b`. The comment on line 98 of `cli.ts` says `// qwen/qwen3-embedding-8b` for `CURATED_PICKS.bestBalanced`.
 
@@ -447,6 +447,6 @@ export const CURATED_PICKS = {
 3. Qwen3 Embedding Blog — `https://qwenlm.github.io/blog/qwen3-embedding/` — June 5, 2025
 4. Voyage Code 3 Blog — `https://blog.voyageai.com/2024/12/04/voyage-code-3/` — Dec 2024
 5. Mistral Codestral Embed announcement — `https://mistral.ai/news/codestral-embed/` — May 2025
-6. claudemem source: `/Users/jack/mag/claudemem/src/models/model-discovery.ts`
-7. claudemem source: `/Users/jack/mag/claudemem/src/core/embeddings.ts`
-8. claudemem source: `/Users/jack/mag/claudemem/src/config.ts`
+6. mnemex source: `/Users/jack/mag/mnemex/src/models/model-discovery.ts`
+7. mnemex source: `/Users/jack/mag/mnemex/src/core/embeddings.ts`
+8. mnemex source: `/Users/jack/mag/mnemex/src/config.ts`

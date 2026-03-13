@@ -1,0 +1,59 @@
+{
+  "scenarioId": 1,
+  "repo": "mnemex",
+  "condition": "baseline",
+  "title": "Bug: --agent flag ordering",
+  "task": "The `--agent` flag doesn't seem to work when placed after the command name (e.g., `mnemex search --agent`). Investigate why and explain the root cause. Do NOT make any code changes.",
+  "output": "Now I have a complete picture. Here's the root cause:\n\n---\n\n## Root Cause\n\n**The `--agent` flag actually IS detected correctly when placed after the command**, because the detection at `cli.ts:188` uses `args.includes(\"--agent\")`:\n\n```typescript\n// cli.ts:188-191\nif (args.includes(\"--agent\")) {\n    agentMode = true;\n    args = args.filter((a) => a !== \"--agent\");\n}\n```\n\n`Array.prototype.includes` is **position-independent** — it scans the entire array. So `agentMode` IS set to `true` for both `mnemex --agent search \"q\"` and `mnemex search \"q\" --agent`.\n\n---\n\n## Why It *Appears* Not To Work\n\nThe specific case the user likely tested: **`mnemex search --agent` with no query**.\n\nTrace for `mnemex search --agent`:\n1. `args = [\"search\", \"--agent\"]`\n2. `args.includes(\"--agent\")` → `true`, `agentMode = true`, `args = [\"search\"]` (filtered)\n3. `handleSearch([])` — no args remaining after stripping `--agent`\n4. `query = \"\"` → hits line 1385–1388:\n   ```typescript\n   console.error(\"Error: No search query provided.\");\n   console.error('Usage: mnemex search \"your query\"');\n   process.exit(1);\n   ```\n\nThis error path uses `console.error` (plain text) **unconditionally** — even when `agentMode = true`. An agent consuming this output would see non-agent-formatted stderr, making it look like the flag had no effect.\n\nThe key issue: `--agent` is consumed as a mode flag and stripped, but leaves **no query behind**. The resulting error doesn't go through `agentOutput.error()`.\n\n---\n\n## Why Placement Before the Command Also Fails Identically\n\n`mnemex --agent search` (no query) produces the **exact same** outcome:\n1. `args = [\"--agent\", \"search\"]`\n2. Filter → `agentMode = true`, `args = [\"search\"]`\n3. `handleSearch([])` → same plain-text error\n\nSo there's no behavioral difference between the two placements. The actual issue is: **`mnemex search --agent` without a query is missing a query**, and the \"no query\" error branch ignores `agentMode` and always uses `console.error` instead of `agentOutput.error`.",
+  "claudeJson": {
+    "type": "result",
+    "subtype": "success",
+    "is_error": false,
+    "duration_ms": 669185,
+    "duration_api_ms": 665299,
+    "num_turns": 19,
+    "result": "Now I have a complete picture. Here's the root cause:\n\n---\n\n## Root Cause\n\n**The `--agent` flag actually IS detected correctly when placed after the command**, because the detection at `cli.ts:188` uses `args.includes(\"--agent\")`:\n\n```typescript\n// cli.ts:188-191\nif (args.includes(\"--agent\")) {\n    agentMode = true;\n    args = args.filter((a) => a !== \"--agent\");\n}\n```\n\n`Array.prototype.includes` is **position-independent** — it scans the entire array. So `agentMode` IS set to `true` for both `mnemex --agent search \"q\"` and `mnemex search \"q\" --agent`.\n\n---\n\n## Why It *Appears* Not To Work\n\nThe specific case the user likely tested: **`mnemex search --agent` with no query**.\n\nTrace for `mnemex search --agent`:\n1. `args = [\"search\", \"--agent\"]`\n2. `args.includes(\"--agent\")` → `true`, `agentMode = true`, `args = [\"search\"]` (filtered)\n3. `handleSearch([])` — no args remaining after stripping `--agent`\n4. `query = \"\"` → hits line 1385–1388:\n   ```typescript\n   console.error(\"Error: No search query provided.\");\n   console.error('Usage: mnemex search \"your query\"');\n   process.exit(1);\n   ```\n\nThis error path uses `console.error` (plain text) **unconditionally** — even when `agentMode = true`. An agent consuming this output would see non-agent-formatted stderr, making it look like the flag had no effect.\n\nThe key issue: `--agent` is consumed as a mode flag and stripped, but leaves **no query behind**. The resulting error doesn't go through `agentOutput.error()`.\n\n---\n\n## Why Placement Before the Command Also Fails Identically\n\n`mnemex --agent search` (no query) produces the **exact same** outcome:\n1. `args = [\"--agent\", \"search\"]`\n2. Filter → `agentMode = true`, `args = [\"search\"]`\n3. `handleSearch([])` → same plain-text error\n\nSo there's no behavioral difference between the two placements. The actual issue is: **`mnemex search --agent` without a query is missing a query**, and the \"no query\" error branch ignores `agentMode` and always uses `console.error` instead of `agentOutput.error`.",
+    "stop_reason": "end_turn",
+    "session_id": "0bd22078-6cad-4284-a070-b29eddb91253",
+    "total_cost_usd": 1.68654825,
+    "usage": {
+      "input_tokens": 23,
+      "cache_creation_input_tokens": 62493,
+      "cache_read_input_tokens": 544454,
+      "output_tokens": 40945,
+      "server_tool_use": {
+        "web_search_requests": 0,
+        "web_fetch_requests": 0
+      },
+      "service_tier": "standard",
+      "cache_creation": {
+        "ephemeral_1h_input_tokens": 0,
+        "ephemeral_5m_input_tokens": 62493
+      },
+      "inference_geo": "",
+      "iterations": [],
+      "speed": "standard"
+    },
+    "modelUsage": {
+      "claude-sonnet-4-6": {
+        "inputTokens": 23,
+        "outputTokens": 40945,
+        "cacheReadInputTokens": 544454,
+        "cacheCreationInputTokens": 62493,
+        "webSearchRequests": 0,
+        "costUSD": 1.68654825,
+        "contextWindow": 200000,
+        "maxOutputTokens": 32000
+      }
+    },
+    "permission_denials": [],
+    "fast_mode_state": "off",
+    "uuid": "49c64f22-5279-4691-8030-9a1d63faa9c6"
+  },
+  "durationMs": 674480,
+  "tokensIn": 23,
+  "tokensOut": 40945,
+  "toolCalls": 19,
+  "costUsd": 1.68654825,
+  "timestamp": "2026-03-05T22:06:42.967Z"
+}

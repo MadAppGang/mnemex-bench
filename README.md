@@ -43,7 +43,7 @@ experiments/
     synthesis/                # Final embed-eval-spec
     work/                     # 6 external model proposals
     README.md                 # Design, multi-model validation approach
-  009-claudemem-vs-serena/    # Head-to-head claudemem vs Serena MCP comparison
+  009-mnemex-vs-serena/    # Head-to-head mnemex vs Serena MCP comparison
     harness/                  # run-comparison.sh, MCP configs
     prompts/                  # 4 code investigation prompts (+1 skipped)
     results/                  # 7 runs (2 with complete data)
@@ -61,15 +61,15 @@ experiments/
 | # | Name | Date | Status | Summary |
 |---|------|------|--------|---------|
 | 001 | [LLM Speed Benchmark](experiments/001-llm-speed-claudish/) | 2026-03-05 | Complete | 6 frontier models speed-tested via claudish (OpenRouter + Direct API). Gemini 3 Flash and GPT-5.1 Codex Mini tied at ~33s. GPT best value at $0.25/M in. |
-| 002 | [Cognitive Memory E2E Eval](experiments/002-cognitive-memory-e2e/) | 2026-03-06 | Round 1 complete (null result) | 64 sessions (16 scenarios x 4 conditions) comparing no-index / baseline / skill-doc / observations on claudemem + fastmcp repos. All conditions scored avg 2.00/2 — Sonnet too capable for these tasks. Index saves efficiency (~40% faster) but not quality. |
+| 002 | [Cognitive Memory E2E Eval](experiments/002-cognitive-memory-e2e/) | 2026-03-06 | Round 1 complete (null result) | 64 sessions (16 scenarios x 4 conditions) comparing no-index / baseline / skill-doc / observations on mnemex + fastmcp repos. All conditions scored avg 2.00/2 — Sonnet too capable for these tasks. Index saves efficiency (~40% faster) but not quality. |
 | 003 | [Cognitive MVP Validation](experiments/003-cognitive-mvp-validation/) | 2026-03-04 | Not yet run | 5 observations written to LanceDB, 5 targeted queries — validates that session observations surface in top-5 search results. Harness + implementation ready. |
 | 004 | [Query Expansion Models](experiments/004-query-expansion-models/) | 2026-03-06 | Complete | 25 models benchmarked (16 base + 9 SFT). LFM2-2.6B wins (.816). SFT teaches format, not domain knowledge. 3-tier selection: LFM2-700M / Qwen3-1.7B-FT / LFM2-2.6B. |
 | 005 | [Query Planner Architecture](experiments/005-query-planner-architecture/) | 2026-03-06 | Complete | No production tool uses LLM query planners. Rule-based classifier (<5ms, ~80% accuracy) is the right default. Expander and planner are different jobs. |
 | 006 | [Code Search Test Harness](experiments/006-code-search-test-harness/) | 2026-03-06 | Complete (design) | 224-query minimum viable benchmark from SWE-bench + synthetic. Extend existing benchmark-v2. 6 ablation conditions, ~$5 total cost, 7 days to run. |
 | 007 | [Embedding Model Research](experiments/007-embedding-model-research/) | 2026-03-05 | Complete | Small embedding model survey for local code search on Apple Silicon. |
 | 008 | [Embedding Eval Methods](experiments/008-embedding-eval-methods/) | 2026-03-05 | Complete | Multi-model validation of embedding evaluation methodology. 6 external models reviewed and voted on eval spec. |
-| 009 | [Claudemem vs Serena](experiments/009-claudemem-vs-serena/) | 2026-03-04 | Round 1 complete (preliminary) | Head-to-head MCP tool comparison: claudemem uses 34% fewer tool calls but Serena is ~11% faster wall-clock. Neither clearly wins. Correctness not yet graded. |
-| 010 | [MCP vs CLI Efficiency](experiments/010-mcp-vs-cli-efficiency/) | 2026-03-10 | Ready to run | Compare claudemem MCP tools vs CLI (Bash) for same 5 code investigation tasks. Measures duration, tool calls, compliance. |
+| 009 | [Mnemex vs Serena](experiments/009-mnemex-vs-serena/) | 2026-03-04 | Round 1 complete (preliminary) | Head-to-head MCP tool comparison: mnemex uses 34% fewer tool calls but Serena is ~11% faster wall-clock. Neither clearly wins. Correctness not yet graded. |
+| 010 | [MCP vs CLI Efficiency](experiments/010-mcp-vs-cli-efficiency/) | 2026-03-10 | Ready to run | Compare mnemex MCP tools vs CLI (Bash) for same 5 code investigation tasks. Measures duration, tool calls, compliance. |
 
 
 ## Data Archives (S3)

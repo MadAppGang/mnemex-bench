@@ -12,10 +12,10 @@ The current embedding benchmark (`eval/embedding-benchmark.ts`) is a working pro
 eight specific gaps: single codebase, LLM-contaminated queries, no hard negative difficulty
 tiers, no statistical significance, no hybrid search, no latency profiling, no quantization
 testing, and no MRL dimension sweeps. This proposal designs a complete replacement — a
-standalone `claudemem embed-eval` command — that addresses all eight gaps through a layered,
+standalone `mnemex embed-eval` command — that addresses all eight gaps through a layered,
 phased evaluation pipeline built on the existing `benchmark-v2` infrastructure.
 
-**Central design decision**: embed-eval is NOT a replacement for `claudemem benchmark`. It is
+**Central design decision**: embed-eval is NOT a replacement for `mnemex benchmark`. It is
 a separate, purpose-built tool for comparing embedding models only, using code chunks directly
 (not summaries), across multiple repos, with controlled query types and hard negatives.
 
@@ -45,7 +45,7 @@ Gap                          Current State          Required State
 ----------------------------------------------------------------------
 Query diversity              LLM-generated only     8-type taxonomy + human templates
 Hard negatives               Random same-language   4-tier: file/sig/semantic/random
-Cross-codebase               1 repo (claudemem)     5 repos, 3+ languages
+Cross-codebase               1 repo (mnemex)     5 repos, 3+ languages
 Statistical rigor            None                   Bootstrap CIs, paired Wilcoxon
 Hybrid search                Not tested             Vector-only vs BM25+vector
 Latency/throughput           Embed time only        p50/p95 batch, chunks/sec, cost
@@ -58,7 +58,7 @@ Quantization                 Not tested             fp16/Q8/Q4 x MRL dims matrix
 
 ```
 ┌─────────────────────────────────────────────────────────────────────┐
-│                      claudemem embed-eval                           │
+│                      mnemex embed-eval                           │
 ├─────────────────────────────────────────────────────────────────────┤
 │                                                                     │
 │  PHASE 1: Dataset Construction                                      │
@@ -115,7 +115,7 @@ Quantization                 Not tested             fp16/Q8/Q4 x MRL dims matrix
 
 ### Primary Metric: MRR (Mean Reciprocal Rank)
 
-MRR is the right primary metric for claudemem's use case:
+MRR is the right primary metric for mnemex's use case:
 - Developers look at 1-3 results then reformulate; MRR captures this behavior
 - Binary relevance (each query has exactly one correct chunk) makes MRR clean and
   unambiguous — no graded relevance to define or debate
@@ -135,7 +135,7 @@ Win Rate        —           Cross-model: which model places #1 most often
 
 ### Why NOT MAP
 
-MAP (Mean Average Precision) assumes multiple relevant documents per query. In claudemem's
+MAP (Mean Average Precision) assumes multiple relevant documents per query. In mnemex's
 corpus, each query has exactly one ground-truth chunk. MAP degenerates to MRR when there is
 one relevant document. Do not use MAP here.
 
@@ -279,7 +279,7 @@ For reporting, compute a tier-weighted MRR that weights harder tiers more heavil
 TW-MRR = 0.50 * mrr_T0 + 0.25 * mrr_T1 + 0.15 * mrr_T2 + 0.10 * mrr_T3
 ```
 
-This is a claudemem-specific metric (not academic standard) that rewards models which
+This is a mnemex-specific metric (not academic standard) that rewards models which
 maintain quality on same-file discrimination.
 
 ---
@@ -294,7 +294,7 @@ statistical reliability). Selection criteria:
 ```
 Repo           Language    Size        Characteristics
 ----------------------------------------------------------------------
-claudemem      TypeScript  Medium      Home repo; known quantities
+mnemex      TypeScript  Medium      Home repo; known quantities
 fastify        TypeScript  Large       HTTP server; async patterns
 cpython (lib)  Python      Large       stdlib subset; docstring-rich
 ruff           Rust        Medium      CLI tool; different naming conventions
@@ -332,7 +332,7 @@ small utility functions that all models handle easily.
 4. Compute a weighted aggregate where weight = repo size (larger = more representative)
 
 ```
-               claudemem  fastify  cpython  ruff   chi    Avg   StdDev
+               mnemex  fastify  cpython  ruff   chi    Avg   StdDev
 voyage-code-3    0.82      0.79     0.81    0.77   0.80   0.80   0.018
 qwen3-emb-8b     0.78      0.74     0.80    0.71   0.73   0.75   0.034
 nomic-embed-code 0.81      0.77     0.79    0.76   0.78   0.78   0.018
@@ -349,7 +349,7 @@ be the better production choice if consistency across languages matters more tha
 
 BM25 excels on exact identifier matches ("useAuthStore", "PageRank", class/function names).
 Embedding excels on semantic similarity for natural language queries. In production,
-claudemem uses hybrid search by default. Evaluating embedding-only underestimates the
+mnemex uses hybrid search by default. Evaluating embedding-only underestimates the
 combined system's quality, and a "worse" embedding model can win in hybrid mode if it
 provides complementary signal to BM25.
 
@@ -396,7 +396,7 @@ all-minilm-l6-v2   0.62        0.68        0.74          0.45
 Note: BM25-MRR is identical across models because BM25 is not embedding-dependent. The
 hybrid benefit is model-specific. A model like all-minilm-l6-v2 that loses badly on
 vector-only may need BM25 support (higher alpha) to be competitive — this is important
-information for claudemem's configuration defaults.
+information for mnemex's configuration defaults.
 
 ---
 
@@ -587,23 +587,23 @@ with the implication that the cheaper/faster/local model is preferred for practi
 ### Core Command
 
 ```bash
-claudemem embed-eval [options] [repos...]
+mnemex embed-eval [options] [repos...]
 ```
 
 ### Minimal Invocation (Quick Check)
 
 ```bash
 # Quick 10-minute comparison of 3 models on 1 repo, N=20 code units
-claudemem embed-eval --quick voyage-code-3 qwen3-embedding-0.6b nomic-embed-code
+mnemex embed-eval --quick voyage-code-3 qwen3-embedding-0.6b nomic-embed-code
 ```
 
 ### Full Evaluation
 
 ```bash
 # Full cross-repo eval: 5 repos, N=50, all metrics, save to DB
-claudemem embed-eval \
+mnemex embed-eval \
   --models voyage-code-3,qwen/qwen3-embedding-8b,ollama/nomic-embed-code \
-  --repos claudemem,fastify,cpython,ruff,chi \
+  --repos mnemex,fastify,cpython,ruff,chi \
   --n-per-repo 50 \
   --queries 8 \
   --distractors 9 \
@@ -616,18 +616,18 @@ claudemem embed-eval \
 
 ```bash
 # Test MRL dimensions + quantization for a single model
-claudemem embed-eval \
+mnemex embed-eval \
   --model qwen/qwen3-embedding-0.6b \
   --quant-sweep \
   --mrl-dims 1024,512,256,128 \
-  --repos claudemem
+  --repos mnemex
 ```
 
 ### Compare Against Previous Run
 
 ```bash
 # Load previous results and compare new model
-claudemem embed-eval \
+mnemex embed-eval \
   --baseline eval-embed-2026-01.db \
   --models mistralai/codestral-embed \
   --significance 0.05
@@ -662,7 +662,7 @@ Output flags:
 ### Output Format (Default Table)
 
 ```
-claudemem embed-eval results — 2026-03-05 14:32 — 5 repos, 250 code units, 2000 queries
+mnemex embed-eval results — 2026-03-05 14:32 — 5 repos, 250 code units, 2000 queries
 ================================================================================
 
 OVERALL RANKING (by weighted MRR across all repos)
@@ -679,7 +679,7 @@ OVERALL RANKING (by weighted MRR across all repos)
 
 CROSS-REPO BREAKDOWN (MRR per repo)
 -----------------------------------------------------------------------
-Model                  claudemem  fastify  cpython  ruff   chi   StdDev
+Model                  mnemex  fastify  cpython  ruff   chi   StdDev
 voyage-code-3            0.821     0.791    0.813   0.778  0.808  0.016
 nomic-embed-code         0.808     0.778    0.796   0.765  0.769  0.017
 qwen3-embedding-8b       0.771     0.743    0.781   0.734  0.741  0.019
@@ -790,7 +790,7 @@ CREATE TABLE latency_profiles (
 - `HybridEval`: adds BM25 scoring using the existing search infrastructure in `src/core/search/`;
   implements RRF fusion; sweeps alpha values
 
-**BM25 integration**: claudemem's search already implements BM25 in `src/core/search/`. The
+**BM25 integration**: mnemex's search already implements BM25 in `src/core/search/`. The
 hybrid evaluator wraps both the vector index and the BM25 scorer, computing RRF ranks for
 the same queries used in the vector eval.
 
@@ -897,7 +897,7 @@ but it does not eliminate the fundamental gap between synthetic and real queries
 
 **Limitation 2: Domain shift for private codebases**
 
-The 5 evaluation repos are all open-source. claudemem's production users may work on
+The 5 evaluation repos are all open-source. mnemex's production users may work on
 proprietary codebases with highly domain-specific vocabulary (medical records, trading
 systems, etc.). A model that wins on open-source code may not win on those domains. This
 design cannot test for this; it can only reduce the risk by testing across diverse repos.

@@ -1,0 +1,81 @@
+{
+  "schema_version": "1",
+  "runs": [
+    {
+      "run_id": "run-20260311-180915",
+      "timestamp": "2026-03-11T07:28:38Z",
+      "tools": [
+        "mnemex",
+        "serena",
+        "bare-claude"
+      ],
+      "repos": [
+        "fastmcp",
+        "tinygrad"
+      ],
+      "tasks": [
+        "T01",
+        "T02",
+        "T03",
+        "T04"
+      ],
+      "record_path": "records/run-20260311-180915.json",
+      "compliance_rates": {},
+      "median_grades": {}
+    },
+    {
+      "run_id": "run-20260311-183252",
+      "timestamp": "2026-03-11T07:33:11Z",
+      "tools": [
+        "bare-claude"
+      ],
+      "repos": [
+        "fastmcp"
+      ],
+      "tasks": [
+        "T01"
+      ],
+      "record_path": "records/run-20260311-183252.json",
+      "compliance_rates": {},
+      "median_grades": {}
+    },
+    {
+      "run_id": "run-20260311-183902",
+      "timestamp": "2026-03-11T07:39:23Z",
+      "tools": [
+        "bare-claude"
+      ],
+      "repos": [
+        "fastmcp"
+      ],
+      "tasks": [
+        "T01"
+      ],
+      "record_path": "records/run-20260311-183902.json",
+      "compliance_rates": {},
+      "median_grades": {}
+    },
+    {
+      "run_id": "run-20260311-183933",
+      "timestamp": "2026-03-11T07:57:07Z",
+      "tools": [
+        "mnemex",
+        "serena",
+        "bare-claude"
+      ],
+      "repos": [
+        "fastmcp",
+        "tinygrad"
+      ],
+      "tasks": [
+        "T01",
+        "T02",
+        "T03",
+        "T04"
+      ],
+      "record_path": "records/run-20260311-183933.json",
+      "compliance_rates": {},
+      "median_grades": {}
+    }
+  ]
+}

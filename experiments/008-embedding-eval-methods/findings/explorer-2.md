@@ -12,7 +12,7 @@
 
 This research focuses specifically on what makes evaluating embedding models for CODE SEARCH
 different from standard text retrieval evaluation. The local codebase contains substantial
-evidence: claudemem has a production-grade benchmark framework (`src/benchmark-v2/`), two
+evidence: mnemex has a production-grade benchmark framework (`src/benchmark-v2/`), two
 ADRs that cite code-specific retrieval research, and extensive prior research sessions
 that document real model behavior on code retrieval benchmarks. The findings below synthesize
 this evidence into actionable guidance on the unique challenges and best practices.
@@ -29,7 +29,7 @@ function-name lookups) is systematically biased and will not predict real-world 
 
 **Evidence**:
 
-From `src/benchmark-v2/extractors/query-generator.ts` (claudemem's production benchmark):
+From `src/benchmark-v2/extractors/query-generator.ts` (mnemex's production benchmark):
 
 ```
 8 required query types per code unit:
@@ -61,9 +61,9 @@ models precisely because they were trained on text-to-code retrieval, which incl
 vocabulary mismatch problem explicitly.
 
 **Sources**:
-- [/Users/jack/mag/claudemem/src/benchmark-v2/extractors/query-generator.ts](/Users/jack/mag/claudemem/src/benchmark-v2/extractors/query-generator.ts) — Quality: High, Date: 2026-02-25
+- [/Users/jack/mag/mnemex/src/benchmark-v2/extractors/query-generator.ts](/Users/jack/mag/mnemex/src/benchmark-v2/extractors/query-generator.ts) — Quality: High, Date: 2026-02-25
 - [arxiv:2508.21290 (Jina code embeddings paper)](https://arxiv.org/abs/2508.21290) — Quality: High, Date: August 2025 (CoIR multi-task evaluation validates query type diversity)
-- [/Users/jack/mag/claudemem/ai-docs/sessions/dev-research-embedding-models-benchmarks-20260305/embedding-model-benchmarks-march2026.md](/Users/jack/mag/claudemem/ai-docs/sessions/dev-research-embedding-models-benchmarks-20260305/embedding-model-benchmarks-march2026.md) — Quality: High, Date: 2026-03-05
+- [/Users/jack/mag/mnemex/ai-docs/sessions/dev-research-embedding-models-benchmarks-20260305/embedding-model-benchmarks-march2026.md](/Users/jack/mag/mnemex/ai-docs/sessions/dev-research-embedding-models-benchmarks-20260305/embedding-model-benchmarks-march2026.md) — Quality: High, Date: 2026-03-05
 
 **Confidence**: High
 **Multi-source**: Yes
@@ -96,8 +96,8 @@ const response = await this.llmClient.completeJSON<ParsedQueryResponse>(
 The system prompt explicitly instructs: "These queries should vary in specificity and terminology —
 NOT be perfect descriptions." This is a direct mitigation for LLM query contamination.
 
-From the prior benchmark research session (`dev-research-compare-claudemem-qmd-20260303`):
-- claudemem's MRR benchmark result (voyage-code-3 = 175%, all-minilm-l6-v2 = 128%) uses real
+From the prior benchmark research session (`dev-research-compare-mnemex-qmd-20260303`):
+- mnemex's MRR benchmark result (voyage-code-3 = 175%, all-minilm-l6-v2 = 128%) uses real
   code search tasks — not LLM-generated test pairs. This "ground truth" metric is specifically
   noted as reliable because the queries reflect actual developer search behavior.
 
@@ -116,9 +116,9 @@ From the prior benchmark research session (`dev-research-compare-claudemem-qmd-2
 - Do NOT generate queries from the LLM summaries — generate from the raw code
 
 **Sources**:
-- [/Users/jack/mag/claudemem/src/benchmark-v2/extractors/query-generator.ts](/Users/jack/mag/claudemem/src/benchmark-v2/extractors/query-generator.ts) — Quality: High
-- [/Users/jack/mag/claudemem/src/benchmark-v2/types.ts](/Users/jack/mag/claudemem/src/benchmark-v2/types.ts) — Quality: High
-- [/Users/jack/mag/claudemem/ai-docs/sessions/dev-research-compare-claudemem-qmd-20260303-213614-8cd8fe67/findings/explorer-2.md](/Users/jack/mag/claudemem/ai-docs/sessions/dev-research-compare-claudemem-qmd-20260303-213614-8cd8fe67/findings/explorer-2.md) — Quality: High, Date: 2026-03-03
+- [/Users/jack/mag/mnemex/src/benchmark-v2/extractors/query-generator.ts](/Users/jack/mag/mnemex/src/benchmark-v2/extractors/query-generator.ts) — Quality: High
+- [/Users/jack/mag/mnemex/src/benchmark-v2/types.ts](/Users/jack/mag/mnemex/src/benchmark-v2/types.ts) — Quality: High
+- [/Users/jack/mag/mnemex/ai-docs/sessions/dev-research-compare-mnemex-qmd-20260303-213614-8cd8fe67/findings/explorer-2.md](/Users/jack/mag/mnemex/ai-docs/sessions/dev-research-compare-mnemex-qmd-20260303-213614-8cd8fe67/findings/explorer-2.md) — Quality: High, Date: 2026-03-03
 
 **Confidence**: High
 **Multi-source**: Yes
@@ -128,7 +128,7 @@ From the prior benchmark research session (`dev-research-compare-claudemem-qmd-2
 
 ### Finding 3: Hard Negatives for Code Must Include Same-File Distractors and Similar-Function Variants
 
-**Summary**: The contrastive evaluation design in claudemem's benchmark (`ContrastiveResults`) uses
+**Summary**: The contrastive evaluation design in mnemex's benchmark (`ContrastiveResults`) uses
 distractor pool selection — but the quality of the distractors determines the rigor of the eval.
 For code, the hardest negatives are: (1) functions in the same file with different purpose, and
 (2) semantically similar functions that solve slightly different problems.
@@ -183,10 +183,10 @@ embedding separates signal from noise.
   than random-file distractor MRR
 
 **Sources**:
-- [/Users/jack/mag/claudemem/src/benchmark-v2/types.ts](/Users/jack/mag/claudemem/src/benchmark-v2/types.ts) — Quality: High, Date: 2026-02-25
-- [/Users/jack/mag/claudemem/src/benchmark-v2/evaluators/contrastive/index.ts](/Users/jack/mag/claudemem/src/benchmark-v2/evaluators/contrastive/index.ts) — Quality: High
+- [/Users/jack/mag/mnemex/src/benchmark-v2/types.ts](/Users/jack/mag/mnemex/src/benchmark-v2/types.ts) — Quality: High, Date: 2026-02-25
+- [/Users/jack/mag/mnemex/src/benchmark-v2/evaluators/contrastive/index.ts](/Users/jack/mag/mnemex/src/benchmark-v2/evaluators/contrastive/index.ts) — Quality: High
 - [arxiv:2407.02883 (CoIR benchmark paper)](https://arxiv.org/abs/2407.02883) — Quality: High, Date: July 2024 (CoIR tests code-to-code retrieval which requires hard negatives across similar functions)
-- [/Users/jack/mag/claudemem/ai-docs/embedding-model-research-20260304/small-embedding-models-march2026.md](/Users/jack/mag/claudemem/ai-docs/embedding-model-research-20260304/small-embedding-models-march2026.md) — Quality: High
+- [/Users/jack/mag/mnemex/ai-docs/embedding-model-research-20260304/small-embedding-models-march2026.md](/Users/jack/mag/mnemex/ai-docs/embedding-model-research-20260304/small-embedding-models-march2026.md) — Quality: High
 
 **Confidence**: High
 **Multi-source**: Yes
@@ -216,7 +216,7 @@ A 0.5B code-specialist (78.41) outperforms a 3.8B general model with code adapte
 **outperforms** the 3.8B general Jina v4 (73.49 vs 74.11) — suggesting that even raw model
 size does not compensate for code specialization.
 
-From claudemem's own empirical NDCG benchmark (README, confirmed via source files):
+From mnemex's own empirical NDCG benchmark (README, confirmed via source files):
 
 | Model | NDCG | Notes |
 |---|---|---|
@@ -241,8 +241,8 @@ voyage-code-3 outperforms text-embedding-3-small by 24% relative NDCG on real co
 
 **Sources**:
 - [arxiv:2508.21290](https://arxiv.org/abs/2508.21290) — Quality: High, Date: August 2025
-- [/Users/jack/mag/claudemem/ai-docs/sessions/dev-research-embedding-models-benchmarks-20260305/embedding-model-benchmarks-march2026.md](/Users/jack/mag/claudemem/ai-docs/sessions/dev-research-embedding-models-benchmarks-20260305/embedding-model-benchmarks-march2026.md) — Quality: High, Date: 2026-03-05
-- [/Users/jack/mag/claudemem/src/core/embeddings.ts](/Users/jack/mag/claudemem/src/core/embeddings.ts) — Quality: High, Date: 2026-03-04
+- [/Users/jack/mag/mnemex/ai-docs/sessions/dev-research-embedding-models-benchmarks-20260305/embedding-model-benchmarks-march2026.md](/Users/jack/mag/mnemex/ai-docs/sessions/dev-research-embedding-models-benchmarks-20260305/embedding-model-benchmarks-march2026.md) — Quality: High, Date: 2026-03-05
+- [/Users/jack/mag/mnemex/src/core/embeddings.ts](/Users/jack/mag/mnemex/src/core/embeddings.ts) — Quality: High, Date: 2026-03-04
 - [nomic-ai/nomic-embed-code README](https://huggingface.co/nomic-ai/nomic-embed-code) — Quality: High, Date: March 2025
 
 **Confidence**: High
@@ -254,7 +254,7 @@ voyage-code-3 outperforms text-embedding-3-small by 24% relative NDCG on real co
 ### Finding 5: Cross-Codebase Generalization Must Be Tested — Single-Codebase Eval Overfits
 
 **Summary**: Evaluating an embedding model only on the same codebase it will be used on creates
-a selection bias. The claudemem benchmark framework addresses this via codebase-agnostic sampling
+a selection bias. The mnemex benchmark framework addresses this via codebase-agnostic sampling
 with stratification, but cross-codebase testing against multiple independent projects is required
 to validate generalization.
 
@@ -270,7 +270,7 @@ const DEFAULT_SAMPLING_CONFIG: SamplingConfig = {
 };
 ```
 
-The agentbench eval (in `/Users/jack/mag/claudemem/eval/agentbench-claudemem/`) runs across
+The agentbench eval (in `/Users/jack/mag/mnemex/eval/agentbench-mnemex/`) runs across
 12 distinct repos (from the MEMORY.md: "12 repos, ~39K symbols, ~1.9GB indexes") — this is
 the cross-codebase generalization test.
 
@@ -295,7 +295,7 @@ From the MEMORY.md note on the agentbench eval:
   - At least 1 large (>500 files) and 1 small (<100 files) repo
   - At least 1 domain mismatch (e.g., if model was validated on web services, test on CLI tools)
 - Report per-codebase breakdown in addition to aggregate metrics
-- For the claudemem use case: test against Go repos (different idioms), Python data-science
+- For the mnemex use case: test against Go repos (different idioms), Python data-science
   repos (different naming), and TypeScript frontend repos (different module structure)
 
 **From CoIR benchmark** (arxiv:2407.02883, July 2024):
@@ -305,11 +305,11 @@ Its multi-task structure is specifically designed to prevent single-domain overf
 each subtask tests a different generalization dimension.
 
 **Sources**:
-- [/Users/jack/mag/claudemem/src/benchmark-v2/codebase-detector.ts](/Users/jack/mag/claudemem/src/benchmark-v2/codebase-detector.ts) — Quality: High
-- [/Users/jack/mag/claudemem/src/benchmark-v2/index.ts](/Users/jack/mag/claudemem/src/benchmark-v2/index.ts) — Quality: High
+- [/Users/jack/mag/mnemex/src/benchmark-v2/codebase-detector.ts](/Users/jack/mag/mnemex/src/benchmark-v2/codebase-detector.ts) — Quality: High
+- [/Users/jack/mag/mnemex/src/benchmark-v2/index.ts](/Users/jack/mag/mnemex/src/benchmark-v2/index.ts) — Quality: High
 - MEMORY.md: Agentbench eval (12 repos, 39K symbols) — Quality: High, Date: 2026-03-04
 - [arxiv:2407.02883 (CoIR benchmark)](https://arxiv.org/abs/2407.02883) — Quality: High, Date: July 2024
-- [eval/agentbench-claudemem README](/Users/jack/mag/claudemem/eval/agentbench-claudemem/src/agentbench/README.md) — Quality: High
+- [eval/agentbench-mnemex README](/Users/jack/mag/mnemex/eval/agentbench-mnemex/src/agentbench/README.md) — Quality: High
 
 **Confidence**: High
 **Multi-source**: Yes
@@ -320,7 +320,7 @@ each subtask tests a different generalization dimension.
 ### Finding 6: AST-Aware Chunking Is a Prerequisite — Evaluation Results Are Chunking-Dependent
 
 **Summary**: Evaluation results for embedding models are meaningless without specifying and
-controlling the chunking strategy. The claudemem ADRs document that different chunking
+controlling the chunking strategy. The mnemex ADRs document that different chunking
 approaches (line-based vs AST-aware) produce 16% orphaned content with blind line-splitting.
 Two models evaluated with different chunking strategies cannot be compared.
 
@@ -349,7 +349,7 @@ The optimal chunk size from research (cited in ADR-001):
 | arxiv 2505.21700 ("Rethinking Chunk Size") | 512-1024 tokens for technical | TechQA: 61.3% recall@1 at 512 tokens |
 | Firecrawl 2026 benchmark | 512 recursive | 69% accuracy across 50 papers |
 
-claudemem's choice: 600 tokens max (slightly above 512 for code's higher information density).
+mnemex's choice: 600 tokens max (slightly above 512 for code's higher information density).
 
 **Evaluation implications**:
 
@@ -363,8 +363,8 @@ claudemem's choice: 600 tokens max (slightly above 512 for code's higher informa
   between model and chunk size
 
 **Sources**:
-- [/Users/jack/mag/claudemem/docs/adr/001-chunk-size-limits.md](/Users/jack/mag/claudemem/docs/adr/001-chunk-size-limits.md) — Quality: High, Date: 2026-03-02
-- [/Users/jack/mag/claudemem/docs/adr/002-ast-pure-chunking.md](/Users/jack/mag/claudemem/docs/adr/002-ast-pure-chunking.md) — Quality: High, Date: 2026-03-02
+- [/Users/jack/mag/mnemex/docs/adr/001-chunk-size-limits.md](/Users/jack/mag/mnemex/docs/adr/001-chunk-size-limits.md) — Quality: High, Date: 2026-03-02
+- [/Users/jack/mag/mnemex/docs/adr/002-ast-pure-chunking.md](/Users/jack/mag/mnemex/docs/adr/002-ast-pure-chunking.md) — Quality: High, Date: 2026-03-02
 - [arxiv 2505.21700 ("Rethinking Chunk Size")](https://arxiv.org/html/2505.21700v2) — Quality: High, Date: 2025
 
 **Confidence**: High
@@ -375,7 +375,7 @@ claudemem's choice: 600 tokens max (slightly above 512 for code's higher informa
 
 ### Finding 7: Statistical Rigor Requires N=30-50 Minimum — Below That, Results Are Anecdotal
 
-**Summary**: claudemem's benchmark framework implements paired t-test with p-value computation
+**Summary**: mnemex's benchmark framework implements paired t-test with p-value computation
 and is designed for N=20 as the "default" — but this is too small to detect real differences
 reliably. The framework's own comment says "for small n, this is an approximation." For
 detecting 5-10 point CoIR differences with 80% power, N=30-50 code units per model comparison
@@ -430,10 +430,10 @@ For detecting the 4.9-point CoIR gap between jina-code-0.5b (78.41) and Qwen3-0.
 - This is affordable; there is no reason to use N < 30
 
 **Sources**:
-- [/Users/jack/mag/claudemem/src/benchmark-v2/scorers/statistics.ts](/Users/jack/mag/claudemem/src/benchmark-v2/scorers/statistics.ts) — Quality: High, Date: 2026-02-25
-- [/Users/jack/mag/claudemem/src/benchmark-v2/index.ts](/Users/jack/mag/claudemem/src/benchmark-v2/index.ts) — Quality: High, Date: 2026-02-25
-- [/Users/jack/mag/claudemem/src/learning/deployment/ab-testing.ts](/Users/jack/mag/claudemem/src/learning/deployment/ab-testing.ts) — Quality: High, Date: 2026-02-25
-- [/Users/jack/mag/claudemem/ai-docs/sessions/dev-research-agentsmd-claudemem-eval-20260225-094023-f4937164/findings/explorer-3.md](/Users/jack/mag/claudemem/ai-docs/sessions/dev-research-agentsmd-claudemem-eval-20260225-094023-f4937164/findings/explorer-3.md) — Quality: High, Date: 2026-02-25
+- [/Users/jack/mag/mnemex/src/benchmark-v2/scorers/statistics.ts](/Users/jack/mag/mnemex/src/benchmark-v2/scorers/statistics.ts) — Quality: High, Date: 2026-02-25
+- [/Users/jack/mag/mnemex/src/benchmark-v2/index.ts](/Users/jack/mag/mnemex/src/benchmark-v2/index.ts) — Quality: High, Date: 2026-02-25
+- [/Users/jack/mag/mnemex/src/learning/deployment/ab-testing.ts](/Users/jack/mag/mnemex/src/learning/deployment/ab-testing.ts) — Quality: High, Date: 2026-02-25
+- [/Users/jack/mag/mnemex/ai-docs/sessions/dev-research-agentsmd-mnemex-eval-20260225-094023-f4937164/findings/explorer-3.md](/Users/jack/mag/mnemex/ai-docs/sessions/dev-research-agentsmd-mnemex-eval-20260225-094023-f4937164/findings/explorer-3.md) — Quality: High, Date: 2026-02-25
 
 **Confidence**: High
 **Multi-source**: Yes
@@ -469,7 +469,7 @@ Codestral Embed beats Voyage Code 3 on Text2Code (81 vs 69) but LOSES on CodeSea
 
 1. Test every language your users actually search in (not just the "main" language)
 2. Report per-language P@1 / MRR separately — do not average until all languages pass
-3. For TypeScript-heavy codebases (like claudemem): the JavaScript score is the most
+3. For TypeScript-heavy codebases (like mnemex): the JavaScript score is the most
    predictive. Voyage Code 3's JavaScript advantage (79.2 vs 77.1) is meaningful.
 4. PHP and Ruby performance may be less relevant for typical developer tools codebases —
    do not penalize models for weak performance in languages not in your corpus
@@ -479,7 +479,7 @@ Codestral Embed beats Voyage Code 3 on Text2Code (81 vs 69) but LOSES on CodeSea
 **Sources**:
 - [nomic-ai/nomic-embed-code README](https://huggingface.co/nomic-ai/nomic-embed-code) — Quality: High, Date: March 2025
 - [arxiv:2412.01007](https://arxiv.org/abs/2412.01007) — Quality: High
-- [/Users/jack/mag/claudemem/ai-docs/sessions/dev-research-embedding-models-benchmarks-20260305/embedding-model-benchmarks-march2026.md](/Users/jack/mag/claudemem/ai-docs/sessions/dev-research-embedding-models-benchmarks-20260305/embedding-model-benchmarks-march2026.md) — Quality: High
+- [/Users/jack/mag/mnemex/ai-docs/sessions/dev-research-embedding-models-benchmarks-20260305/embedding-model-benchmarks-march2026.md](/Users/jack/mag/mnemex/ai-docs/sessions/dev-research-embedding-models-benchmarks-20260305/embedding-model-benchmarks-march2026.md) — Quality: High
 - [Mistral Codestral Embed announcement](https://mistral.ai/news/codestral-embed/) — Quality: Medium (vendor self-reported), Date: May 2025
 
 **Confidence**: High
@@ -489,7 +489,7 @@ Codestral Embed beats Voyage Code 3 on Text2Code (81 vs 69) but LOSES on CodeSea
 
 ### Finding 9: Evaluation Metric Selection — Use NDCG@10 + MRR, Not P@1 Alone
 
-**Summary**: The claudemem benchmark framework weights retrieval at 45% of total score, with
+**Summary**: The mnemex benchmark framework weights retrieval at 45% of total score, with
 P@1, P@5, P@10, and MRR all tracked. For code search, MRR is the most relevant metric because
 developers typically scan the first 3-5 results and stop. P@10 overly rewards models that can
 include the correct answer somewhere in a long list.
@@ -525,15 +525,15 @@ export const DEFAULT_EVALUATION_WEIGHTS: EvaluationWeights = {
 **Benchmark incompatibility warning**:
 - CodeSearchNet uses NDCG@10 (allows graded relevance)
 - CoIR uses NDCG@10 as well
-- claudemem's benchmark uses MRR + P@K
+- mnemex's benchmark uses MRR + P@K
 
 These are NOT directly comparable without conversion. When comparing models:
 - Use the SAME metric from the SAME evaluation suite
-- Do not compare a model's NDCG@10 from CoIR with MRR from claudemem's internal benchmark
+- Do not compare a model's NDCG@10 from CoIR with MRR from mnemex's internal benchmark
 
 **Sources**:
-- [/Users/jack/mag/claudemem/src/benchmark-v2/types.ts](/Users/jack/mag/claudemem/src/benchmark-v2/types.ts) — Quality: High, Date: 2026-02-25
-- [/Users/jack/mag/claudemem/src/benchmark-v2/evaluators/retrieval/index.ts](/Users/jack/mag/claudemem/src/benchmark-v2/evaluators/retrieval/index.ts) — Quality: High
+- [/Users/jack/mag/mnemex/src/benchmark-v2/types.ts](/Users/jack/mag/mnemex/src/benchmark-v2/types.ts) — Quality: High, Date: 2026-02-25
+- [/Users/jack/mag/mnemex/src/benchmark-v2/evaluators/retrieval/index.ts](/Users/jack/mag/mnemex/src/benchmark-v2/evaluators/retrieval/index.ts) — Quality: High
 - [arxiv:2407.02883 (CoIR benchmark)](https://arxiv.org/abs/2407.02883) — Quality: High, Date: July 2024
 
 **Confidence**: High
@@ -586,7 +586,7 @@ the model's actual quality.
 **Sources**:
 - [Qwen3 Embedding Blog](https://qwenlm.github.io/blog/qwen3-embedding/) — Quality: High, Date: June 2025
 - [Jina code embeddings HuggingFace](https://huggingface.co/jinaai/jina-code-embeddings-0.5b) — Quality: High, Date: August 2025
-- [/Users/jack/mag/claudemem/ai-docs/embedding-model-research-20260304/small-embedding-models-march2026.md](/Users/jack/mag/claudemem/ai-docs/embedding-model-research-20260304/small-embedding-models-march2026.md) — Quality: High, Date: 2026-03-04
+- [/Users/jack/mag/mnemex/ai-docs/embedding-model-research-20260304/small-embedding-models-march2026.md](/Users/jack/mag/mnemex/ai-docs/embedding-model-research-20260304/small-embedding-models-march2026.md) — Quality: High, Date: 2026-03-04
 
 **Confidence**: High
 **Multi-source**: Yes
@@ -633,7 +633,7 @@ pattern in vendor benchmarks.
 **Sources**:
 - [Mistral Codestral Embed announcement](https://mistral.ai/news/codestral-embed/) — Quality: Medium/vendor, Date: May 2025
 - [arxiv:2508.21290](https://arxiv.org/abs/2508.21290) — Quality: High, Date: August 2025
-- [/Users/jack/mag/claudemem/ai-docs/sessions/dev-research-embedding-models-benchmarks-20260305/embedding-model-benchmarks-march2026.md](/Users/jack/mag/claudemem/ai-docs/sessions/dev-research-embedding-models-benchmarks-20260305/embedding-model-benchmarks-march2026.md) — Quality: High
+- [/Users/jack/mag/mnemex/ai-docs/sessions/dev-research-embedding-models-benchmarks-20260305/embedding-model-benchmarks-march2026.md](/Users/jack/mag/mnemex/ai-docs/sessions/dev-research-embedding-models-benchmarks-20260305/embedding-model-benchmarks-march2026.md) — Quality: High
 
 **Confidence**: High
 **Multi-source**: Yes
@@ -649,14 +649,14 @@ pattern in vendor benchmarks.
 - Low Quality: 0
 
 **Source List**:
-1. [/Users/jack/mag/claudemem/src/benchmark-v2/extractors/query-generator.ts](/Users/jack/mag/claudemem/src/benchmark-v2/extractors/query-generator.ts) — Quality: High, Date: 2026-02-25, Type: Source code
-2. [/Users/jack/mag/claudemem/src/benchmark-v2/types.ts](/Users/jack/mag/claudemem/src/benchmark-v2/types.ts) — Quality: High, Date: 2026-02-25, Type: Source code
-3. [/Users/jack/mag/claudemem/src/benchmark-v2/scorers/statistics.ts](/Users/jack/mag/claudemem/src/benchmark-v2/scorers/statistics.ts) — Quality: High, Date: 2026-02-25, Type: Source code
-4. [/Users/jack/mag/claudemem/src/benchmark-v2/evaluators/retrieval/index.ts](/Users/jack/mag/claudemem/src/benchmark-v2/evaluators/retrieval/index.ts) — Quality: High, Date: 2026-02-25, Type: Source code
-5. [/Users/jack/mag/claudemem/src/benchmark-v2/index.ts](/Users/jack/mag/claudemem/src/benchmark-v2/index.ts) — Quality: High, Date: 2026-02-25, Type: Source code
-6. [/Users/jack/mag/claudemem/src/learning/deployment/ab-testing.ts](/Users/jack/mag/claudemem/src/learning/deployment/ab-testing.ts) — Quality: High, Date: 2026-02-25, Type: Source code
-7. [/Users/jack/mag/claudemem/docs/adr/001-chunk-size-limits.md](/Users/jack/mag/claudemem/docs/adr/001-chunk-size-limits.md) — Quality: High, Date: 2026-03-02, Type: Internal ADR with citations
-8. [/Users/jack/mag/claudemem/docs/adr/002-ast-pure-chunking.md](/Users/jack/mag/claudemem/docs/adr/002-ast-pure-chunking.md) — Quality: High, Date: 2026-03-02, Type: Internal ADR
+1. [/Users/jack/mag/mnemex/src/benchmark-v2/extractors/query-generator.ts](/Users/jack/mag/mnemex/src/benchmark-v2/extractors/query-generator.ts) — Quality: High, Date: 2026-02-25, Type: Source code
+2. [/Users/jack/mag/mnemex/src/benchmark-v2/types.ts](/Users/jack/mag/mnemex/src/benchmark-v2/types.ts) — Quality: High, Date: 2026-02-25, Type: Source code
+3. [/Users/jack/mag/mnemex/src/benchmark-v2/scorers/statistics.ts](/Users/jack/mag/mnemex/src/benchmark-v2/scorers/statistics.ts) — Quality: High, Date: 2026-02-25, Type: Source code
+4. [/Users/jack/mag/mnemex/src/benchmark-v2/evaluators/retrieval/index.ts](/Users/jack/mag/mnemex/src/benchmark-v2/evaluators/retrieval/index.ts) — Quality: High, Date: 2026-02-25, Type: Source code
+5. [/Users/jack/mag/mnemex/src/benchmark-v2/index.ts](/Users/jack/mag/mnemex/src/benchmark-v2/index.ts) — Quality: High, Date: 2026-02-25, Type: Source code
+6. [/Users/jack/mag/mnemex/src/learning/deployment/ab-testing.ts](/Users/jack/mag/mnemex/src/learning/deployment/ab-testing.ts) — Quality: High, Date: 2026-02-25, Type: Source code
+7. [/Users/jack/mag/mnemex/docs/adr/001-chunk-size-limits.md](/Users/jack/mag/mnemex/docs/adr/001-chunk-size-limits.md) — Quality: High, Date: 2026-03-02, Type: Internal ADR with citations
+8. [/Users/jack/mag/mnemex/docs/adr/002-ast-pure-chunking.md](/Users/jack/mag/mnemex/docs/adr/002-ast-pure-chunking.md) — Quality: High, Date: 2026-03-02, Type: Internal ADR
 9. [arxiv:2508.21290 (Jina code embeddings paper)](https://arxiv.org/abs/2508.21290) — Quality: High, Date: August 2025, Type: Academic paper
 10. [arxiv:2407.02883 (CoIR benchmark paper)](https://arxiv.org/abs/2407.02883) — Quality: High, Date: July 2024, Type: Academic paper
 11. [arxiv:2412.01007 (nomic-embed-code paper)](https://arxiv.org/abs/2412.01007) — Quality: High, Date: December 2024, Type: Academic paper
@@ -664,11 +664,11 @@ pattern in vendor benchmarks.
 13. [nomic-ai/nomic-embed-code README](https://huggingface.co/nomic-ai/nomic-embed-code) — Quality: High, Date: March 2025, Type: Official model card
 14. [Qwen3 Embedding Blog](https://qwenlm.github.io/blog/qwen3-embedding/) — Quality: High, Date: June 2025, Type: Official blog
 15. [Jina code embeddings HuggingFace](https://huggingface.co/jinaai/jina-code-embeddings-0.5b) — Quality: High, Date: August 2025, Type: Official model card
-16. [/Users/jack/mag/claudemem/ai-docs/sessions/dev-research-embedding-models-benchmarks-20260305/embedding-model-benchmarks-march2026.md](/Users/jack/mag/claudemem/ai-docs/sessions/dev-research-embedding-models-benchmarks-20260305/embedding-model-benchmarks-march2026.md) — Quality: High, Date: 2026-03-05, Type: Local research synthesis
-17. [/Users/jack/mag/claudemem/ai-docs/embedding-model-research-20260304/small-embedding-models-march2026.md](/Users/jack/mag/claudemem/ai-docs/embedding-model-research-20260304/small-embedding-models-march2026.md) — Quality: High, Date: 2026-03-04, Type: Local research
+16. [/Users/jack/mag/mnemex/ai-docs/sessions/dev-research-embedding-models-benchmarks-20260305/embedding-model-benchmarks-march2026.md](/Users/jack/mag/mnemex/ai-docs/sessions/dev-research-embedding-models-benchmarks-20260305/embedding-model-benchmarks-march2026.md) — Quality: High, Date: 2026-03-05, Type: Local research synthesis
+17. [/Users/jack/mag/mnemex/ai-docs/embedding-model-research-20260304/small-embedding-models-march2026.md](/Users/jack/mag/mnemex/ai-docs/embedding-model-research-20260304/small-embedding-models-march2026.md) — Quality: High, Date: 2026-03-04, Type: Local research
 18. [Mistral Codestral Embed announcement](https://mistral.ai/news/codestral-embed/) — Quality: Medium, Date: May 2025, Type: Vendor blog
-19. [/Users/jack/mag/claudemem/ai-docs/sessions/dev-research-agentsmd-claudemem-eval-20260225-094023-f4937164/findings/explorer-3.md](/Users/jack/mag/claudemem/ai-docs/sessions/dev-research-agentsmd-claudemem-eval-20260225-094023-f4937164/findings/explorer-3.md) — Quality: High, Date: 2026-02-25, Type: Local research
-20. [/Users/jack/mag/claudemem/ai-docs/sessions/dev-research-compare-claudemem-qmd-20260303-213614-8cd8fe67/findings/explorer-2.md](/Users/jack/mag/claudemem/ai-docs/sessions/dev-research-compare-claudemem-qmd-20260303-213614-8cd8fe67/findings/explorer-2.md) — Quality: High, Date: 2026-03-03, Type: Local research
+19. [/Users/jack/mag/mnemex/ai-docs/sessions/dev-research-agentsmd-mnemex-eval-20260225-094023-f4937164/findings/explorer-3.md](/Users/jack/mag/mnemex/ai-docs/sessions/dev-research-agentsmd-mnemex-eval-20260225-094023-f4937164/findings/explorer-3.md) — Quality: High, Date: 2026-02-25, Type: Local research
+20. [/Users/jack/mag/mnemex/ai-docs/sessions/dev-research-compare-mnemex-qmd-20260303-213614-8cd8fe67/findings/explorer-2.md](/Users/jack/mag/mnemex/ai-docs/sessions/dev-research-compare-mnemex-qmd-20260303-213614-8cd8fe67/findings/explorer-2.md) — Quality: High, Date: 2026-03-03, Type: Local research
 
 ---
 

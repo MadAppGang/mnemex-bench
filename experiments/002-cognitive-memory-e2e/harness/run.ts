@@ -3,15 +3,15 @@
  * Cognitive Memory E2E Eval Runner
  *
  * Runs Claude Code sessions under 4 conditions to compare:
- *   A (no-index)      - raw codebase, no claudemem index at all
+ *   A (no-index)      - raw codebase, no mnemex index at all
  *   B (baseline)      - golden index only
- *   C (skill-doc)     - golden index + CLAUDE.md via `claudemem doctor`
+ *   C (skill-doc)     - golden index + CLAUDE.md via `mnemex doctor`
  *   D (observations)  - golden index + seeded observations
  *
  * Usage:
  *   bun eval/cognitive-e2e/run.ts --preindex                              # build golden indexes (one-time)
- *   bun eval/cognitive-e2e/run.ts --repo claudemem --scenario 1 --condition baseline
- *   bun eval/cognitive-e2e/run.ts --repo claudemem --all                  # all scenarios × all conditions
+ *   bun eval/cognitive-e2e/run.ts --repo mnemex --scenario 1 --condition baseline
+ *   bun eval/cognitive-e2e/run.ts --repo mnemex --all                  # all scenarios × all conditions
  *   bun eval/cognitive-e2e/run.ts --all                                   # everything (64 sessions)
  */
 
@@ -36,7 +36,7 @@ const GOLDEN_DIR = join(EVAL_DIR, "golden-indexes");
 const RESULTS_DIR = join(EVAL_DIR, "results");
 
 function goldenIndexPath(repoSlug: string): string {
-	return join(GOLDEN_DIR, repoSlug, ".claudemem");
+	return join(GOLDEN_DIR, repoSlug, ".mnemex");
 }
 
 function resultPath(repoSlug: string, scenarioId: number, condition: Condition): string {
@@ -47,7 +47,7 @@ function resultPath(repoSlug: string, scenarioId: number, condition: Condition):
 
 interface CliArgs {
 	preindex: boolean;
-	repo?: "claudemem" | "fastmcp";
+	repo?: "mnemex" | "fastmcp";
 	scenario?: number;
 	condition?: Condition;
 	all: boolean;
@@ -105,12 +105,12 @@ async function preindex() {
 		console.log(`  Indexing ${name} (${repoPath})...`);
 
 		try {
-			execSync(`bunx claudemem index "${repoPath}"`, {
+			execSync(`bunx mnemex index "${repoPath}"`, {
 				stdio: "inherit",
 				timeout: 600_000, // 10 min
 				env: {
 					...process.env,
-					CLAUDEMEM_LLM: "or/deepseek/deepseek-v3.2",  // enrichment via OpenRouter
+					MNEMEX_LLM: "or/deepseek/deepseek-v3.2",  // enrichment via OpenRouter
 					// VOYAGE_API_KEY inherited from process.env → voyage-3.5-lite direct
 				},
 			});
@@ -119,10 +119,10 @@ async function preindex() {
 			continue;
 		}
 
-		// Copy .claudemem/ to golden location
-		const srcIndex = join(repoPath, ".claudemem");
+		// Copy .mnemex/ to golden location
+		const srcIndex = join(repoPath, ".mnemex");
 		if (!existsSync(srcIndex)) {
-			console.error(`    FAILED: no .claudemem/ dir created at ${srcIndex}`);
+			console.error(`    FAILED: no .mnemex/ dir created at ${srcIndex}`);
 			continue;
 		}
 
@@ -162,15 +162,15 @@ function checkGoldenIndexes(repos: string[]): boolean {
 function createWorkspace(repoPath: string, repoSlug: string, includeIndex: boolean): string {
 	const ws = mkdtempSync(join(tmpdir(), `eval-cognitive-${repoSlug}-`));
 
-	// Copy repo source (exclude .git, .claudemem, .claude, node_modules for clean workspace)
-	execSync(`rsync -a --exclude='.git' --exclude='.claudemem' --exclude='.claude' --exclude='node_modules' --exclude='.venv' --exclude='__pycache__' "${repoPath}/" "${ws}/"`, {
+	// Copy repo source (exclude .git, .mnemex, .claude, node_modules for clean workspace)
+	execSync(`rsync -a --exclude='.git' --exclude='.mnemex' --exclude='.claude' --exclude='node_modules' --exclude='.venv' --exclude='__pycache__' "${repoPath}/" "${ws}/"`, {
 		timeout: 60_000,
 	});
 
 	// Copy golden index (unless no-index condition)
 	if (includeIndex) {
 		const goldenSrc = goldenIndexPath(repoSlug);
-		const dest = join(ws, ".claudemem");
+		const dest = join(ws, ".mnemex");
 		cpSync(goldenSrc, dest, { recursive: true });
 	}
 
@@ -205,9 +205,9 @@ function setupCondition(ws: string, condition: Condition, scenario: Scenario) {
 			break;
 
 		case "skill-doc": {
-			// Generate CLAUDE.md via claudemem doctor
+			// Generate CLAUDE.md via mnemex doctor
 			try {
-				const doctorOutput = execSync(`bunx claudemem --agent doctor "${ws}"`, {
+				const doctorOutput = execSync(`bunx mnemex --agent doctor "${ws}"`, {
 					encoding: "utf-8",
 					timeout: 120_000,
 				});
@@ -220,11 +220,11 @@ function setupCondition(ws: string, condition: Condition, scenario: Scenario) {
 		}
 
 		case "observations": {
-			// Seed observations via claudemem observe
+			// Seed observations via mnemex observe
 			for (const obs of scenario.observations) {
 				try {
 					execSync(
-						`bunx claudemem --agent observe "${obs.content}" --file "${obs.file}" --type ${obs.type} -p "${ws}"`,
+						`bunx mnemex --agent observe "${obs.content}" --file "${obs.file}" --type ${obs.type} -p "${ws}"`,
 						{ encoding: "utf-8", timeout: 30_000 },
 					);
 				} catch (e) {

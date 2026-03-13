@@ -1,0 +1,59 @@
+{
+  "scenarioId": 1,
+  "repo": "mnemex",
+  "condition": "skill-doc",
+  "title": "Bug: --agent flag ordering",
+  "task": "The `--agent` flag doesn't seem to work when placed after the command name (e.g., `mnemex search --agent`). Investigate why and explain the root cause. Do NOT make any code changes.",
+  "output": "Now I have a complete picture. Let me explain the root cause.\n\n---\n\n## Root Cause\n\nThe bug is in `src/cli.ts` in the `handleSearch` function's **query extraction logic** at line 1380–1382:\n\n```typescript\nconst queryParts = args.filter(\n    (_, i) => !flagIndices.has(i) && !args[i].startsWith(\"-\"),\n);\n```\n\nThe `flagIndices` set only tracks indices of **explicitly recognized** flags (`-n`/`--limit`, `-l`/`--language`, `-p`/`--path`, `-m`/`--model`, `--use-case`). The `--agent` flag is **not recognized here** — it's a global flag meant to be handled by `runCli`, not `handleSearch`.\n\n### The two-part failure\n\n**Step 1 — `runCli` checks only the first arg position.**\n\nLooking at the detection in `runCli` (`src/cli.ts:188`):\n\n```typescript\nif (args.includes(\"--agent\")) {   // ← current code (correct)\n```\n\nThe current source uses `args.includes()`. But the intent of the historical/original design was for `--agent` to be a **global prefix flag** placed *before* the command (`mnemex --agent <cmd>`). If an older version checked positionally (e.g., `args[0] === \"--agent\"`), then `mnemex search --agent` would have `args[0] === \"search\"` — the check fails, `agentMode` stays `false`, and `--agent` is **left in the args**.\n\n**Step 2 — `handleSearch` silently drops `--agent` without error.**\n\nWith `--agent` still in args, `handleSearch` is called with `[\"--agent\", \"query\"]`. The query extraction's `!args[i].startsWith(\"-\")` condition silently drops `--agent` (starts with `-`), extracting just `\"query\"` correctly. The search runs — but with `agentMode = false`. The output is in full interactive format, not compact agent format.\n\nFrom the user's perspective: **the search works, but `--agent` appears to have no effect.**\n\n### Why `mnemex search --agent` (no query) makes it more confusing\n\nWhen there's no query:\n\n```typescript\n// src/cli.ts:1385-1388\nif (!query) {\n    console.error(\"Error: No search query provided.\");\n    console.error('Usage: mnemex search \"your query\"');\n    process.exit(1);\n}\n```\n\nThis error path doesn't check `agentMode` at all — same output format regardless of the flag. The usage hint also shows the syntax without `--agent`, nudging users toward `mnemex --agent search \"query\"` which is why the docs show it that way too.\n\n### Summary\n\n| Scenario | `agentMode` set? | Search runs? | Output format |\n|----------|-----------------|--------------|---------------|\n| `mnemex --agent search \"q\"` | ✅ | ✅ | compact |\n| `mnemex search --agent \"q\"` (current code) | ✅ | ✅ | compact |\n| `mnemex search --agent \"q\"` (positional check bug) | ❌ | ✅ | interactive ← **the bug** |\n| `mnemex search --agent` (no query) | ✅ | ❌ | same error either way |\n\nThe root cause is the combination of:\n1. `runCli` treating `--agent` as a prefix-only global flag (positional check design), and\n2. `handleSearch`'s `startsWith(\"-\")` filter silently discarding any unrecognized flag like `--agent` without raising an error, making the failure invisible",
+  "claudeJson": {
+    "type": "result",
+    "subtype": "success",
+    "is_error": false,
+    "duration_ms": 1002046,
+    "duration_api_ms": 992638,
+    "num_turns": 45,
+    "result": "Now I have a complete picture. Let me explain the root cause.\n\n---\n\n## Root Cause\n\nThe bug is in `src/cli.ts` in the `handleSearch` function's **query extraction logic** at line 1380–1382:\n\n```typescript\nconst queryParts = args.filter(\n    (_, i) => !flagIndices.has(i) && !args[i].startsWith(\"-\"),\n);\n```\n\nThe `flagIndices` set only tracks indices of **explicitly recognized** flags (`-n`/`--limit`, `-l`/`--language`, `-p`/`--path`, `-m`/`--model`, `--use-case`). The `--agent` flag is **not recognized here** — it's a global flag meant to be handled by `runCli`, not `handleSearch`.\n\n### The two-part failure\n\n**Step 1 — `runCli` checks only the first arg position.**\n\nLooking at the detection in `runCli` (`src/cli.ts:188`):\n\n```typescript\nif (args.includes(\"--agent\")) {   // ← current code (correct)\n```\n\nThe current source uses `args.includes()`. But the intent of the historical/original design was for `--agent` to be a **global prefix flag** placed *before* the command (`mnemex --agent <cmd>`). If an older version checked positionally (e.g., `args[0] === \"--agent\"`), then `mnemex search --agent` would have `args[0] === \"search\"` — the check fails, `agentMode` stays `false`, and `--agent` is **left in the args**.\n\n**Step 2 — `handleSearch` silently drops `--agent` without error.**\n\nWith `--agent` still in args, `handleSearch` is called with `[\"--agent\", \"query\"]`. The query extraction's `!args[i].startsWith(\"-\")` condition silently drops `--agent` (starts with `-`), extracting just `\"query\"` correctly. The search runs — but with `agentMode = false`. The output is in full interactive format, not compact agent format.\n\nFrom the user's perspective: **the search works, but `--agent` appears to have no effect.**\n\n### Why `mnemex search --agent` (no query) makes it more confusing\n\nWhen there's no query:\n\n```typescript\n// src/cli.ts:1385-1388\nif (!query) {\n    console.error(\"Error: No search query provided.\");\n    console.error('Usage: mnemex search \"your query\"');\n    process.exit(1);\n}\n```\n\nThis error path doesn't check `agentMode` at all — same output format regardless of the flag. The usage hint also shows the syntax without `--agent`, nudging users toward `mnemex --agent search \"query\"` which is why the docs show it that way too.\n\n### Summary\n\n| Scenario | `agentMode` set? | Search runs? | Output format |\n|----------|-----------------|--------------|---------------|\n| `mnemex --agent search \"q\"` | ✅ | ✅ | compact |\n| `mnemex search --agent \"q\"` (current code) | ✅ | ✅ | compact |\n| `mnemex search --agent \"q\"` (positional check bug) | ❌ | ✅ | interactive ← **the bug** |\n| `mnemex search --agent` (no query) | ✅ | ❌ | same error either way |\n\nThe root cause is the combination of:\n1. `runCli` treating `--agent` as a prefix-only global flag (positional check design), and\n2. `handleSearch`'s `startsWith(\"-\")` filter silently discarding any unrecognized flag like `--agent` without raising an error, making the failure invisible",
+    "stop_reason": "end_turn",
+    "session_id": "47444a33-b23c-4574-a866-1f92a0ef695e",
+    "total_cost_usd": 2.8324000000000007,
+    "usage": {
+      "input_tokens": 40,
+      "cache_creation_input_tokens": 95898,
+      "cache_read_input_tokens": 1454125,
+      "output_tokens": 60231,
+      "server_tool_use": {
+        "web_search_requests": 0,
+        "web_fetch_requests": 0
+      },
+      "service_tier": "standard",
+      "cache_creation": {
+        "ephemeral_1h_input_tokens": 0,
+        "ephemeral_5m_input_tokens": 95898
+      },
+      "inference_geo": "",
+      "iterations": [],
+      "speed": "standard"
+    },
+    "modelUsage": {
+      "claude-sonnet-4-6": {
+        "inputTokens": 40,
+        "outputTokens": 60231,
+        "cacheReadInputTokens": 1454125,
+        "cacheCreationInputTokens": 95898,
+        "webSearchRequests": 0,
+        "costUSD": 2.8324000000000007,
+        "contextWindow": 200000,
+        "maxOutputTokens": 32000
+      }
+    },
+    "permission_denials": [],
+    "fast_mode_state": "off",
+    "uuid": "6e863683-6594-4396-a026-ef369ebf3fb1"
+  },
+  "durationMs": 1005904,
+  "tokensIn": 40,
+  "tokensOut": 60231,
+  "toolCalls": 45,
+  "costUsd": 2.8324000000000007,
+  "timestamp": "2026-03-05T22:23:31.672Z"
+}

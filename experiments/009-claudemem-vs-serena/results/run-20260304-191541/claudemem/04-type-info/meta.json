@@ -1,9 +1,0 @@
-{
-  "test_id": "04-type-info",
-  "mcp_server": "claudemem",
-  "duration_seconds": 69,
-  "exit_code": 0,
-  "total_mcp_tool_calls": 7,
-  "transcript_lines":       32,
-  "timeout_seconds": 180
-}

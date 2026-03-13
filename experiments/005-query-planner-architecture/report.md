@@ -1,4 +1,4 @@
-# Research Report: Query Planner vs Query Expander for claudemem Code Search
+# Research Report: Query Planner vs Query Expander for mnemex Code Search
 
 **Session**: dev-research-query-planner-code-search-20260306-013647-95ad5665
 **Date**: 2026-03-06
@@ -10,7 +10,7 @@
 
 ## Executive Summary
 
-claudemem's query expander — which generates parallel `lex:`, `vec:`, and `hyde:` retrieval strings — should NOT become a general-purpose LLM query planner for default search. The research finds that no production code AI tool (Sourcegraph Cody, aider, Continue.dev, GitHub Copilot, Cursor) uses an LLM at query time to select retrieval strategies. All use hardcoded parallel pipelines with heuristic routing. The primary reason is latency: local models capable of meaningful query planning (4B+) require 1.5-4 seconds to generate a plan on Apple Silicon, exceeding any reasonable interactive budget.
+mnemex's query expander — which generates parallel `lex:`, `vec:`, and `hyde:` retrieval strings — should NOT become a general-purpose LLM query planner for default search. The research finds that no production code AI tool (Sourcegraph Cody, aider, Continue.dev, GitHub Copilot, Cursor) uses an LLM at query time to select retrieval strategies. All use hardcoded parallel pipelines with heuristic routing. The primary reason is latency: local models capable of meaningful query planning (4B+) require 1.5-4 seconds to generate a plan on Apple Silicon, exceeding any reasonable interactive budget.
 
 The recommended path is a two-tier architecture: (1) add a lightweight rule-based query classifier to the existing parallel pipeline at <5ms overhead — this handles 75-80% of cases correctly with zero new model dependency; (2) build an optional "deep search" mode (`--deep` flag) using Qwen3-4B or Qwen2.5-Coder-7B for latency-insensitive exploratory queries. The existing query expander role (Qwen3-1.7B fine-tuned) remains intact and serves a distinct function from routing: it generates semantically enriched retrieval variants, not orchestration decisions.
 
@@ -46,7 +46,7 @@ The academic literature confirms sequential retrieval (IRCoT, Self-RAG, FLARE) o
 - IRCoT (arXiv:2212.10509, ACL 2023): sequential retrieval, +20% EM multi-hop QA
 - Self-RAG (arXiv:2310.11511, ICLR 2024): selective retrieval, "when not to retrieve"
 - FLARE (arXiv:2305.06983, EMNLP 2023): uncertainty-triggered on-demand retrieval
-- HyDE (arXiv:2212.10496, ACL 2023): hypothetical document embedding — already in claudemem
+- HyDE (arXiv:2212.10496, ACL 2023): hypothetical document embedding — already in mnemex
 - CodeAct (arXiv:2402.01030, 2024): sequential code exploration outperforms static injection
 
 ---
@@ -60,7 +60,7 @@ The academic literature confirms sequential retrieval (IRCoT, Self-RAG, FLARE) o
 **Datasets**:
 - CodeSearchNet: 99K test pairs, 6 languages, NDCG@10
 - CoSQA: 20,604 developer query-code pairs, MAP@K
-- claudemem agentbench: 24 instances, 12 repos, already instrumented
+- mnemex agentbench: 24 instances, 12 repos, already instrumented
 
 ---
 
@@ -76,7 +76,7 @@ The "7B reliability cliff" for tool use: below 7B parameters, multi-step tool ca
 
 ### Q5: How do production code search tools handle query understanding?
 
-**Answer**: All production tools route queries without an LLM. Aider: deterministic tree-sitter + PageRank. Continue.dev: rule-based providers. Cody: heuristic weighting by query length + code token presence. GitHub: rule-based (symbol vs NL). The "local-first" constraint of claudemem is unusual — most production tools are cloud-dependent and can afford 1-5s latency for cloud model calls.
+**Answer**: All production tools route queries without an LLM. Aider: deterministic tree-sitter + PageRank. Continue.dev: rule-based providers. Cody: heuristic weighting by query length + code token presence. GitHub: rule-based (symbol vs NL). The "local-first" constraint of mnemex is unusual — most production tools are cloud-dependent and can afford 1-5s latency for cloud model calls.
 
 **Confidence**: High (open source), Medium (closed source).
 
@@ -136,7 +136,7 @@ No standard metric exists for "did the planner choose the right tools?" The agen
 
 ### Finding 6: 7B Is the Reliability Threshold for LLM Tool Use [CONSENSUS: STRONG]
 
-BFCL data shows a reliability cliff around 7-8B parameters for multi-step tool calling. For claudemem's 5-6 retrieval tools, the model-size to accuracy mapping (estimated, subject to leaderboard updates):
+BFCL data shows a reliability cliff around 7-8B parameters for multi-step tool calling. For mnemex's 5-6 retrieval tools, the model-size to accuracy mapping (estimated, subject to leaderboard updates):
 
 | Model | BFCL Accuracy (est.) | Latency 100 tok | VRAM Q4 | Verdict |
 |-------|---------------------|-----------------|---------|---------|
@@ -150,13 +150,13 @@ BFCL data shows a reliability cliff around 7-8B parameters for multi-step tool c
 
 ---
 
-### Finding 7: claudemem Current Architecture Is Option A [CONSENSUS: STRONG]
+### Finding 7: mnemex Current Architecture Is Option A [CONSENSUS: STRONG]
 
-Direct source reading confirms claudemem's search pipeline runs BM25 + vector in parallel with a static query expander. No LLM call at query time for routing. LLM enrichment is index-time only.
+Direct source reading confirms mnemex's search pipeline runs BM25 + vector in parallel with a static query expander. No LLM call at query time for routing. LLM enrichment is index-time only.
 
 - `src/mcp/tools/search.ts`: runs parallel hybrid search
 - `src/llm/prompts/enrichment.ts`: LLM enrichment at index time only
-- agentbench `claudemem_planner.py`: hardcoded parallel (map + search), `update_plan()` is a no-op
+- agentbench `mnemex_planner.py`: hardcoded parallel (map + search), `update_plan()` is a no-op
 
 ---
 
@@ -205,7 +205,7 @@ User query
 An opt-in slow search mode for exploratory queries. Invoked via `--deep` flag or `@deep` @mention. Uses a larger model (Qwen3-4B Q8 or Qwen2.5-Coder-7B) to generate a single-shot JSON retrieval plan. Acceptable latency: 2-4s (user explicitly opted in).
 
 ```
-claudemem search --deep "explain how the authentication flow connects to rate limiting"
+mnemex search --deep "explain how the authentication flow connects to rate limiting"
     |
     v
 +-----------------------------+
@@ -321,9 +321,9 @@ The planner selects which tools to invoke and what queries to pass to them. This
 | Element | Value |
 |---------|-------|
 | Metric | `number_steps_first_read` |
-| Dataset | claudemem agentbench (24 instances, 12 repos) |
+| Dataset | mnemex agentbench (24 instances, 12 repos) |
 | Ground truth | SWE-bench patch files |
-| Status | ALREADY IMPLEMENTED in `eval/agentbench-claudemem/scripts/analyze.py` |
+| Status | ALREADY IMPLEMENTED in `eval/agentbench-mnemex/scripts/analyze.py` |
 | Cost | ~$5 per condition per run |
 
 **Layer 3 — End-to-End Task Completion**
@@ -351,7 +351,7 @@ Step 1: Implement Phase 1 rule-based router (1 week)
 
 Step 2: Run agentbench experiment (~$5, ~1 hour):
   conditions = {
-    "no_router": current claudemem_full,
+    "no_router": current mnemex_full,
     "rule_based_router": Phase 1 rule-based classifier
   }
   measure: resolved + number_steps_first_read per condition
@@ -384,7 +384,7 @@ From prior embed-eval research (established in this project):
 1. [Self-RAG arXiv:2310.11511](https://arxiv.org/abs/2310.11511) — Asai et al., ICLR 2024. Selective retrieval with reflection tokens.
 2. [FLARE arXiv:2305.06983](https://arxiv.org/abs/2305.06983) — Jiang et al., EMNLP 2023. Uncertainty-triggered on-demand retrieval.
 3. [IRCoT arXiv:2212.10509](https://arxiv.org/abs/2212.10509) — Trivedi et al., ACL 2023. Interleaved retrieval + CoT, +20% multi-hop QA.
-4. [HyDE arXiv:2212.10496](https://arxiv.org/abs/2212.10496) — Gao et al., ACL 2023. Hypothetical document embeddings (used in claudemem).
+4. [HyDE arXiv:2212.10496](https://arxiv.org/abs/2212.10496) — Gao et al., ACL 2023. Hypothetical document embeddings (used in mnemex).
 5. [GraphRAG arXiv:2404.16130](https://arxiv.org/abs/2404.16130) — Edge et al., 2024. Graph-augmented retrieval, local/global routing.
 6. [ToolFormer arXiv:2302.04761](https://arxiv.org/abs/2302.04761) — Schick et al., 2023. LLMs learn tool use self-supervised.
 7. [CodeAct arXiv:2402.01030](https://arxiv.org/abs/2402.01030) — Wang et al., 2024. Sequential code exploration beats static injection.
@@ -405,11 +405,11 @@ From prior embed-eval research (established in this project):
 - [LangChain Adaptive RAG](https://langchain-ai.github.io/langgraph/tutorials/rag/langgraph_adaptive_rag/) — adaptive routing tutorial
 
 **Local codebase files directly read (10)**:
-- `eval/agentbench-claudemem/scripts/analyze.py` — confirmed `number_steps_first_read` implementation
-- `eval/agentbench-claudemem/src/agentbench/utils/trace.py` — confirmed `get_first_read_file()`
+- `eval/agentbench-mnemex/scripts/analyze.py` — confirmed `number_steps_first_read` implementation
+- `eval/agentbench-mnemex/src/agentbench/utils/trace.py` — confirmed `get_first_read_file()`
 - `src/mcp/tools/search.ts` — confirmed current parallel search architecture
 - `src/llm/prompts/enrichment.ts` — confirmed index-time-only LLM enrichment
-- agentbench `claudemem_planner.py` — confirmed `update_plan()` is no-op
+- agentbench `mnemex_planner.py` — confirmed `update_plan()` is no-op
 - agentbench `dynamic_cheatsheet.py` — dc_planner architecture
 - agentbench `ace.py` — ace_planner architecture
 - `ai-docs/small-lm-candidates-code-expansion-march2026.md` — speed benchmarks (primary latency source)
@@ -440,7 +440,7 @@ This research does NOT cover:
 
 4. **Fine-tuned small model query classification accuracy**: Explorer 1 cites LIMA (300-500 examples sufficient for SFT) as evidence that a fine-tuned Qwen3-0.6B or Qwen3-1.7B could reach 90%+ accuracy on a narrow 4-way query classification task. This has not been empirically tested for the query routing use case. Fine-tuned models may outperform the rule-based baseline even at 1.7B.
 
-5. **GraphRAG applied to code**: No published study applies Microsoft GraphRAG to code search specifically. Its local/global routing maps conceptually well to claudemem's symbol lookup vs architectural overview distinction, but is unvalidated for code repositories.
+5. **GraphRAG applied to code**: No published study applies Microsoft GraphRAG to code search specifically. Its local/global routing maps conceptually well to mnemex's symbol lookup vs architectural overview distinction, but is unvalidated for code repositories.
 
 6. **SWE-bench file localization as formal retrieval benchmark**: No published paper uses SWE-bench patch files as an explicit retrieval ground truth with Recall@K or MRR. This gap represents a potential contribution opportunity.
 
@@ -466,7 +466,7 @@ Single synthesis iteration. The research plan covered 5 sub-questions across 3 e
 {
   "session_id": "dev-research-query-planner-code-search-20260306-013647-95ad5665",
   "date": "2026-03-06",
-  "topic": "Query planner vs query expander for claudemem code search",
+  "topic": "Query planner vs query expander for mnemex code search",
   "explorers": 3,
   "synthesis_iterations": 1,
   "total_sources": 40,

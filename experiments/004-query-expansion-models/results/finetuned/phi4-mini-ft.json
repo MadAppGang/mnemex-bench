@@ -1,7 +1,7 @@
 {
   "model": {
     "name": "phi4-mini-FT",
-    "lmsKey": "jackrudenko/claudemem-expansion-phi4-mini",
+    "lmsKey": "jackrudenko/mnemex-expansion-phi4-mini",
     "family": "phi4-ft",
     "paramsB": 3.8
   },

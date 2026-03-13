@@ -9,13 +9,13 @@
 - `ai-docs/sessions/dev-research-embed-eval-methods-20260305-085036-2fea1a92/findings/explorer-1.md` (High, 2026-03-05)
 - `ai-docs/sessions/dev-research-embed-eval-methods-20260305-085036-2fea1a92/findings/explorer-2.md` (High, 2026-03-05)
 - `ai-docs/sessions/dev-research-embed-eval-methods-20260305-085036-2fea1a92/synthesis/embed-eval-spec.md` (High, 2026-03-05)
-- `ai-docs/sessions/dev-research-agentsmd-claudemem-eval-20260225-094023-f4937164/findings/explorer-3.md` (High, 2026-02-25)
+- `ai-docs/sessions/dev-research-agentsmd-mnemex-eval-20260225-094023-f4937164/findings/explorer-3.md` (High, 2026-02-25)
 - `docs/llm-eval2/claude.md` (High, synthesized from external research)
 - `docs/llm-eval/claude.md` (High, synthesized from external research)
 - `docs/llm-eval/gemini.md` (High, synthesized from external research)
-- `eval/agentbench-claudemem/scripts/analyze.py` (High, local eval harness)
-- `eval/agentbench-claudemem/src/agentbench/utils/trace.py` (High, local eval harness)
-- `eval/agentbench-claudemem/src/agentbench/benchmarks/swebench.py` (High, local eval harness)
+- `eval/agentbench-mnemex/scripts/analyze.py` (High, local eval harness)
+- `eval/agentbench-mnemex/src/agentbench/utils/trace.py` (High, local eval harness)
+- `eval/agentbench-mnemex/src/agentbench/benchmarks/swebench.py` (High, local eval harness)
 
 ---
 
@@ -59,7 +59,7 @@ Current SOTA (6-language average NDCG@10):
 - [arxiv:2407.02883 CoIR benchmark paper](https://arxiv.org/abs/2407.02883) — Quality: High, Date: July 2024
 - [arxiv:2508.21290 Jina code embeddings paper](https://arxiv.org/abs/2508.21290) — Quality: High, Date: August 2025
 - [CodeSearchNet HuggingFace dataset](https://huggingface.co/datasets/code-search-net/code_search_net) — Quality: High, Date: Live
-- `/Users/jack/mag/claudemem/ai-docs/sessions/dev-research-embed-eval-methods-20260305-085036-2fea1a92/findings/explorer-1.md` — Quality: High, Date: 2026-03-05
+- `/Users/jack/mag/mnemex/ai-docs/sessions/dev-research-embed-eval-methods-20260305-085036-2fea1a92/findings/explorer-1.md` — Quality: High, Date: 2026-03-05
 
 **Confidence**: High
 **Multi-source**: Yes
@@ -116,11 +116,11 @@ From the same source, on metric choice:
 
 ### Finding 3: SWE-bench Retrieval — File-Level Localization Measured as Steps-to-First-File-Read
 
-**Summary**: SWE-bench does NOT directly measure retrieval quality. The primary metric is task resolution rate (% of instances where the agent produces a correct patch that passes all tests). However, claudemem's own analysis harness implements a proxy metric for retrieval: `number_steps_first_read` — the number of agent steps taken before the agent first reads any of the files that appear in the ground-truth patch.
+**Summary**: SWE-bench does NOT directly measure retrieval quality. The primary metric is task resolution rate (% of instances where the agent produces a correct patch that passes all tests). However, mnemex's own analysis harness implements a proxy metric for retrieval: `number_steps_first_read` — the number of agent steps taken before the agent first reads any of the files that appear in the ground-truth patch.
 
 **Evidence**:
 
-From `eval/agentbench-claudemem/scripts/analyze.py` (lines 344-350):
+From `eval/agentbench-mnemex/scripts/analyze.py` (lines 344-350):
 
 ```python
 # Get the first index
@@ -132,7 +132,7 @@ if first_read:
     result["completion_tokens_first_read"] = first_read.get("completion_tokens", 0)
 ```
 
-From `eval/agentbench-claudemem/src/agentbench/utils/trace.py` (lines 305-330):
+From `eval/agentbench-mnemex/src/agentbench/utils/trace.py` (lines 305-330):
 
 ```python
 def get_first_read_file(self, file_names: list[str]) -> dict[str, Any] | None:
@@ -169,18 +169,18 @@ CSV_COLUMNS = [
 
 1. **SWE-bench has no explicit retrieval metric** — it measures only end-to-end task success (`resolved` = True/False based on test pass/fail).
 2. **The patch diff IS the ground truth for retrieval**: The files in `gold_patch.get_file_names()` are exactly the files that needed to be modified, providing a clean definition of "what files should have been retrieved."
-3. **claudemem's harness computes an implicit retrieval metric**: `number_steps_first_read` measures how many tool calls the agent made before locating any relevant file. Lower = better retrieval.
+3. **mnemex's harness computes an implicit retrieval metric**: `number_steps_first_read` measures how many tool calls the agent made before locating any relevant file. Lower = better retrieval.
 4. **This is file-level recall, not chunk-level**: SWE-bench measures whether the agent finds the right *file*, not the right *function* within the file.
 
 **How this can be turned into an explicit retrieval benchmark**:
 - Extract all patch file lists from SWE-bench as ground truth
-- Run claudemem's retrieval tools against the issue description as query
+- Run mnemex's retrieval tools against the issue description as query
 - Measure: (a) Recall@K — what % of patch files appear in top-K results, (b) MRR — reciprocal rank of the first patch file, (c) steps_to_localize — equivalent to above but in agent trace
 
 **Sources**:
-- `/Users/jack/mag/claudemem/eval/agentbench-claudemem/scripts/analyze.py` — Quality: High (primary source), Date: 2026-03-05
-- `/Users/jack/mag/claudemem/eval/agentbench-claudemem/src/agentbench/utils/trace.py` — Quality: High, Date: 2026-03-05
-- `/Users/jack/mag/claudemem/eval/agentbench-claudemem/src/agentbench/benchmarks/swebench.py` — Quality: High
+- `/Users/jack/mag/mnemex/eval/agentbench-mnemex/scripts/analyze.py` — Quality: High (primary source), Date: 2026-03-05
+- `/Users/jack/mag/mnemex/eval/agentbench-mnemex/src/agentbench/utils/trace.py` — Quality: High, Date: 2026-03-05
+- `/Users/jack/mag/mnemex/eval/agentbench-mnemex/src/agentbench/benchmarks/swebench.py` — Quality: High
 
 **Confidence**: High
 **Multi-source**: Yes (three source files confirm the same metric design)
@@ -204,7 +204,7 @@ From `docs/llm-eval2/claude.md` (explicit RAGAS description):
 
 From the embed-eval spec (`dev-research-embed-eval-methods-20260305-085036-2fea1a92/synthesis/embed-eval-spec.md`):
 
-The spec defines claudemem's own retrieval metric framework (MRR + NDCG@10 + Precision@K + Recall@K) as separate from RAGAS, choosing classical IR metrics over LLM-judge-based context metrics.
+The spec defines mnemex's own retrieval metric framework (MRR + NDCG@10 + Precision@K + Recall@K) as separate from RAGAS, choosing classical IR metrics over LLM-judge-based context metrics.
 
 **RAGAS metrics mapped to code search**:
 
@@ -227,9 +227,9 @@ The spec defines claudemem's own retrieval metric framework (MRR + NDCG@10 + Pre
 - For measuring whether retrieved context helped the LLM generate the correct fix (context contribution)
 
 **Sources**:
-- `/Users/jack/mag/claudemem/docs/llm-eval2/claude.md` — Quality: High
-- `/Users/jack/mag/claudemem/docs/llm-eval/gemini.md` — Quality: High (bibliography)
-- `/Users/jack/mag/claudemem/ai-docs/sessions/dev-research-embed-eval-methods-20260305-085036-2fea1a92/synthesis/embed-eval-spec.md` — Quality: High
+- `/Users/jack/mag/mnemex/docs/llm-eval2/claude.md` — Quality: High
+- `/Users/jack/mag/mnemex/docs/llm-eval/gemini.md` — Quality: High (bibliography)
+- `/Users/jack/mag/mnemex/ai-docs/sessions/dev-research-embed-eval-methods-20260305-085036-2fea1a92/synthesis/embed-eval-spec.md` — Quality: High
 
 **Confidence**: High for the framework description; Medium for code-specific applicability (no empirical validation locally)
 **Multi-source**: Yes
@@ -239,7 +239,7 @@ The spec defines claudemem's own retrieval metric framework (MRR + NDCG@10 + Pre
 
 ### Finding 5: End-to-End Metrics — Task Completion Rate Correlates with Retrieval, But Weakly
 
-**Summary**: The research literature and claudemem's own eval harness both confirm that task completion rate (% of SWE-bench tasks resolved) is the right END metric, but it is a weak proxy for retrieval quality because it conflates retrieval quality with generation quality. The best-available correlation signal is `number_steps_first_read`: lower means the agent found the relevant files faster, which correlates with higher resolution rates.
+**Summary**: The research literature and mnemex's own eval harness both confirm that task completion rate (% of SWE-bench tasks resolved) is the right END metric, but it is a weak proxy for retrieval quality because it conflates retrieval quality with generation quality. The best-available correlation signal is `number_steps_first_read`: lower means the agent found the relevant files faster, which correlates with higher resolution rates.
 
 **Evidence**:
 
@@ -252,14 +252,14 @@ From `docs/llm-eval/claude.md` (on SWE-bench vs production correlation):
 > "Cursor reports 12.5% higher accuracy with semantic search and uses custom 'Context Bench' evaluations on their own codebases to measure what matters for production use."
 > "SWE-bench Pro shows 3× performance drops from verified to realistic multi-file scenarios."
 
-From `eval/agentbench-claudemem/scripts/analyze.py` (the metrics tracked):
+From `eval/agentbench-mnemex/scripts/analyze.py` (the metrics tracked):
 
 The harness tracks both `resolved` (end-to-end) AND `number_steps_first_read` + `cost_first_read` (retrieval proxy). These can be compared across conditions:
 - `no_plan` condition: no retrieval aid → what's the base resolution rate and steps_first_read?
-- `claudemem_full` condition: with claudemem retrieval → does steps_first_read decrease? does `resolved` increase?
+- `mnemex_full` condition: with mnemex retrieval → does steps_first_read decrease? does `resolved` increase?
 
 From prior eval results (MEMORY.md):
-- Conditions: `no_plan`, `claudemem_full`, `dc_planner`, `ace_planner`
+- Conditions: `no_plan`, `mnemex_full`, `dc_planner`, `ace_planner`
 - 12 repos, 24 instances (2 per repo)
 - The `dc_planner` and `ace_planner` conditions demonstrate sequential planning — this is exactly the agentic multi-tool scenario being researched
 
@@ -278,10 +278,10 @@ All three must be measured separately to understand retrieval's contribution.
 No standard benchmark measures "time-to-find" as a retrieval quality metric for production code search systems.
 
 **Sources**:
-- `/Users/jack/mag/claudemem/docs/llm-eval2/claude.md` — Quality: High
-- `/Users/jack/mag/claudemem/docs/llm-eval/claude.md` — Quality: High
-- `/Users/jack/mag/claudemem/eval/agentbench-claudemem/scripts/analyze.py` — Quality: High
-- MEMORY.md (claudemem project memory) — Quality: High
+- `/Users/jack/mag/mnemex/docs/llm-eval2/claude.md` — Quality: High
+- `/Users/jack/mag/mnemex/docs/llm-eval/claude.md` — Quality: High
+- `/Users/jack/mag/mnemex/eval/agentbench-mnemex/scripts/analyze.py` — Quality: High
+- MEMORY.md (mnemex project memory) — Quality: High
 
 **Confidence**: High for the framework; Medium for specific correlation magnitudes (no direct empirical study was found locally)
 **Multi-source**: Yes
@@ -291,18 +291,18 @@ No standard benchmark measures "time-to-find" as a retrieval quality metric for 
 
 ### Finding 6: Multi-Tool Specific Metrics — No Standard for Tool Selection Accuracy; Must Design Custom
 
-**Summary**: There is NO standard published metric for "did the planner choose the right tools?" in multi-tool retrieval systems. The field evaluates multi-tool systems by their end-to-end task performance, not by tool selection accuracy. For claudemem's query planner specifically, the practical metrics are: (1) tool recall (did any tool invocation retrieve the correct chunk?), (2) tool precision (what fraction of tool invocations were productive?), and (3) tool selection confusion matrix derived from trace analysis.
+**Summary**: There is NO standard published metric for "did the planner choose the right tools?" in multi-tool retrieval systems. The field evaluates multi-tool systems by their end-to-end task performance, not by tool selection accuracy. For mnemex's query planner specifically, the practical metrics are: (1) tool recall (did any tool invocation retrieve the correct chunk?), (2) tool precision (what fraction of tool invocations were productive?), and (3) tool selection confusion matrix derived from trace analysis.
 
 **Evidence**:
 
-From `eval/agentbench-claudemem/scripts/analyze.py`, the harness tracks:
+From `eval/agentbench-mnemex/scripts/analyze.py`, the harness tracks:
 
 ```python
 "tool_calls": {tool_component.tool_name for tool_component in trace.tool_components}
 # This is a SET of unique tool names used — not a tool selection quality metric
 ```
 
-From `eval/agentbench-claudemem/src/agentbench/utils/trace.py`:
+From `eval/agentbench-mnemex/src/agentbench/utils/trace.py`:
 
 ```python
 TOOL_INFER_PROMPT = textwrap.dedent("""
@@ -326,7 +326,7 @@ From `docs/llm-eval2/claude.md`:
 
 These apply to individual tool invocations, but there is no standard for evaluating which tool should have been chosen vs which was chosen.
 
-**Proposed metric framework for claudemem's query planner**:
+**Proposed metric framework for mnemex's query planner**:
 
 Based on combining what is known from local research:
 
@@ -358,9 +358,9 @@ Tool Selection Metrics (to design, not from literature):
 **Why this metric gap exists**: Multi-tool retrieval is a new problem. SWE-bench was designed before multi-tool orchestration became common. Academic RAG benchmarks (RAGAS, TruLens) pre-date code-specific multi-tool systems. There is genuine metric gap here.
 
 **Sources**:
-- `/Users/jack/mag/claudemem/eval/agentbench-claudemem/scripts/analyze.py` — Quality: High
-- `/Users/jack/mag/claudemem/eval/agentbench-claudemem/src/agentbench/utils/trace.py` — Quality: High
-- `/Users/jack/mag/claudemem/docs/llm-eval2/claude.md` — Quality: High
+- `/Users/jack/mag/mnemex/eval/agentbench-mnemex/scripts/analyze.py` — Quality: High
+- `/Users/jack/mag/mnemex/eval/agentbench-mnemex/src/agentbench/utils/trace.py` — Quality: High
+- `/Users/jack/mag/mnemex/docs/llm-eval2/claude.md` — Quality: High
 - The research plan itself (`research-plan.md`) — Quality: High (defines the open question)
 
 **Confidence**: High (on the absence of standard metrics); Medium (on the proposed framework, which is original synthesis)
@@ -369,9 +369,9 @@ Tool Selection Metrics (to design, not from literature):
 
 ---
 
-### Finding 7: Recommended Evaluation Stack for claudemem's Query Planner — Practical Synthesis
+### Finding 7: Recommended Evaluation Stack for mnemex's Query Planner — Practical Synthesis
 
-**Summary**: Based on all local research, the recommended evaluation approach for claudemem's query planner should use a 3-layer evaluation: (1) component metrics (MRR/NDCG@10 per tool), (2) proxy retrieval metric (steps_to_first_file_read), and (3) end-to-end task completion (resolved rate on SWE-bench). The claudemem agentbench eval harness already implements the infrastructure for all three.
+**Summary**: Based on all local research, the recommended evaluation approach for mnemex's query planner should use a 3-layer evaluation: (1) component metrics (MRR/NDCG@10 per tool), (2) proxy retrieval metric (steps_to_first_file_read), and (3) end-to-end task completion (resolved rate on SWE-bench). The mnemex agentbench eval harness already implements the infrastructure for all three.
 
 **Evidence**:
 
@@ -382,7 +382,7 @@ From `docs/llm-eval2/claude.md`:
 > Layer 2: Summary quality — LLM-as-judge
 > Layer 3: Downstream task impact — Task completion rate"
 
-From `ai-docs/sessions/dev-research-embed-eval-methods-20260305-085036-2fea1a92/synthesis/embed-eval-spec.md` (the embed-eval spec, which established MRR + NDCG@10 as primary co-metrics for claudemem's retrieval eval):
+From `ai-docs/sessions/dev-research-embed-eval-methods-20260305-085036-2fea1a92/synthesis/embed-eval-spec.md` (the embed-eval spec, which established MRR + NDCG@10 as primary co-metrics for mnemex's retrieval eval):
 
 > "Both MRR and NDCG@10 are reported as primary. They answer different questions:
 > - MRR: Developers look at 1-3 results then reformulate. Binary relevance is clean.
@@ -415,9 +415,9 @@ For the query planner research decision (Option A vs B vs C vs D), the fastest s
 - This costs ~12 × 4 conditions × ~$0.10/instance ≈ $5 per experiment
 
 **Sources**:
-- `/Users/jack/mag/claudemem/docs/llm-eval2/claude.md` — Quality: High
-- `/Users/jack/mag/claudemem/ai-docs/sessions/dev-research-embed-eval-methods-20260305-085036-2fea1a92/synthesis/embed-eval-spec.md` — Quality: High
-- `/Users/jack/mag/claudemem/eval/agentbench-claudemem/scripts/analyze.py` — Quality: High
+- `/Users/jack/mag/mnemex/docs/llm-eval2/claude.md` — Quality: High
+- `/Users/jack/mag/mnemex/ai-docs/sessions/dev-research-embed-eval-methods-20260305-085036-2fea1a92/synthesis/embed-eval-spec.md` — Quality: High
+- `/Users/jack/mag/mnemex/eval/agentbench-mnemex/scripts/analyze.py` — Quality: High
 - MEMORY.md project memory — Quality: High
 
 **Confidence**: High
@@ -436,7 +436,7 @@ For the query planner research decision (Option A vs B vs C vs D), the fastest s
 | **CoIR** | Mixed (CSN + SO + GitHub) | Multi-task | 6 languages | NDCG@10 | Multi-source |
 | **AdvTest** | Natural language queries | ~8K | Python | NDCG@10 | Code search QA |
 | **WebQueryTest** | Web queries | ~5K | Python | NDCG@10 | Bing query logs |
-| **claudemem agentbench** | GitHub issues | 24 instances (12 repos) | Python repos | % resolved + steps_first_read | Patch files |
+| **mnemex agentbench** | GitHub issues | 24 instances (12 repos) | Python repos | % resolved + steps_first_read | Patch files |
 
 ---
 
@@ -452,15 +452,15 @@ For the query planner research decision (Option A vs B vs C vs D), the fastest s
 2. [arxiv:2508.21290 — Jina Code Embeddings paper](https://arxiv.org/abs/2508.21290) — Quality: High, Date: August 2025, Type: Academic paper (cited via prior research)
 3. [CodeSearchNet HuggingFace dataset](https://huggingface.co/datasets/code-search-net/code_search_net) — Quality: High, Date: Live
 4. [CoSQA paper — Microsoft Research 2021](https://arxiv.org/abs/2105.13239) — Quality: High, Date: 2021 (cited via research synthesis)
-5. `/Users/jack/mag/claudemem/eval/agentbench-claudemem/scripts/analyze.py` — Quality: High, Date: 2026-03-05, Type: Local eval harness
-6. `/Users/jack/mag/claudemem/eval/agentbench-claudemem/src/agentbench/utils/trace.py` — Quality: High, Date: 2026-03-05, Type: Local eval harness
-7. `/Users/jack/mag/claudemem/eval/agentbench-claudemem/src/agentbench/benchmarks/swebench.py` — Quality: High, Date: 2026-03-05, Type: Local eval harness
-8. `/Users/jack/mag/claudemem/docs/llm-eval2/claude.md` — Quality: High, Date: 2025 (synthesized external research), Type: Research synthesis
-9. `/Users/jack/mag/claudemem/docs/llm-eval/claude.md` — Quality: High, Date: 2025, Type: Research synthesis
-10. `/Users/jack/mag/claudemem/docs/llm-eval/gemini.md` — Quality: High, Date: 2025, Type: Research synthesis (includes TruLens/RAGAS citations)
-11. `/Users/jack/mag/claudemem/ai-docs/sessions/dev-research-embed-eval-methods-20260305-085036-2fea1a92/findings/explorer-1.md` — Quality: High, Date: 2026-03-05, Type: Prior research session
-12. `/Users/jack/mag/claudemem/ai-docs/sessions/dev-research-embed-eval-methods-20260305-085036-2fea1a92/findings/explorer-2.md` — Quality: High, Date: 2026-03-05, Type: Prior research session
-13. `/Users/jack/mag/claudemem/ai-docs/sessions/dev-research-embed-eval-methods-20260305-085036-2fea1a92/synthesis/embed-eval-spec.md` — Quality: High, Date: 2026-03-05, Type: Synthesized specification
+5. `/Users/jack/mag/mnemex/eval/agentbench-mnemex/scripts/analyze.py` — Quality: High, Date: 2026-03-05, Type: Local eval harness
+6. `/Users/jack/mag/mnemex/eval/agentbench-mnemex/src/agentbench/utils/trace.py` — Quality: High, Date: 2026-03-05, Type: Local eval harness
+7. `/Users/jack/mag/mnemex/eval/agentbench-mnemex/src/agentbench/benchmarks/swebench.py` — Quality: High, Date: 2026-03-05, Type: Local eval harness
+8. `/Users/jack/mag/mnemex/docs/llm-eval2/claude.md` — Quality: High, Date: 2025 (synthesized external research), Type: Research synthesis
+9. `/Users/jack/mag/mnemex/docs/llm-eval/claude.md` — Quality: High, Date: 2025, Type: Research synthesis
+10. `/Users/jack/mag/mnemex/docs/llm-eval/gemini.md` — Quality: High, Date: 2025, Type: Research synthesis (includes TruLens/RAGAS citations)
+11. `/Users/jack/mag/mnemex/ai-docs/sessions/dev-research-embed-eval-methods-20260305-085036-2fea1a92/findings/explorer-1.md` — Quality: High, Date: 2026-03-05, Type: Prior research session
+12. `/Users/jack/mag/mnemex/ai-docs/sessions/dev-research-embed-eval-methods-20260305-085036-2fea1a92/findings/explorer-2.md` — Quality: High, Date: 2026-03-05, Type: Prior research session
+13. `/Users/jack/mag/mnemex/ai-docs/sessions/dev-research-embed-eval-methods-20260305-085036-2fea1a92/synthesis/embed-eval-spec.md` — Quality: High, Date: 2026-03-05, Type: Synthesized specification
 
 ---
 
@@ -488,5 +488,5 @@ What this research did NOT find:
 - Web search: Not available (MODEL_STRATEGY=native)
 - Local search: Performed extensively across 13 source files and prior research archives
 - Date range covered: Local research from 2026-02-25 to 2026-03-05; papers cited through August 2025
-- Key limitation: CoSQA details come from research synthesis documents, not the original paper. SWE-bench retrieval methodology was confirmed by reading the actual claudemem eval harness code (high confidence). RAGAS applicability is from documentation cross-reference, not empirical testing.
+- Key limitation: CoSQA details come from research synthesis documents, not the original paper. SWE-bench retrieval methodology was confirmed by reading the actual mnemex eval harness code (high confidence). RAGAS applicability is from documentation cross-reference, not empirical testing.
 - No live access to arxiv, MTEB leaderboard, or RAGAS documentation during this session

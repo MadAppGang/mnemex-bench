@@ -1,0 +1,59 @@
+{
+  "scenarioId": 4,
+  "repo": "mnemex",
+  "condition": "no-index",
+  "title": "Debug: empty search results",
+  "task": "Search results sometimes return empty when the index exists and has documents. What could cause this? Investigate the codebase and explain. Do NOT make any code changes.",
+  "output": "I now have a thorough understanding of the search pipeline. Here are the root causes:\n\n---\n\n## Root Causes of Empty Search Results (With a Populated Index)\n\n### 1. Document-type mismatch between search paths (`store.ts:1218`)\n\n`searchCodeUnits()` hard-filters for `documentType = 'code_unit'`, while the older indexing path (`addChunks()`) stores rows as `documentType = 'code_chunk'`. The `EnhancedRetriever` calls only `searchCodeUnits`, so **if the project was indexed before the hierarchical code-unit model was introduced, every search returns empty** — the data exists but under the wrong `documentType`.\n\nThe inverse is also true: `search()` (used by the CLI/MCP path) filters out everything except `code_chunk`, `code_unit`, and `session_observation`. An index populated entirely with enriched documents (`symbol_summary`, `file_summary`, etc.) through `addDocuments()` will always return `codeResults = []`.\n\n---\n\n### 2. `escapeFilterValue` over-escaping breaks `LIKE` filters (`store.ts:56-64`)\n\n```typescript\n.replace(/%/g, \"\\\\%\")\n.replace(/_/g, \"\\\\_\");\n```\n\nThe `%` and `_` characters are `LIKE` wildcards in SQL, and escaping them with `\\` is the standard SQL approach — but only when the `LIKE` expression declares `ESCAPE '\\'`. LanceDB uses Apache Arrow DataFusion's SQL dialect, which may not recognize `\\` as the default LIKE escape character. As a result:\n\n- A filter like `filePath LIKE '%src\\/_utils%'` may never match `src/_utils/` even though it exists.\n- Any `pathPattern` or `language` filter containing `_` (very common in file paths like `code_unit`, `my_module.ts`) can silently match nothing, making the entire search return `[]`.\n\n---\n\n### 3. LLM reranker `minScore` threshold filters all results (`llm-reranker.ts:173`, `enhanced-retriever.ts:49`)\n\n```typescript\n.filter((r) => r.rerankScore >= this.options.minScore)\n```\n\n`minScore` defaults to `3`. If the LLM rates all `N` candidates below 3 (which can happen for ambiguous queries, or if the LLM produces a malformed response where `scoreMap` is missing entries — causing `ranking?.score ?? 0` to default to `0`), every result is filtered out and `finalResults = []`. The `EnhancedRetriever` then returns empty results without fallback.\n\n---\n\n### 4. FTS index silently fails, then vector search hits a restrictive `where` filter (`store.ts:257-268`, `store.ts:1239-1241`)\n\n```typescript\nprivate async ensureFtsIndex(): Promise<void> {\n    try { ... } catch {\n        // FTS index creation failed — BM25 search will be unavailable\n    }\n}\n```\n\nIf FTS index creation fails (e.g., LanceDB version incompatibility), `bm25Results` is always `[]` — silently. Only vector search remains. But LanceDB's `vectorSearch().where(filter)` applies the filter **post-ANN** (after nearest-neighbor computation), so if the filter is very restrictive (e.g., `documentType = 'code_unit'` on a `code_chunk`-only index), the vector search also returns `[]`, leaving the fused result empty.\n\n---\n\n### 5. `search()` post-processing discards all fused results if they're summaries (`store.ts:429-458`)\n\nAfter RRF fusion, `search()` separates results into `codeResults` (code_chunk/code_unit/session_observation) and summary documents. Summaries are only used to *annotate* code results — they are never returned directly. If the top-ranked fused results are all summaries (which is possible when summary documents are heavily boosted by `typeWeights`), `codeResults` will be empty and the method returns `[]`, even though summaries are in the index and were retrieved by the search.\n\n---\n\n### Summary Table\n\n| Cause | Search method affected | Condition |\n|---|---|---|\n| `code_chunk` vs `code_unit` type mismatch | `searchCodeUnits` / `search` | Index created with older/newer indexer path |\n| `escapeFilterValue` breaks `LIKE` with `_` or `%` | Both | Any `pathPattern`, `language` filter |\n| LLM reranker `minScore=3` filters everything | `EnhancedRetriever.search` | LLM scores all candidates < 3, or missing scores default to 0 |\n| FTS fails silently + vector filter post-ANN | Both | FTS unsupported + restrictive `documentType` filter |\n| Summary docs excluded from code results | `search` | High type weights on summaries push code chunks out of top-N |",
+  "claudeJson": {
+    "type": "result",
+    "subtype": "success",
+    "is_error": false,
+    "duration_ms": 172003,
+    "duration_api_ms": 169289,
+    "num_turns": 23,
+    "result": "I now have a thorough understanding of the search pipeline. Here are the root causes:\n\n---\n\n## Root Causes of Empty Search Results (With a Populated Index)\n\n### 1. Document-type mismatch between search paths (`store.ts:1218`)\n\n`searchCodeUnits()` hard-filters for `documentType = 'code_unit'`, while the older indexing path (`addChunks()`) stores rows as `documentType = 'code_chunk'`. The `EnhancedRetriever` calls only `searchCodeUnits`, so **if the project was indexed before the hierarchical code-unit model was introduced, every search returns empty** — the data exists but under the wrong `documentType`.\n\nThe inverse is also true: `search()` (used by the CLI/MCP path) filters out everything except `code_chunk`, `code_unit`, and `session_observation`. An index populated entirely with enriched documents (`symbol_summary`, `file_summary`, etc.) through `addDocuments()` will always return `codeResults = []`.\n\n---\n\n### 2. `escapeFilterValue` over-escaping breaks `LIKE` filters (`store.ts:56-64`)\n\n```typescript\n.replace(/%/g, \"\\\\%\")\n.replace(/_/g, \"\\\\_\");\n```\n\nThe `%` and `_` characters are `LIKE` wildcards in SQL, and escaping them with `\\` is the standard SQL approach — but only when the `LIKE` expression declares `ESCAPE '\\'`. LanceDB uses Apache Arrow DataFusion's SQL dialect, which may not recognize `\\` as the default LIKE escape character. As a result:\n\n- A filter like `filePath LIKE '%src\\/_utils%'` may never match `src/_utils/` even though it exists.\n- Any `pathPattern` or `language` filter containing `_` (very common in file paths like `code_unit`, `my_module.ts`) can silently match nothing, making the entire search return `[]`.\n\n---\n\n### 3. LLM reranker `minScore` threshold filters all results (`llm-reranker.ts:173`, `enhanced-retriever.ts:49`)\n\n```typescript\n.filter((r) => r.rerankScore >= this.options.minScore)\n```\n\n`minScore` defaults to `3`. If the LLM rates all `N` candidates below 3 (which can happen for ambiguous queries, or if the LLM produces a malformed response where `scoreMap` is missing entries — causing `ranking?.score ?? 0` to default to `0`), every result is filtered out and `finalResults = []`. The `EnhancedRetriever` then returns empty results without fallback.\n\n---\n\n### 4. FTS index silently fails, then vector search hits a restrictive `where` filter (`store.ts:257-268`, `store.ts:1239-1241`)\n\n```typescript\nprivate async ensureFtsIndex(): Promise<void> {\n    try { ... } catch {\n        // FTS index creation failed — BM25 search will be unavailable\n    }\n}\n```\n\nIf FTS index creation fails (e.g., LanceDB version incompatibility), `bm25Results` is always `[]` — silently. Only vector search remains. But LanceDB's `vectorSearch().where(filter)` applies the filter **post-ANN** (after nearest-neighbor computation), so if the filter is very restrictive (e.g., `documentType = 'code_unit'` on a `code_chunk`-only index), the vector search also returns `[]`, leaving the fused result empty.\n\n---\n\n### 5. `search()` post-processing discards all fused results if they're summaries (`store.ts:429-458`)\n\nAfter RRF fusion, `search()` separates results into `codeResults` (code_chunk/code_unit/session_observation) and summary documents. Summaries are only used to *annotate* code results — they are never returned directly. If the top-ranked fused results are all summaries (which is possible when summary documents are heavily boosted by `typeWeights`), `codeResults` will be empty and the method returns `[]`, even though summaries are in the index and were retrieved by the search.\n\n---\n\n### Summary Table\n\n| Cause | Search method affected | Condition |\n|---|---|---|\n| `code_chunk` vs `code_unit` type mismatch | `searchCodeUnits` / `search` | Index created with older/newer indexer path |\n| `escapeFilterValue` breaks `LIKE` with `_` or `%` | Both | Any `pathPattern`, `language` filter |\n| LLM reranker `minScore=3` filters everything | `EnhancedRetriever.search` | LLM scores all candidates < 3, or missing scores default to 0 |\n| FTS fails silently + vector filter post-ANN | Both | FTS unsupported + restrictive `documentType` filter |\n| Summary docs excluded from code results | `search` | High type weights on summaries push code chunks out of top-N |",
+    "stop_reason": "end_turn",
+    "session_id": "35a241ce-3096-4689-b102-2acf635cb95e",
+    "total_cost_usd": 0.871541,
+    "usage": {
+      "input_tokens": 23,
+      "cache_creation_input_tokens": 64718,
+      "cache_read_input_tokens": 578027,
+      "output_tokens": 7117,
+      "server_tool_use": {
+        "web_search_requests": 0,
+        "web_fetch_requests": 0
+      },
+      "service_tier": "standard",
+      "cache_creation": {
+        "ephemeral_1h_input_tokens": 0,
+        "ephemeral_5m_input_tokens": 64718
+      },
+      "inference_geo": "",
+      "iterations": [],
+      "speed": "standard"
+    },
+    "modelUsage": {
+      "claude-sonnet-4-6": {
+        "inputTokens": 23,
+        "outputTokens": 7117,
+        "cacheReadInputTokens": 578027,
+        "cacheCreationInputTokens": 64718,
+        "webSearchRequests": 0,
+        "costUSD": 0.871541,
+        "contextWindow": 200000,
+        "maxOutputTokens": 32000
+      }
+    },
+    "permission_denials": [],
+    "fast_mode_state": "off",
+    "uuid": "8d065e2a-105f-4ac1-8be9-2240e564427c"
+  },
+  "durationMs": 175946,
+  "tokensIn": 23,
+  "tokensOut": 7117,
+  "toolCalls": 23,
+  "costUsd": 0.871541,
+  "timestamp": "2026-03-05T22:53:45.170Z"
+}

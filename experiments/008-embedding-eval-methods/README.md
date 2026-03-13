@@ -5,7 +5,7 @@
 
 ## Motivation
 
-Design a rigorous evaluation methodology for comparing embedding models in claudemem's code search pipeline. Multi-model validation approach using 6 external AI models to review and vote on proposed evaluation specs.
+Design a rigorous evaluation methodology for comparing embedding models in mnemex's code search pipeline. Multi-model validation approach using 6 external AI models to review and vote on proposed evaluation specs.
 
 ## Design
 

@@ -2,9 +2,9 @@ session: f483c86e
 count: 3
 
 1. You ran 7 grep/rg searches this session. For faster semantic code exploration:
-  `claudemem --agent map "your concept"` -- understands intent, not just text
-  `claudemem --agent symbol "SymbolName"` -- direct AST symbol lookup
-  Skill: use the Skill tool with `code-analysis:claudemem-search`
+  `mnemex --agent map "your concept"` -- understands intent, not just text
+  `mnemex --agent symbol "SymbolName"` -- direct AST symbol lookup
+  Skill: use the Skill tool with `code-analysis:mnemex-search`
 2. Session files detected in /tmp/ -- these are cleared on reboot. Use persistent paths:
   `ai-docs/sessions/{task-slug}-{timestamp}-{random}/` for research artifacts
   `.claude/.coaching/` for plugin state

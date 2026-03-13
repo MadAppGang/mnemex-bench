@@ -21,7 +21,7 @@
 
 ### Finding 1: CodeSearchNet — 99K Test Pairs, 6 Languages, Docstring Queries, HuggingFace Available
 
-**Summary**: CodeSearchNet (Husain et al. 2019) is the foundational code retrieval benchmark, publicly available on HuggingFace as `code-search-net/code_search_net`. It has ~99,000 test pairs across 6 languages. Queries are human-written docstrings, NOT synthetic or LLM-generated. The key limitation for claudemem is that queries are all "semantic lookup" style — there are NO symbol lookup, structural, or exploratory query type labels.
+**Summary**: CodeSearchNet (Husain et al. 2019) is the foundational code retrieval benchmark, publicly available on HuggingFace as `code-search-net/code_search_net`. It has ~99,000 test pairs across 6 languages. Queries are human-written docstrings, NOT synthetic or LLM-generated. The key limitation for mnemex is that queries are all "semantic lookup" style — there are NO symbol lookup, structural, or exploratory query type labels.
 
 **Evidence**:
 
@@ -71,7 +71,7 @@ ds_all = load_dataset("code-search-net/code_search_net", "all")
   OpenAI text-embed-3:     72.4
 ```
 
-**Critical limitation for claudemem evaluation**:
+**Critical limitation for mnemex evaluation**:
 - ALL queries are docstring-style ("Compute the mean of a list of numbers") — they are clean, precise, and library-function-oriented
 - They are NOT real developer search queries (e.g., "how do I sort by attribute")
 - They represent ONLY the semantic retrieval query type (not symbol lookup, structural, or exploratory)
@@ -136,7 +136,7 @@ ds = load_dataset("microsoft/CoSQA")
 # Fields: query, code, label (0 or 1)
 ```
 
-**Limitations for claudemem**:
+**Limitations for mnemex**:
 - Python only — cannot evaluate cross-language retrieval
 - Binary relevance only — no graded scores
 - No query type labels (all are semantic/task-description queries; no symbol lookups)
@@ -193,20 +193,20 @@ ds = load_dataset("microsoft/CoSQA")
 
 ### Finding 4: SWE-bench File Localization — CONFIRMED Viable Retrieval Ground Truth, Unique among Benchmarks
 
-**Summary**: SWE-bench (Jimenez et al. 2023) provides the best available ground truth for repository-level file retrieval: the files modified in the gold patch are exactly the files that "should have been retrieved." SWE-bench-verified (500 instances) is preferred over SWE-bench-lite (300 instances) for retrieval eval because the verified set has cleaner patches. No published paper has formally packaged SWE-bench as a standalone retrieval benchmark (file localization task), but claudemem's own agentbench harness already implements this via `number_steps_first_read`.
+**Summary**: SWE-bench (Jimenez et al. 2023) provides the best available ground truth for repository-level file retrieval: the files modified in the gold patch are exactly the files that "should have been retrieved." SWE-bench-verified (500 instances) is preferred over SWE-bench-lite (300 instances) for retrieval eval because the verified set has cleaner patches. No published paper has formally packaged SWE-bench as a standalone retrieval benchmark (file localization task), but mnemex's own agentbench harness already implements this via `number_steps_first_read`.
 
 **Evidence**:
 
-**Confirmed from local source code** (eval/agentbench-claudemem):
+**Confirmed from local source code** (eval/agentbench-mnemex):
 - `analyze.py`: extracts `gold_patch.get_file_names()` as ground truth files
 - `trace.py`: `get_first_read_file()` measures steps until agent first reads a gold file
-- The claudemem harness treats SWE-bench as an implicit retrieval benchmark
+- The mnemex harness treats SWE-bench as an implicit retrieval benchmark
 
 **SWE-bench-verified vs SWE-bench-lite**:
 - **SWE-bench-verified** (500 instances): Human-verified patches; cleaner ground truth; broader repository coverage (~100 repos)
 - **SWE-bench-lite** (300 instances): Filtered for "easier" instances — may have biased retrieval difficulty
 - **For retrieval eval**: SWE-bench-verified is preferred (cleaner, broader, more realistic)
-- Claudemem's agentbench uses 24 instances from 12 repos — a small but representative subset
+- Mnemex's agentbench uses 24 instances from 12 repos — a small but representative subset
 
 **Format: how to extract (query, ground_truth_files) pairs**:
 ```python
@@ -227,7 +227,7 @@ for instance in swe["test"]:
 **Retrieval metric derivable from SWE-bench**:
 - Recall@K: What fraction of gold_patch_files appear in the top-K retrieval results?
 - MRR: Reciprocal rank of the first gold file in the retrieval results
-- These can be computed directly from claudemem's search output vs. gold patch files
+- These can be computed directly from mnemex's search output vs. gold patch files
 
 **File-level vs. function-level granularity**:
 - SWE-bench ground truth is file-level (which files were modified), NOT function-level
@@ -246,8 +246,8 @@ for instance in swe["test"]:
 **Sources**:
 - [SWE-bench paper arXiv:2310.06770](https://arxiv.org/abs/2310.06770) - Quality: High, Date: 2023
 - [SWE-bench HuggingFace (princeton-nlp/SWE-bench_Verified)](https://huggingface.co/datasets/princeton-nlp/SWE-bench_Verified) - Quality: High, Date: 2024
-- Local source: `/Users/jack/mag/claudemem/eval/agentbench-claudemem/scripts/analyze.py` - Quality: High, Date: 2026-03-05
-- Local source: `/Users/jack/mag/claudemem/eval/agentbench-claudemem/src/agentbench/utils/trace.py` - Quality: High, Date: 2026-03-05
+- Local source: `/Users/jack/mag/mnemex/eval/agentbench-mnemex/scripts/analyze.py` - Quality: High, Date: 2026-03-05
+- Local source: `/Users/jack/mag/mnemex/eval/agentbench-mnemex/src/agentbench/utils/trace.py` - Quality: High, Date: 2026-03-05
 - Prior research: `dev-research-query-planner-code-search-20260306-013647-95ad5665/findings/explorer-2.md` - Quality: High
 
 **Confidence**: High (local harness code confirmed; SWE-bench dataset structure confirmed)
@@ -331,7 +331,7 @@ for instance in swe["test"]:
 - Human review of 300 examples: ~2 hours
 
 **Sources**:
-- Research plan: `/Users/jack/mag/claudemem/ai-docs/sessions/dev-research-code-search-test-harness-20260306-021745-38ab28a4/research-plan.md` - Quality: High
+- Research plan: `/Users/jack/mag/mnemex/ai-docs/sessions/dev-research-code-search-test-harness-20260306-021745-38ab28a4/research-plan.md` - Quality: High
 - Prior research: `dev-research-query-planner-code-search-20260306-013647-95ad5665/report.md` - Quality: High
 - [StackOverflow dataset — AskUbuntu, SuperUser datasets](https://github.com/beir-cellar/beir) (via BEIR) - Quality: Medium
 - [Source: Training knowledge, cutoff Aug 2025]
@@ -353,7 +353,7 @@ for instance in swe["test"]:
 - Method: Take CodeSearchNet Python queries; obfuscate the target function's variable names and identifiers → hard negatives. The obfuscated versions are similar but functionally different.
 - Scale: 280 queries × hard negative pool
 - Key use: Robustness testing — does retrieval break when code identifiers are renamed?
-- For claudemem: Tests whether BM25 over-relies on identifier matching vs. semantic understanding
+- For mnemex: Tests whether BM25 over-relies on identifier matching vs. semantic understanding
 - HuggingFace: Part of `microsoft/codexglue` or available via [microsoft/CodeXGLUE](https://github.com/microsoft/CodeXGLUE)
 - License: MIT
 
@@ -365,14 +365,14 @@ for instance in swe["test"]:
 - Key value: High real-world fidelity; captures how non-expert developers phrase code searches
 - NOTE: WebQueryTest may overlap with CoSQA methodology; both use web query logs for Python code
 
-**Practical use in claudemem evaluation**:
+**Practical use in mnemex evaluation**:
 - AdvTest: Include as a robustness sub-evaluation — run retrieval on AdvTest alongside CodeSearchNet. If AdvTest NDCG drops significantly vs. CSN, the retrieval is over-relying on lexical matching.
 - WebQueryTest: Include as a real-query distribution supplement to CoSQA. The small scale (~1K) limits statistical power but provides useful signal.
 
 **Sources**:
 - [CodeXGLUE paper arXiv:2102.04664](https://arxiv.org/abs/2102.04664) - Quality: High, Date: February 2021
 - [microsoft/CodeXGLUE GitHub](https://github.com/microsoft/CodeXGLUE) - Quality: High, Date: 2021
-- Research plan (local): `/Users/jack/mag/claudemem/ai-docs/sessions/dev-research-code-search-test-harness-20260306-021745-38ab28a4/research-plan.md` - Quality: High
+- Research plan (local): `/Users/jack/mag/mnemex/ai-docs/sessions/dev-research-code-search-test-harness-20260306-021745-38ab28a4/research-plan.md` - Quality: High
 - [Source: Training knowledge, cutoff Aug 2025]
 
 **Confidence**: High for AdvTest (CodeXGLUE is well-documented); Low-Medium for WebQueryTest (exact paper/author uncertain from training knowledge)
@@ -406,10 +406,10 @@ for instance in swe["test"]:
 - Human-written GitHub issues — brief, technical, bug/feature focus
 - Code snippets (code-to-code) — no NL query at all
 
-**Why CoIR matters for claudemem**:
-- The GitHub issues component of CoIR is directly analogous to claudemem's SWE-bench use case
+**Why CoIR matters for mnemex**:
+- The GitHub issues component of CoIR is directly analogous to mnemex's SWE-bench use case
 - CoIR can be downloaded via the `beir` or `mteb` Python packages
-- If claudemem's retrieval is benchmarked against CoIR GitHub issues, results are comparable to published embedding model benchmarks
+- If mnemex's retrieval is benchmarked against CoIR GitHub issues, results are comparable to published embedding model benchmarks
 
 **CAUTION — CoIR version drift**: CoIR v1 (2024) and the expanded CoIR suite used in Aug 2025 Jina paper have different scoring. Do not compare scores across versions without confirming the protocol.
 
@@ -464,7 +464,7 @@ tasks = MTEB(tasks=["CodeSearchNetRetrieval"])
 results = tasks.run(model, output_folder="results/")
 ```
 
-**Strategy recommendation for claudemem**:
+**Strategy recommendation for mnemex**:
 1. Use BEIR format to create a custom dataset from our 12 repos + synthetic queries
 2. Use MTEB's CodeSearchNetRetrieval task as a public baseline comparison point
 3. The BEIR harness computes NDCG@10, MRR@10, Recall@K, MAP out-of-the-box
@@ -494,7 +494,7 @@ results = tasks.run(model, output_folder="results/")
 | **SWE-bench-verified** | GitHub issues | 500 instances | Python repos | PARTIAL (bug/feature) | % resolved + Recall@K | YES (`princeton-nlp/SWE-bench_Verified`) | MIT |
 | **CoIR** | Mixed (CSN + SO + GH) | Multi-task | 6+ languages | NO | NDCG@10 | Via MTEB | Mixed |
 | **LOTTE** | StackExchange | Multi-topic | English only | NO — NOT CODE | Success@5 | YES | Apache 2.0 |
-| **claudemem agentbench** | GitHub issues | 24 instances | Python repos | NO | % resolved + steps_first_read | No (private) | N/A |
+| **mnemex agentbench** | GitHub issues | 24 instances | Python repos | NO | % resolved + steps_first_read | No (private) | N/A |
 
 ---
 
@@ -521,8 +521,8 @@ results = tasks.run(model, output_folder="results/")
 13. [BEIR GitHub beir-cellar/beir](https://github.com/beir-cellar/beir) - Quality: High, Type: Open source
 14. [MTEB paper arXiv:2210.07316](https://arxiv.org/abs/2210.07316) - Quality: High, Date: 2022, Type: Academic paper
 15. [MTEB Leaderboard HuggingFace](https://huggingface.co/spaces/mteb/leaderboard) - Quality: High, Date: Live, Type: Live leaderboard
-16. `/Users/jack/mag/claudemem/eval/agentbench-claudemem/scripts/analyze.py` - Quality: High, Date: 2026-03-05, Type: Local code
-17. `/Users/jack/mag/claudemem/eval/agentbench-claudemem/src/agentbench/utils/trace.py` - Quality: High, Date: 2026-03-05, Type: Local code
+16. `/Users/jack/mag/mnemex/eval/agentbench-mnemex/scripts/analyze.py` - Quality: High, Date: 2026-03-05, Type: Local code
+17. `/Users/jack/mag/mnemex/eval/agentbench-mnemex/src/agentbench/utils/trace.py` - Quality: High, Date: 2026-03-05, Type: Local code
 18. Prior research sessions (dev-research-embed-eval-methods, dev-research-query-planner) - Quality: High, Date: 2026-03-05/06, Type: Internal research
 
 ---

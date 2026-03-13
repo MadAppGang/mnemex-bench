@@ -1,0 +1,59 @@
+{
+  "scenarioId": 2,
+  "repo": "mnemex",
+  "condition": "no-index",
+  "title": "Feature: dead-code CSV output",
+  "task": "Add a `--format csv` option to the `dead-code` command that outputs results as CSV (columns: symbol,file,line,pageRank,callerCount) instead of the default table format.",
+  "output": "All diagnostics are pre-existing environment issues unrelated to my changes. Done.\n\nHere's a summary of what was added:\n\n**`src/cli.ts`:**\n\n1. **Flag parsing** (`handleDeadCode`, after `--include-exported`): Reads `--format <fmt>`, defaulting to `\"table\"`.\n\n2. **CSV output branch** (in the output section): When `format === \"csv\"`, prints the header line then one row per result with proper CSV quoting for fields containing commas.\n   ```\n   symbol,file,line,pageRank,callerCount\n   myFunc,src/utils.ts,42,0.000123,0\n   ```\n   Since dead code by definition has zero callers, `callerCount` is always `0`.\n\n3. **Help text**: Documents `--format <fmt>  dead-code output format: table|csv (default: table)`.\n\nUsage:\n```bash\nmnemex dead-code --format csv\nmnemex dead-code --format csv --max-pagerank 0.005 -n 100 > dead.csv\n```",
+  "claudeJson": {
+    "type": "result",
+    "subtype": "success",
+    "is_error": false,
+    "duration_ms": 83447,
+    "duration_api_ms": 80945,
+    "num_turns": 12,
+    "result": "All diagnostics are pre-existing environment issues unrelated to my changes. Done.\n\nHere's a summary of what was added:\n\n**`src/cli.ts`:**\n\n1. **Flag parsing** (`handleDeadCode`, after `--include-exported`): Reads `--format <fmt>`, defaulting to `\"table\"`.\n\n2. **CSV output branch** (in the output section): When `format === \"csv\"`, prints the header line then one row per result with proper CSV quoting for fields containing commas.\n   ```\n   symbol,file,line,pageRank,callerCount\n   myFunc,src/utils.ts,42,0.000123,0\n   ```\n   Since dead code by definition has zero callers, `callerCount` is always `0`.\n\n3. **Help text**: Documents `--format <fmt>  dead-code output format: table|csv (default: table)`.\n\nUsage:\n```bash\nmnemex dead-code --format csv\nmnemex dead-code --format csv --max-pagerank 0.005 -n 100 > dead.csv\n```",
+    "stop_reason": "end_turn",
+    "session_id": "95343ed8-031e-487b-b464-3e4677ee0aa9",
+    "total_cost_usd": 0.30157375000000003,
+    "usage": {
+      "input_tokens": 18,
+      "cache_creation_input_tokens": 20865,
+      "cache_read_input_tokens": 157205,
+      "output_tokens": 3699,
+      "server_tool_use": {
+        "web_search_requests": 0,
+        "web_fetch_requests": 0
+      },
+      "service_tier": "standard",
+      "cache_creation": {
+        "ephemeral_1h_input_tokens": 0,
+        "ephemeral_5m_input_tokens": 20865
+      },
+      "inference_geo": "",
+      "iterations": [],
+      "speed": "standard"
+    },
+    "modelUsage": {
+      "claude-sonnet-4-6": {
+        "inputTokens": 18,
+        "outputTokens": 3699,
+        "cacheReadInputTokens": 157205,
+        "cacheCreationInputTokens": 20865,
+        "webSearchRequests": 0,
+        "costUSD": 0.30157375000000003,
+        "contextWindow": 200000,
+        "maxOutputTokens": 32000
+      }
+    },
+    "permission_denials": [],
+    "fast_mode_state": "off",
+    "uuid": "d413603b-16b6-496b-89a8-fab1a6cb4b40"
+  },
+  "durationMs": 88495,
+  "tokensIn": 18,
+  "tokensOut": 3699,
+  "toolCalls": 12,
+  "costUsd": 0.30157375000000003,
+  "timestamp": "2026-03-05T22:41:32.744Z"
+}

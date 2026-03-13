@@ -346,7 +346,7 @@ If choosing **Qwen3-1.7B** as baseline:
 
 ## Next Steps for Your Project
 
-1. **Run Qwen3-0.6B vs Qwen3-1.7B head-to-head** on your actual query workload (code-specific queries from claudemem)
+1. **Run Qwen3-0.6B vs Qwen3-1.7B head-to-head** on your actual query workload (code-specific queries from mnemex)
 2. **Benchmark MLX inference speed** on your target hardware (M1/M2/M3 chips)
 3. **A/B test `hyde:` field quality** — does the code snippet field improve retrieval for code search? (Most critical unknown)
 4. **Check for Q2 2026 model releases** before settling on final tier lineup

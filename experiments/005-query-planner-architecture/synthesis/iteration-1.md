@@ -58,7 +58,7 @@
 - Explorer 1 notes: "gains are largest for questions requiring reasoning across multiple documents — simpler lookup queries show little benefit" [Explorer 1]
 - Explorer 3 corroborates: "When an LLM planner IS justified: agentic retrieval where tool outputs inform subsequent searches, very high quality requirements" [Explorer 3]
 
-**Key implication for claudemem**: Sequential retrieval is justified only for a "deep search" or "exploratory" mode, not as the default interactive search path.
+**Key implication for mnemex**: Sequential retrieval is justified only for a "deep search" or "exploratory" mode, not as the default interactive search path.
 
 **Supporting Sources**: 5 peer-reviewed papers, consistent across two explorers
 **Confidence**: High
@@ -75,7 +75,7 @@
 - Explorer 1 recommends rule-based as "Phase 1" baseline before LLM routing
 - Explorer 3 recommends rule-based as the PRIMARY approach with LLM planning only in opt-in slow mode
 - Production tools (aider, Continue.dev) use deterministic approaches and achieve competitive quality [Explorer 1 + Explorer 3]
-- agentbench eval shows claudemem_planner (deterministic: map + search) works well without a query planner [Explorer 3]
+- agentbench eval shows mnemex_planner (deterministic: map + search) works well without a query planner [Explorer 3]
 
 **Supporting Sources**: Production tool examples (aider, Continue.dev), agentbench local source, independent convergence across Explorer 1 + Explorer 3
 **Confidence**: High
@@ -87,7 +87,7 @@
 **Summary**: Evaluating a query planner requires three layers: (1) component metrics per tool (MRR/NDCG@10), (2) retrieval proxy metric (`number_steps_first_read` from agentbench), and (3) end-to-end task completion (`resolved` rate on SWE-bench). No standard metric exists for "did the planner choose the right tools?" — this must be custom-designed. The agentbench harness already implements layers 2 and 3.
 
 **Evidence**:
-- 3-layer eval framework: claudemem docs + embed-eval spec + analyze.py [Explorer 2, confirmed by multi-source local research]
+- 3-layer eval framework: mnemex docs + embed-eval spec + analyze.py [Explorer 2, confirmed by multi-source local research]
 - MRR + NDCG@10 as co-primary retrieval metrics established in prior embed-eval research [Source: embed-eval-spec.md — High, Explorer 2]
 - SWE-bench `number_steps_first_read` metric: directly confirmed in analyze.py source code [Explorer 2]
 - No published metric maps query types to optimal tool selections: confirmed across Explorer 2 (explicit), and implied by Explorer 1 + Explorer 3 (did not find such a metric) [Explorer 2]
@@ -117,17 +117,17 @@
 
 ---
 
-### 7. claudemem Current Architecture Confirmed as Option A (Parallel, No Planner) [CONSENSUS: STRONG]
+### 7. mnemex Current Architecture Confirmed as Option A (Parallel, No Planner) [CONSENSUS: STRONG]
 
-**Summary**: Direct source reading confirms claudemem's search pipeline runs BM25 + vector in parallel with static query expansion (lex:/vec:/hyde: tags). No LLM call at query time for routing. LLM enrichment happens at index time only. The current architecture is a clean baseline for comparison.
+**Summary**: Direct source reading confirms mnemex's search pipeline runs BM25 + vector in parallel with static query expansion (lex:/vec:/hyde: tags). No LLM call at query time for routing. LLM enrichment happens at index time only. The current architecture is a clean baseline for comparison.
 
 **Evidence**:
 - `src/mcp/tools/search.ts`: receives query, runs parallel hybrid search, returns results [Explorer 1 + Explorer 3]
 - `src/llm/prompts/enrichment.ts`: LLM enrichment at index time only [Explorer 1]
-- claudemem_planner.py in agentbench: hardcoded parallel (map + search), no feedback loop [Explorer 1 + Explorer 3]
-- `update_plan()` method in claudemem_planner is a no-op [Explorer 1]
+- mnemex_planner.py in agentbench: hardcoded parallel (map + search), no feedback loop [Explorer 1 + Explorer 3]
+- `update_plan()` method in mnemex_planner is a no-op [Explorer 1]
 
-**Supporting Sources**: Multiple claudemem source files, confirmed by two explorers independently
+**Supporting Sources**: Multiple mnemex source files, confirmed by two explorers independently
 **Confidence**: Very High (direct code reading)
 
 ---
@@ -167,7 +167,7 @@ Phase 1 — Rule-Based Router (1 week):
   Measure: resolved rate + steps_first_read on agentbench (12 instances, ~$5)
 
 Phase 2 — LLM-Based "Deep Mode" (2-3 weeks, optional):
-  claudemem search --deep <query>
+  mnemex search --deep <query>
 
   Model: Qwen3-4B Q8 (best accuracy/latency balance for explicit deep search)
   Output: single-shot JSON plan [{tool, query, weight}, ...]
@@ -258,14 +258,14 @@ For whichever LLM-based planning is eventually implemented, characteristics in p
 - Dataset: CodeSearchNet (docstring → function, 99K test pairs), CoSQA (developer queries → Python code, 20K pairs)
 - Procedure: run each tool (BM25, vector, AST, symbol graph, code summaries) independently; compare ranked lists to ground truth
 - Ground truth: CodeSearchNet docstring-function pairings; CoSQA human annotations
-- Status: Not yet instrumented in claudemem harness — requires embedding per-tool retrieval logging
+- Status: Not yet instrumented in mnemex harness — requires embedding per-tool retrieval logging
 
 **Layer 2 — Retrieval Efficiency Proxy (on real tasks)**
 - Metric: `number_steps_first_read` (steps until agent first reads any gold patch file)
-- Dataset: claudemem agentbench setup (24 instances, 12 repos)
+- Dataset: mnemex agentbench setup (24 instances, 12 repos)
 - Procedure: run conditions A, B, C, D; compare `steps_first_read` and `cost_first_read`
 - Ground truth: SWE-bench patch files (the files that needed to change)
-- Status: **Already implemented** in `eval/agentbench-claudemem/scripts/analyze.py`
+- Status: **Already implemented** in `eval/agentbench-mnemex/scripts/analyze.py`
 - Practical cost: ~$5 per condition per run on existing 12-repo setup
 
 **Layer 3 — End-to-End Task Completion**
@@ -296,7 +296,7 @@ For whichever LLM-based planning is eventually implemented, characteristics in p
 
 ### Strong Consensus (UNANIMOUS — all sources agree)
 - Production code tools use hardcoded parallel pipelines, not LLM query planners
-- claudemem's current architecture is Option A (parallel, no LLM at query time)
+- mnemex's current architecture is Option A (parallel, no LLM at query time)
 - Evaluation requires measuring both retrieval proxy (steps_first_read) and end-to-end (resolved rate)
 
 ### Strong Consensus (67%+ agreement across sources)
@@ -357,7 +357,7 @@ For whichever LLM-based planning is eventually implemented, characteristics in p
 
 2. **No labeled dataset mapping query types to optimal retrieval tools**: Evaluating whether the rule-based classifier makes correct routing decisions requires this.
    - Why: Multi-tool routing evaluation is a new problem; no community benchmark exists
-   - Suggested approach: Manually label 100 queries from agentbench issues with expected tool (BM25/vector/AST/graph/summaries); build claudemem-specific routing eval
+   - Suggested approach: Manually label 100 queries from agentbench issues with expected tool (BM25/vector/AST/graph/summaries); build mnemex-specific routing eval
    - Priority: CRITICAL for evaluation; not blocking for Phase 1 implementation
 
 ### IMPORTANT
@@ -370,12 +370,12 @@ For whichever LLM-based planning is eventually implemented, characteristics in p
    - Suggested: Check current BFCL leaderboard for sub-8B rankings
    - Priority: IMPORTANT
 
-5. **GraphRAG applied to code has no published study**: Microsoft GraphRAG evaluates only text document corpora. Its local/global routing maps well to claudemem's conceptual structure but is unvalidated for code.
+5. **GraphRAG applied to code has no published study**: Microsoft GraphRAG evaluates only text document corpora. Its local/global routing maps well to mnemex's conceptual structure but is unvalidated for code.
    - Priority: IMPORTANT for exploratory/structural query routing design
 
 ### NICE-TO-HAVE
 
-6. **SWE-bench file localization as formal retrieval benchmark**: No published paper uses SWE-bench patch files as an explicit retrieval ground truth with MRR/Recall@K. This is a gap claudemem could publish.
+6. **SWE-bench file localization as formal retrieval benchmark**: No published paper uses SWE-bench patch files as an explicit retrieval ground truth with MRR/Recall@K. This is a gap mnemex could publish.
 
 7. **Offline retrieval metric (MRR/NDCG) correlation with developer productivity**: No study confirms that higher NDCG@10 predicts better developer task outcomes in production code search.
 
@@ -398,7 +398,7 @@ For whichever LLM-based planning is eventually implemented, characteristics in p
 
 2. **Implement Phase 1 rule-based router** (1 week): Add query classification with heuristic rules to `src/core/search/` (or wherever the search entry point is). No new model required. Run agentbench comparison.
 
-3. **Run baseline agentbench experiment** ($5, 1 hour): Run current claudemem + rule-based router conditions on 12 repos. Measure delta in `resolved` + `steps_first_read`. If delta > 5%, routing adds value; if <5%, skip further investment.
+3. **Run baseline agentbench experiment** ($5, 1 hour): Run current mnemex + rule-based router conditions on 12 repos. Measure delta in `resolved` + `steps_first_read`. If delta > 5%, routing adds value; if <5%, skip further investment.
 
 4. **Build query type labeling mini-dataset** (1 day): Label 100 queries from agentbench issues with expected retrieval tool. Use as ground truth for routing evaluation.
 
