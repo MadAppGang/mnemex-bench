@@ -91,6 +91,14 @@ aws s3 cp s3://mnemex-bench/archives/indexes-20260304-deepseek.tar.gz . --profil
 tar xzf indexes-20260304-deepseek.tar.gz -C data/
 ```
 
+## Built by MadAppGang
+
+[![MadAppGang — We build what others can't](assets/madappgang-banner.png)](https://madappgang.com)
+
+This research is conducted by [MadAppGang](https://madappgang.com) — an AI engineering company building full-stack cloud platforms with Go, Bun, Kubernetes, and AI-powered features.
+
+Need help with AI tooling, LLM integration, or complex engineering challenges? [Get in touch](https://madappgang.com).
+
 ## License
 
 MIT
