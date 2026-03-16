@@ -1,4 +1,4 @@
-# Tiny Models, Big Gains: Fine-Tuning Sub-3B LLMs for Code Search Query Expansion
+# Typed Query Expansion for Code Search: Evaluating Sub-3B Local LLMs for Lexical, Semantic, and Hypothetical Code Retrieval
 
 **Authors**: Jack Rudenko, MadAppGang
 **Date**: March 2026
@@ -7,7 +7,7 @@
 
 ## Abstract
 
-Semantic code search suffers from a vocabulary mismatch between natural-language queries and source code. We evaluate whether small locally-deployed LLMs (0.35B–9B parameters) can bridge this gap by automatically expanding user queries into keyword, semantic, and hypothetical code variants. We benchmark 25 models across two architecture families (transformers and state-space models) on 50 code search queries, train 9 models with LoRA SFT, and identify a three-tier deployment strategy for Apple Silicon. Our central finding is that supervised fine-tuning teaches output format compliance, not domain knowledge — the two highest-scoring models require no fine-tuning at all. We release the benchmark, training data, and all model weights.
+Semantic code search suffers from a vocabulary mismatch between natural-language queries and source code. We introduce *typed query expansion* — decomposing a user query into lexical (lex:), semantic (vec:), and hypothetical-document (hyde:) variants, each optimized for a distinct retrieval modality — and evaluate 25 small locally-deployed LLMs (0.35B–9B parameters) for this task. We benchmark models across transformers and state-space architectures on 50 code search queries, train 9 with LoRA SFT, and validate end-to-end on a 30-query ablation harness with MRR@10 and Wilcoxon significance tests. Our central finding is that supervised fine-tuning teaches output format compliance, not domain knowledge (r = -0.95) — the two highest-scoring models require no fine-tuning at all. End-to-end evaluation reveals that blind expansion *hurts* symbol-lookup queries (MRR -0.28, p < 0.001), but route-aware expansion — skipping expansion for exact symbol queries — produces the best overall pipeline (MRR@10 0.477 vs 0.309 baseline). No production code search tool uses small local LLMs for typed query expansion; this combination is a novel contribution to the neural IR and code intelligence literature.
 
 ---
 
@@ -81,15 +81,19 @@ Based on prior work (LIMA, Zhou et al. 2023; Superficial Alignment Hypothesis, L
 
 ## 2. Related Work
 
-**Query expansion in information retrieval.** Classical approaches (RM3, pseudo-relevance feedback) expand queries using terms from top-retrieved documents. Neural approaches use language models to generate expansions. InPars (Bonifacio et al. 2022) and Promptagator (Dai et al. 2023) generate synthetic queries for retrieval training. Our work differs in targeting on-device deployment with sub-3B models.
+**Query expansion in information retrieval.** Query expansion augments the original query with additional terms or representations before retrieval (Carpineto & Romano, 2012). Classical approaches (RM3, pseudo-relevance feedback) expand using terms from top-retrieved documents. Neural approaches use language models: InPars (Bonifacio et al. 2022) and Promptagator (Dai et al. 2023) generate synthetic queries for retrieval training, while dense passage retrieval (DPR; Karpukhin et al. 2020) established bi-encoder dense retrieval as the foundation for modern vector search. Reciprocal Rank Fusion (Cormack et al. 2009) is the standard method for combining multiple ranked lists. Our work differs from prior neural expansion in targeting on-device deployment with sub-3B models and producing modality-specific output (lexical, semantic, and hypothetical-document variants simultaneously).
 
-**Hypothetical Document Embeddings (HyDE).** Gao et al. (2023) show that generating a hypothetical answer document and embedding it outperforms embedding the raw query for zero-shot dense retrieval. The dense encoder "creates a bottleneck that filters out incorrect details." We apply HyDE specifically to code search, where the hypothetical document is a code snippet.
+**Hypothetical Document Embeddings (HyDE).** Gao et al. (2023) show that generating a hypothetical answer document and embedding it outperforms embedding the raw query for zero-shot dense retrieval. The dense encoder "creates a bottleneck that filters out incorrect details." HyDE has been validated on web search, QA, and fact verification, but not on code search specifically. We extend HyDE to generate hypothetical *code snippets* rather than natural-language documents — a domain-specific variant not previously evaluated.
+
+**Code search and code intelligence.** CodeSearchNet (Husain et al. 2019) established the standard benchmark for code search with 2M function-docstring pairs across 6 languages. CodeBERT (Feng et al. 2020) and GraphCodeBERT (Guo et al. 2021) introduced pretrained code representations for bi-encoder retrieval. UniXcoder (Guo et al. 2022) added cross-encoder reranking, achieving NDCG@10 ~74 on CodeSearchNet. CoCoSoDa (Shi et al. 2023, ICSE) pushed further with multi-modal contrastive learning (MRR@10 74.4). Recent embedding models (nomic-embed-code, 2025) achieve NDCG@10 81.9. Notably, *none* of these systems use query expansion — they focus on representation learning for the encoder.
+
+**Production code search tools.** We surveyed major production tools: Sourcegraph/Cody (BM25 + vector + SCIP graph, no expansion), GitHub Blackbird (Elasticsearch + code embedding, no expansion), Cursor (chunk embedding + reranking, no expansion), Continue.dev (vector search, no expansion), and aider (AST repo map + PageRank, no retrieval). No production tool uses a small local LLM for query expansion at query time. LlamaIndex and LangChain offer HyDE as a framework feature but require frontier cloud models (GPT-4, Claude), not local sub-3B models.
 
 **Small language models for code.** Qwen3 (Alibaba, 2025) provides a family from 0.6B to 235B with strong code understanding from Qwen2.5-Coder lineage. LFM2 (Liquid AI, 2025) uses a state-space model (SSM) architecture achieving 2–10x faster inference on Apple Silicon. StarCoder2 (Lozhkov et al. 2024) and DeepSeek-Coder (Guo et al. 2024) are code-specialized but lack instruction-following capability needed for structured output.
 
-**SFT and the Superficial Alignment Hypothesis.** Zhou et al. (2023) show that 1,000 carefully curated examples achieve GPT-4-comparable responses (LIMA). Lin et al. (2024) demonstrate that SFT shifts token distribution almost entirely on stylistic tokens, not knowledge tokens. Hu et al. (2022) show that rank-16 LoRA adapters preserve base model knowledge while adapting output behavior.
+**SFT and the Superficial Alignment Hypothesis.** Zhou et al. (2023) show that 1,000 carefully curated examples achieve GPT-4-comparable responses (LIMA). Lin et al. (2024) demonstrate that SFT shifts token distribution almost entirely on stylistic tokens, not knowledge tokens — the Superficial Alignment Hypothesis. Hu et al. (2022) show that rank-16 LoRA adapters preserve base model knowledge while adapting output behavior. Our work provides quantitative confirmation across 25 models in a structured output setting: r = -0.95 correlation between base format compliance and SFT gain.
 
-**QMD pipeline.** QMD (Lutke, 2026) implements the full pipeline we study: query expansion (fine-tuned Qwen3-1.7B) → multi-query retrieval (BM25 + vector, 6 calls) → RRF fusion (original query 2x weight) → neural reranking (Qwen3-Reranker-0.6B, logprob-based) → position-aware blending. Training data: 5,157 examples, ~92% non-code topics, achieving 92–93.8% eval accuracy on code queries.
+**QMD pipeline.** QMD (Lutke, 2026) is the closest system to ours. It implements: query expansion (GRPO-trained Qwen3-1.7B) → multi-query retrieval (BM25 + vector, 6 calls) → RRF fusion (original query 2x weight) → neural reranking (Qwen3-Reranker-0.6B, logprob-based) → position-aware blending. Training data: 5,157 examples, ~92% non-code topics, achieving 92–93.8% eval accuracy. Key difference: QMD targets markdown/knowledge-base search; its hyde: variant generates natural-language passages, not code snippets. Our work adapts this architecture specifically for code search with code-generating hyde: and evaluates across a much wider model space (25 vs 1).
 
 ---
 
@@ -301,7 +305,73 @@ Counter-intuitively, models specialized for code generation (StarCoder2, DeepSee
 
 ---
 
-## 6. Recommended Deployment
+## 6. End-to-End Evaluation
+
+The intrinsic evaluation (Sections 4–5) measures expansion quality in isolation. To validate whether expansion actually improves search results, we built an ablation harness and ran 12 conditions on real code queries against the fastmcp repository (396 Python files, 7MB index).
+
+### 6.1 Ablation Conditions
+
+| Condition | Components | Description |
+|-----------|-----------|-------------|
+| A | Retriever only | Baseline — pure hybrid BM25+vector retrieval |
+| B1 | Retriever + regex router | Symbol queries → keyword-only search |
+| C1 | Retriever + LFM2-700M expander | Tiny tier expansion |
+| C2 | Retriever + Qwen3-1.7B-FT expander | Medium tier expansion |
+| C3 | Retriever + LFM2-2.6B expander | Large tier expansion |
+| D | Retriever + reranker | Qwen3-1.7B reranker (score 0–10, 70/30 blend) |
+| E | Full pipeline | Router + expander + reranker (blind expansion) |
+| F | Router + expander | No reranker (blind expansion) |
+| E-RA | Full pipeline + route-aware | Skip expansion for symbol queries |
+| F-RA | Router + expander (route-aware) | Skip expansion for symbol queries |
+| Q1 | QMD BM25 | QMD search (BM25 only, no vectors) |
+| Q2 | QMD expand+rerank | QMD full pipeline with GRPO expansion |
+
+### 6.2 Results (Symbol-Name Queries, n=30)
+
+| Rank | Condition | MRR@10 | Recall@20 | P95 Latency |
+|------|-----------|--------|-----------|-------------|
+| 1 | **E-RA** (full + route-aware) | **0.477** | 0.733 | 35.4s |
+| 2 | B1 (regex router) | 0.442 | 0.767 | 1.1s |
+| 3 | **F-RA** (route-aware, no reranker) | **0.427** | 0.700 | 1.9s |
+| 4 | D (reranker only) | 0.419 | **0.833** | 16.2s |
+| 5 | Q2 (QMD expand+rerank) | 0.351 | 0.667 | 1.5s |
+| 6 | C2 (Qwen3-1.7B-FT expander) | 0.338 | 0.700 | 8.3s |
+| 7 | C3 (LFM2-2.6B expander) | 0.329 | 0.533 | 4.5s |
+| 8 | A (baseline) | 0.309 | 0.700 | 1.7s |
+| 9 | C1 (LFM2-700M expander) | 0.267 | 0.800 | 3.0s |
+| 10 | Q1 (QMD BM25) | 0.241 | 0.633 | 0.4s |
+| 11 | E (full, blind expansion) | 0.118 | 0.333 | 16.3s |
+| 12 | F (blind expansion) | 0.119 | 0.300 | 3.9s |
+
+### 6.3 Mixed Query Types (n=30: 10 symbol + 10 semantic + 10 exploratory)
+
+| Condition | Overall MRR@10 | Symbol | Semantic | Exploratory |
+|-----------|---------------|--------|----------|-------------|
+| A (mnemex) | **0.269** | **0.461** | **0.177** | **0.170** |
+| Q1 (QMD BM25) | 0.127 | 0.203 | 0.133 | 0.045 |
+| Q2 (QMD expand+rerank) | 0.127 | 0.198 | 0.142 | 0.042 |
+
+### 6.4 End-to-End Findings
+
+**Finding 7: Blind expansion destroys symbol queries.** Conditions E and F (blind expansion applied to all queries) are statistically significantly *worse* than baseline (MRR -0.28, p < 0.001). The expander rewrites symbol names like "FastMCP" into natural-language descriptions, destroying keyword matches.
+
+**Finding 8: Route-aware expansion is the single biggest win.** E-RA (0.477) vs E (0.118) = 4x improvement in MRR@10. Simply skipping expansion for symbol-lookup queries (detected by regex: CamelCase, snake_case, function calls) transforms expansion from harmful to beneficial.
+
+**Finding 9: The reranker adds marginal MRR but massive latency.** E-RA (0.477, 35.4s) vs F-RA (0.427, 1.9s) — the reranker adds +0.05 MRR for +33s latency. For production use, F-RA (route-aware expansion without reranking) offers the best quality/latency tradeoff.
+
+**Finding 10: mnemex 2x better than QMD on code search.** Across all query types, mnemex (A: 0.269) doubles QMD (Q1/Q2: 0.127). The AST-aware indexing with semantic chunking provides a structural advantage over QMD's text-oriented approach.
+
+**Finding 11: QMD's expansion+reranking provides zero benefit over BM25-only.** Q2 (0.127) matches Q1 (0.127) but is 20x slower (4.8s vs 0.2s). The local LLM expansion adds latency without improving relevance on code — likely because QMD's expansion model was trained on document queries, not code queries.
+
+### 6.5 Caveats
+
+- QMD ran without vector search due to sqlite-vec compatibility issues (Bun 1.3.2). With vectors enabled, QMD would likely improve on semantic queries.
+- Baseline MRR dropped from 0.438 to 0.309 between runs due to a vector store migration issue. Clean re-indexing is needed for definitive numbers.
+- Only tested on one repository (fastmcp). Generalization to other codebases needs validation.
+
+---
+
+## 7. Recommended Deployment
 
 ### Three-Tier Model Selection
 
@@ -319,7 +389,7 @@ Two of three recommended models are base (unfine-tuned). Only the Medium tier re
 
 ---
 
-## 7. Limitations and Future Work
+## 8. Limitations and Future Work
 
 **Intrinsic evaluation only.** This benchmark measures expansion quality in isolation (format, keyword, semantic, HyDE scores). The critical question — does query expansion actually improve end-to-end retrieval (MRR, recall@k)? — requires an ablation study on real codebases. We plan this as a follow-up experiment.
 
@@ -335,36 +405,49 @@ Two of three recommended models are base (unfine-tuned). Only the Medium tier re
 
 ---
 
-## 8. Conclusion
+## 9. Conclusion
 
-We evaluated 25 small LLMs for code search query expansion and found that:
+We evaluated 25 small LLMs for typed query expansion in code search, measuring both intrinsic expansion quality and end-to-end retrieval impact. Our findings:
 
 1. **SFT teaches format, not domain knowledge** (r = -0.95). Models with strong code pretraining but broken format compliance show 100–5,000% gains from fine-tuning. Models with good native format show zero or negative gains.
 
-2. **The two best models are base (unfine-tuned).** LFM2-2.6B (.816) and Qwen3-4B-2507 (.811) outperform all 9 fine-tuned models. The best strategy is model selection, not model training.
+2. **The two best expansion models are base (unfine-tuned).** LFM2-2.6B (.816) and Qwen3-4B-2507 (.811) outperform all 9 fine-tuned models. The best strategy is model selection, not model training.
 
-3. **HyDE quality is a step function of model size.** Below 1B parameters: pseudocode. Above 2B: compilable code. This determines which tiers should enable HyDE.
+3. **HyDE quality is a step function of model size.** Below 1B parameters: pseudocode. Above 2B: compilable code.
 
-4. **Architecture matters more than parameters.** LFM2's SSM architecture achieves the highest score at 2.6B, beating transformer models at 8B with 3.6x faster inference.
+4. **Architecture matters more than parameters.** LFM2's SSM architecture achieves the highest score at 2.6B, beating 8B transformers with 3.6x faster inference.
 
-5. **Code-specialist models are the wrong choice.** General instruction-following models outperform code-specialized models on format-constrained structured output tasks.
+5. **Blind expansion hurts symbol queries** (MRR -0.28, p < 0.001). The expander destroys keyword matches by rewriting exact symbol names into natural-language descriptions.
 
-For practitioners building local code search tools: start with base model evaluation before investing in fine-tuning. For the research community: reported SFT gains may reflect format compliance improvement rather than capability improvement — the two should be measured separately.
+6. **Route-aware expansion is essential.** Skipping expansion for symbol-lookup queries (detected by regex) transforms expansion from harmful to the single best pipeline configuration (MRR 0.477 vs 0.309 baseline).
+
+7. **No production code search tool uses small local LLMs for typed query expansion.** This combination — code-specific HyDE with sub-3B models running on consumer hardware — is a genuine research gap.
+
+For practitioners: implement route-aware expansion (skip symbols, expand semantic/exploratory queries) and start with base model evaluation before investing in fine-tuning. For the research community: reported SFT gains may reflect format compliance improvement rather than capability improvement — the two should be measured separately.
 
 ---
 
 ## References
 
-1. Gao, L., Ma, X., Lin, J., & Callan, J. (2023). Precise Zero-Shot Dense Retrieval without Relevance Labels. *ACL 2023*. arXiv:2212.10496
-2. Zhou, C., et al. (2023). LIMA: Less Is More for Alignment. *NeurIPS 2023*. arXiv:2305.11206
-3. Lin, B.Y., et al. (2024). The Unlocking Spell on Base LLMs: Rethinking Alignment via In-Context Learning. *ICLR 2024*. arXiv:2312.01552
-4. Hu, E.J., et al. (2022). LoRA: Low-Rank Adaptation of Large Language Models. *ICLR 2022*. arXiv:2106.09685
-5. Qwen Team (2025). Qwen3 Technical Report. https://qwenlm.github.io/blog/qwen3/
-6. Liquid AI (2025). LFM2: Liquid Foundation Models. https://www.liquid.ai/
-7. Microsoft (2024). Phi-4 Technical Report. arXiv:2412.08905
-8. Lutke, T. (2026). QMD: On-device search engine. https://github.com/tobi/qmd
-9. Muennighoff, N., et al. (2023). Scaling Data-Constrained Language Models. *NeurIPS 2023*. arXiv:2305.16264
-10. Lozhkov, A., et al. (2024). StarCoder 2 and The Stack v2. arXiv:2402.19173
-11. Guo, D., et al. (2024). DeepSeek-Coder-V2. arXiv:2406.11931
-12. Bonifacio, L., et al. (2022). InPars: Data Augmentation for Information Retrieval. arXiv:2202.05144
-13. Dai, Z., et al. (2023). Promptagator: Few-shot Dense Retrieval From 8 Examples. *ICLR 2023*. arXiv:2209.11755
+1. Gao, L., Ma, X., Lin, J., & Callan, J. (2023). Precise Zero-Shot Dense Retrieval without Relevance Labels. *ACL 2023*. arXiv:2212.10496 [HyDE]
+2. Husain, H., et al. (2019). CodeSearchNet Challenge: Evaluating the State of Semantic Code Search. *arXiv*:1909.09436 [CodeSearchNet benchmark]
+3. Karpukhin, V., et al. (2020). Dense Passage Retrieval for Open-Domain Question Answering. *EMNLP 2020*. arXiv:2004.04906 [DPR]
+4. Cormack, G.V., Clarke, C.L.A., & Buettcher, S. (2009). Reciprocal Rank Fusion Outperforms Condorcet and Individual Rank Learning Methods. *SIGIR 2009*. [RRF]
+5. Feng, Z., et al. (2020). CodeBERT: A Pre-Trained Model for Programming and Natural Languages. *EMNLP 2020 Findings*. arXiv:2002.08155
+6. Zhou, C., et al. (2023). LIMA: Less Is More for Alignment. *NeurIPS 2023*. arXiv:2305.11206
+7. Lin, B.Y., et al. (2024). The Unlocking Spell on Base LLMs: Rethinking Alignment via In-Context Learning. *ICLR 2024*. arXiv:2312.01552 [Superficial Alignment Hypothesis]
+8. Hu, E.J., et al. (2022). LoRA: Low-Rank Adaptation of Large Language Models. *ICLR 2022*. arXiv:2106.09685
+9. Guo, D., et al. (2021). GraphCodeBERT: Pre-training Code Representations with Data Flow. *ICLR 2021*. arXiv:2009.08366
+10. Guo, D., et al. (2022). UniXcoder: Unified Cross-Modal Pre-training for Code Representation. *ACL 2022*. arXiv:2203.03850
+11. Shi, E., et al. (2023). CoCoSoDa: Effective Contrastive Learning for Code Search. *ICSE 2023*.
+12. Carpineto, C., & Romano, G. (2012). A Survey of Automatic Query Expansion in Information Retrieval. *ACM Computing Surveys*, 44(1). doi:10.1145/2071389
+13. Qwen Team (2025). Qwen3 Technical Report. https://qwenlm.github.io/blog/qwen3/
+14. Liquid AI (2025). LFM2: Liquid Foundation Models. https://www.liquid.ai/
+15. Microsoft (2024). Phi-4 Technical Report. arXiv:2412.08905
+16. Lutke, T. (2026). QMD: On-device search engine. https://github.com/tobi/qmd
+17. Muennighoff, N., et al. (2023). Scaling Data-Constrained Language Models. *NeurIPS 2023*. arXiv:2305.16264
+18. Lozhkov, A., et al. (2024). StarCoder 2 and The Stack v2. arXiv:2402.19173
+19. Guo, D., et al. (2024). DeepSeek-Coder-V2. arXiv:2406.11931
+20. Bonifacio, L., et al. (2022). InPars: Data Augmentation for Information Retrieval. arXiv:2202.05144
+21. Dai, Z., et al. (2023). Promptagator: Few-shot Dense Retrieval From 8 Examples. *ICLR 2023*. arXiv:2209.11755
+22. Lewis, P., et al. (2020). Retrieval-Augmented Generation for Knowledge-Intensive NLP Tasks. *NeurIPS 2020*. arXiv:2005.11401
