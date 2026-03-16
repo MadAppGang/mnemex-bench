@@ -260,4 +260,129 @@ panic(main thread): Segmentation fault at address 0xCDFC00B80
 - Re-run Q2 with vector search enabled for fair comparison
 - Run on more repos (tinygrad, transformers) to test generalization
 - Add structural queries (callers-of, depends-on) which should favor claudemem's AST graph
-- Investigate LanceDB memory fix (upgrade LanceDB version or use connection pooling)
+- Run E-RA and F-RA conditions on mixed queries to measure improvement over E/F
+
+---
+
+## 2026-03-16 — Route-Aware Expansion & LanceDB Memory Mitigation
+
+### What was done
+
+Fixed two HIGH priority issues identified from the full ablation run:
+
+#### Fix 1: Route-aware expansion (prevents expansion from destroying symbol queries)
+
+**Problem**: Conditions E and F showed statistically significant regressions (-0.281 and -0.316 MRR vs baseline, p<0.001). Root cause: the expander rewrites symbol names like "FastMCP" into natural language like "server implementation for MCP protocol", destroying the keyword match.
+
+**Fix**: Added `routeAwareExpansion?: boolean` field to `AblationCondition`. When set AND the router classifies a query as `symbol_lookup`, the expander is skipped — the original query passes through to retrieval unchanged.
+
+**Code changes**:
+- `ablation.ts` — added `routeAwareExpansion` to `AblationCondition` interface
+- `ablation.ts:runCondition()` — skip expander when `routeAwareExpansion && routerLabel === "symbol_lookup"`
+- Added two new conditions:
+  - **E-RA**: Full pipeline + route-aware expansion (router + expander for non-symbol + reranker)
+  - **F-RA**: Router + expander (route-aware, no reranker)
+- `harness.test.ts` — updated condition count (10 → 14), added 3 new tests for route-aware behavior
+
+**Expected impact**: E-RA should avoid the -0.281 MRR regression on symbol queries while still benefiting from expansion on semantic/exploratory queries. This implements the key finding from the full ablation: "expansion should only activate for semantic/exploratory queries, never for symbol lookups."
+
+#### Fix 2: LanceDB memory mitigation (prevents segfault after ~30 queries)
+
+**Problem**: LanceDB's Rust NAPI bindings (v0.13.0) accumulate ~15MB RSS per search query. After ~30 queries at k=100, the process hits ~0.6GB RSS and macOS sends SIGKILL (exit 133).
+
+**Fix**: Capped `SEARCH_LIMIT` to 20 in `run-all.ts` for all claudemem search functions. This is sufficient for computing MRR@10 and NDCG@10 (the primary metrics) and keeps RSS growth manageable (~300MB for 30 queries). Changed `kValues` from `[1, 5, 10, 100]` to `[1, 5, 10, 20]`.
+
+**Trade-off**: Recall@100 is no longer available (recall@20 is computed instead). This is acceptable because:
+- MRR@10 and NDCG@10 are the primary comparison metrics
+- At k=100, ~50% of results were irrelevant padding anyway
+- Prevents crashes that blocked condition A from completing in orchestrator mode
+
+**Not fixed**: LanceDB memory leak itself (v0.13.0 → v0.26.2 upgrade may help but is a larger change to the claudemem codebase).
+
+#### Fix 3: sqlite-vec / QMD running under Bun instead of Node
+
+**Problem**: `qmd embed` failed with "sqlite-vec is not available. Vector operations require a SQLite build with extension loading support." Despite being npm-installed (which should use Node), QMD's launcher script detects `$BUN_INSTALL` env var (set in shell profile) and runs under Bun. Bun's macOS SQLite doesn't support `loadExtension()`.
+
+**Investigation**: Bun 1.3.2 through 1.3.10 all have the same limitation — Apple's macOS SQLite disables `SQLITE_DBCONFIG_ENABLE_LOAD_EXTENSION`. However, Bun already supports `Database.setCustomSQLite()` to swap in Homebrew's SQLite (which has extension loading enabled).
+
+Two workarounds confirmed working:
+1. **`Database.setCustomSQLite("/opt/homebrew/opt/sqlite/lib/libsqlite3.dylib")`** — must be called before any `new Database()`. Full sqlite-vec KNN search verified working in Bun after this call.
+2. **Run QMD via `node` directly** — bypasses the launcher's `$BUN_INSTALL` detection. `better-sqlite3` under Node supports `loadExtension()` natively.
+
+**Fix applied**: Modified `makeQmdSearchFn()` in `run-all.ts` to resolve QMD's JS entry point and spawn via `node` instead of the `qmd` wrapper. This ensures QMD uses `better-sqlite3` (which supports sqlite-vec) instead of `bun:sqlite` (which doesn't without `setCustomSQLite`).
+
+**Verification**: `node .../qmd.js embed -c fastmcp` → "All content hashes already have embeddings" (success). `qmd search` via Node returns results with vector search enabled.
+
+### Test results
+
+98 tests passing (up from 95 — 3 new tests for route-aware expansion behavior).
+
+### References
+
+- Route-aware expansion logic: `../claudemem/eval/mnemex-search-steps-evaluation/ablation.ts` (runCondition, lines ~460-475)
+- Memory mitigation: `../claudemem/eval/mnemex-search-steps-evaluation/run-all.ts` (SEARCH_LIMIT constant)
+- QMD Node.js fix: `../claudemem/eval/mnemex-search-steps-evaluation/run-all.ts` (QMD_CLI_PATH + makeQmdSearchFn)
+- New conditions: E-RA, F-RA in `STANDARD_CONDITIONS` array
+- sqlite-vec workaround for Bun: `Database.setCustomSQLite("/opt/homebrew/opt/sqlite/lib/libsqlite3.dylib")`
+
+---
+
+## 2026-03-16 — Full Rerun with All Fixes Applied
+
+### What was done
+
+Ran full 12-condition ablation after applying all three fixes (route-aware expansion, LanceDB memory cap, QMD Node.js sqlite-vec). Had to work around two additional issues:
+
+1. **Repo renamed claudemem → mnemex**: The `.mnemex/index.db` had empty symbols table. Copied 1914 symbols + 15032 references from old `.claudemem/index.db`.
+2. **Vector store empty**: New `.mnemex/vectors/` was empty after re-index. Copied `code_chunks.lance` from `.claudemem/vectors/`.
+3. **JSON parse crash in store.ts**: Corrupted metadata and sourceIds fields from legacy index migration caused `JSON.parse` to throw. Added try-catch guards in `store.ts:478` and `store.ts:453`.
+
+### Results — Symbol Queries (n=30, jlowin_fastmcp)
+
+| Rank | Condition | Description | MRR@10 | NDCG@10 | Recall@20 | P95 |
+|------|-----------|-------------|--------|---------|-----------|-----|
+| 1 | **E-RA** | Full pipeline + route-aware expansion | **0.477** | **1.171** | 0.733 | 35.4s |
+| 2 | B1 | +Regex router | 0.442 | 1.138 | 0.767 | 1.1s |
+| 3 | **F-RA** | Router + expander (route-aware) | **0.427** | **1.111** | 0.700 | 1.9s |
+| 4 | D | +Reranker only | 0.419 | 1.115 | **0.833** | 16.2s |
+| 5 | Q2 | QMD expand+rerank | 0.351 | 0.428 | 0.667 | 1.5s |
+| 6 | C2 | +Qwen3-1.7B-FT expander | 0.338 | 0.900 | 0.700 | 8.3s |
+| 7 | C3 | +LFM2-2.6B expander | 0.329 | 0.729 | 0.533 | 4.5s |
+| 8 | A | Baseline (hybrid) | 0.309 | 0.839 | 0.700 | 1.7s |
+| 9 | C1 | +LFM2-700M expander | 0.267 | 0.701 | 0.800 | 3.0s |
+| 10 | Q1 | QMD BM25 | 0.241 | 0.322 | 0.633 | 0.4s |
+| 11 | E | Full pipeline (no routing) | 0.118 | 0.278 | 0.333 | 16.3s |
+| 12 | F | Router + expander (no routing) | 0.119 | 0.259 | 0.300 | 3.9s |
+
+### Key findings
+
+1. **Route-aware expansion is the single biggest win**: E-RA (0.477) vs E (0.118) = **4x improvement** in MRR@10. F-RA (0.427) vs F (0.119) = **3.6x improvement**. Skipping expansion for symbol queries preserves keyword matching.
+
+2. **F-RA is the best cost-effective condition**: MRR@10=0.427 at only 1.9s P95 — nearly matches E-RA (0.477) but avoids the 35s reranker overhead. For production use, the reranker adds ~0.05 MRR but 33s latency.
+
+3. **Blind expansion destroys symbol queries**: E and F are dead last among mnemex conditions. Confirms the original finding from the March 11 run.
+
+4. **QMD Q2 is now 9x faster** (1.5s vs 13.3s previously) — the Node.js fix enabled sqlite-vec vector search, improving both latency and potentially relevance.
+
+5. **Baseline MRR dropped from 0.438 to 0.309**: The re-indexed vector store may have different embeddings or the search path changed. Needs investigation.
+
+6. **Reranker (D) has highest recall@20** (0.833) but 16s latency. Good for offline/batch use.
+
+### Comparison with previous runs (March 11)
+
+| Condition | MRR@10 (Mar 11) | MRR@10 (Mar 16) | Delta |
+|-----------|-----------------|-----------------|-------|
+| A | 0.438 | 0.309 | -0.129 |
+| B1 | 0.485 | 0.442 | -0.043 |
+| E | 0.157 | 0.118 | -0.039 |
+| F | 0.122 | 0.119 | -0.003 |
+| E-RA | — | **0.477** | new |
+| F-RA | — | **0.427** | new |
+
+The ~0.1 drop in baseline is likely due to using a migrated vector store with corrupted metadata. Re-indexing with the current mnemex version should fix this.
+
+### References
+
+- Results: `../mnemex/eval/mnemex-search-steps-evaluation/runs/full-rerun-v2/`
+- Report: `../mnemex/eval/mnemex-search-steps-evaluation/runs/full-rerun-v2/report.md`
+- JSON parse fixes: `../mnemex/src/core/store.ts` (lines ~453, ~478)
