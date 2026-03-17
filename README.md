@@ -30,6 +30,7 @@ Each experiment targets one of these questions with reproducible harnesses and r
 | 009 | [Mnemex vs Serena](experiments/009-mnemex-vs-serena/) | Round 1 | Head-to-head MCP comparison: mnemex uses 34% fewer tool calls, Serena ~11% faster wall-clock. |
 | 010 | [MCP vs CLI Efficiency](experiments/010-mcp-vs-cli-efficiency/) | Complete | MCP is 14% faster than CLI (47s vs 55s avg) with 33% fewer tool calls. Both 100% pass rate. |
 | 011 | [N-Way Code Tool Benchmark](experiments/011-n-way-code-tool-benchmark/) | Round 1 | 3-way comparison: Serena fastest (88s median), bare-claude cheapest on simple tasks, mnemex most thorough. |
+| 012 | [SWE-bench Context Ablation](experiments/012-swebench-context-ablation/) | Round 1 | 6-condition ablation on eth-sri/agentbench. mnemex alone best (62.5%), adding CLAUDE.md hurts (38.1%). |
 
 ## Key Findings
 
@@ -40,6 +41,8 @@ Each experiment targets one of these questions with reproducible harnesses and r
 **Tool comparison:** In head-to-head benchmarks, Serena (LSP-based) is fastest for symbol lookup and cross-file tracing. Mnemex (semantic search) uses fewer tool calls but takes longer per call. Bare Claude (Read/Grep/Glob) is competitive on simple lookups but expensive on complex traces.
 
 **Architecture:** No production code search tool uses LLM-based query planners. A rule-based classifier with regex patterns (CamelCase → boost AST, file paths → boost BM25) gives <5ms overhead at ~80% accuracy.
+
+**End-to-end SWE-bench:** mnemex-generated context is the best single source for SWE-bench task solving (62.5% corrected pass rate vs 47.6% baseline). Adding human-written CLAUDE.md on top *hurts* performance (38.1%) — stale static context dilutes fresh task-specific context. Based on a 6-condition ablation of the [eth-sri/agentbench](https://github.com/eth-sri/agentbench) harness.
 
 ## Running an experiment
 

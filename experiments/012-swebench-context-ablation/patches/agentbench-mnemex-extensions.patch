@@ -1,0 +1,3479 @@
+diff --git a/README.md b/README.md
+index 0d95150..40ba113 100644
+--- a/README.md
++++ b/README.md
+@@ -131,4 +131,19 @@ If you want to reproduce the paper experiments exactly, use the curated scripts
+ ## Acknowledgments
+ 
+ Some code from this repository was forked from the [mini-swe-agent repo](https://github.com/SWE-agent/mini-swe-agent/blob/main/LICENSE.md).
+-We thank the authors of mini-SWE-agent and we recommend checking their work!
+\ No newline at end of file
++We thank the authors of mini-SWE-agent and we recommend checking their work!
++
++## Citation
++
++If you find our work useful, please cite out paper.
++```
++@misc{gloaguen2026evaluatingagentsmdrepositorylevelcontext,
++      title={Evaluating AGENTS.md: Are Repository-Level Context Files Helpful for Coding Agents?}, 
++      author={Thibaud Gloaguen and Niels Mündler and Mark Müller and Veselin Raychev and Martin Vechev},
++      year={2026},
++      eprint={2602.11988},
++      archivePrefix={arXiv},
++      primaryClass={cs.SE},
++      url={https://arxiv.org/abs/2602.11988}, 
++}
++```
+diff --git a/final_scripts/README.md b/final_scripts/README.md
+index 7f5b1e7..c31fe35 100644
+--- a/final_scripts/README.md
++++ b/final_scripts/README.md
+@@ -12,6 +12,23 @@ In each experiment folder, the general flow is:
+ 
+ All scripts use the harness entrypoints in `scripts/agentbench/run_harness/`.
+ 
++## Released Artifacts
++
++The traces and test outputs are available [here](https://files.sri.inf.ethz.ch/agentbench/agentbench_traces.tar.zst).
++
++From the repository root, download `agentbench_traces.tar.zst` and extract it with:
++
++```bash
++tar -xf agentbench_traces.tar.zst --use-compress-program='zstd -d'
++```
++
++This creates:
++
++- `output/agent_bench_traces/`
++- `output/agent_bench_test_results/`
++
++The scripts in this folder are configured to use that layout.
++
+ ## How experiments map to the paper
+ 
+ - `experiment1` reproduces the main evaluation:
+diff --git a/final_scripts/experiment1/agentbench/evaluate_claude.sh b/final_scripts/experiment1/agentbench/evaluate_claude.sh
+index fae3afd..edbe40f 100644
+--- a/final_scripts/experiment1/agentbench/evaluate_claude.sh
++++ b/final_scripts/experiment1/agentbench/evaluate_claude.sh
+@@ -3,7 +3,7 @@
+ # COMMON SETTINGS
+ dataset_name=eth-sri/agentbench
+ benchmark="agentbench"
+-output="output/agentbench_v1_runs"
++output="output/agent_bench_traces"
+ workers=32
+ PLAN_ARGS_TEMPLATES=("" "" "")
+ HISTORIES=("null" "null" "null")
+diff --git a/final_scripts/experiment1/agentbench/evaluate_gpt.sh b/final_scripts/experiment1/agentbench/evaluate_gpt.sh
+index 59c90d8..7fbbb1e 100644
+--- a/final_scripts/experiment1/agentbench/evaluate_gpt.sh
++++ b/final_scripts/experiment1/agentbench/evaluate_gpt.sh
+@@ -3,7 +3,7 @@
+ # COMMON SETTINGS
+ dataset_name=eth-sri/agentbench
+ benchmark="agentbench"
+-output="output/agentbench_v1_runs"
++output="output/agent_bench_traces"
+ workers=32
+ PLAN_ARGS_TEMPLATES=("" "" "")
+ HISTORIES=("null" "null" "null")
+diff --git a/final_scripts/experiment1/agentbench/evaluate_gpt_mini.sh b/final_scripts/experiment1/agentbench/evaluate_gpt_mini.sh
+index 09270d6..1429a51 100644
+--- a/final_scripts/experiment1/agentbench/evaluate_gpt_mini.sh
++++ b/final_scripts/experiment1/agentbench/evaluate_gpt_mini.sh
+@@ -3,7 +3,7 @@
+ # COMMON SETTINGS
+ dataset_name=eth-sri/agentbench
+ benchmark="agentbench"
+-output="output/agentbench_v1_runs"
++output="output/agent_bench_traces"
+ workers=32
+ PLAN_ARGS_TEMPLATES=("" "" "")
+ HISTORIES=("null" "null" "null")
+diff --git a/final_scripts/experiment1/agentbench/evaluate_qwen.sh b/final_scripts/experiment1/agentbench/evaluate_qwen.sh
+index 44e71c8..78e1b49 100644
+--- a/final_scripts/experiment1/agentbench/evaluate_qwen.sh
++++ b/final_scripts/experiment1/agentbench/evaluate_qwen.sh
+@@ -3,7 +3,7 @@
+ # COMMON SETTINGS
+ dataset_name=eth-sri/agentbench
+ benchmark="agentbench"
+-output="output/agentbench_v1_runs"
++output="output/agent_bench_traces"
+ workers=32
+ PLAN_ARGS_TEMPLATES=("" "" "")
+ HISTORIES=("null" "null" "null")
+diff --git a/final_scripts/experiment1/agentbench/generate_claude.sh b/final_scripts/experiment1/agentbench/generate_claude.sh
+index 7a259f1..7672a3e 100644
+--- a/final_scripts/experiment1/agentbench/generate_claude.sh
++++ b/final_scripts/experiment1/agentbench/generate_claude.sh
+@@ -4,7 +4,7 @@
+ dataset_name=eth-sri/agentbench
+ benchmark="agentbench"
+ slice_spec="0:139"
+-output="output/agentbench_v1_runs"
++output="output/agent_bench_traces"
+ train_plan=no
+ continuous_training=yes
+ workers=16
+diff --git a/final_scripts/experiment1/agentbench/generate_gpt.sh b/final_scripts/experiment1/agentbench/generate_gpt.sh
+index d4c25ff..68536e7 100644
+--- a/final_scripts/experiment1/agentbench/generate_gpt.sh
++++ b/final_scripts/experiment1/agentbench/generate_gpt.sh
+@@ -4,7 +4,7 @@
+ dataset_name=eth-sri/agentbench
+ benchmark="agentbench"
+ slice_spec="0:139"
+-output="output/agentbench_v1_runs"
++output="output/agent_bench_traces"
+ train_plan=no
+ continuous_training=yes
+ workers=16
+diff --git a/final_scripts/experiment1/agentbench/generate_gpt_mini.sh b/final_scripts/experiment1/agentbench/generate_gpt_mini.sh
+index ec579af..89482fe 100644
+--- a/final_scripts/experiment1/agentbench/generate_gpt_mini.sh
++++ b/final_scripts/experiment1/agentbench/generate_gpt_mini.sh
+@@ -4,7 +4,7 @@
+ dataset_name=eth-sri/agentbench
+ benchmark="agentbench"
+ slice_spec="0:139"
+-output="output/agentbench_v1_runs"
++output="output/agent_bench_traces"
+ train_plan=no
+ continuous_training=yes
+ workers=16
+diff --git a/final_scripts/experiment1/agentbench/generate_qwen.sh b/final_scripts/experiment1/agentbench/generate_qwen.sh
+index d38cb98..a45cd08 100644
+--- a/final_scripts/experiment1/agentbench/generate_qwen.sh
++++ b/final_scripts/experiment1/agentbench/generate_qwen.sh
+@@ -4,7 +4,7 @@
+ dataset_name=eth-sri/agentbench
+ benchmark="agentbench"
+ slice_spec="0:139"
+-output="output/agentbench_v1_runs"
++output="output/agent_bench_traces"
+ train_plan=no
+ continuous_training=yes
+ workers=4
+diff --git a/final_scripts/experiment1/analyze.sh b/final_scripts/experiment1/analyze.sh
+index c3715ad..a9126ff 100644
+--- a/final_scripts/experiment1/analyze.sh
++++ b/final_scripts/experiment1/analyze.sh
+@@ -3,7 +3,7 @@
+ # COMMON SETTINGS
+ dataset_name=eth-sri/agentbench
+ benchmark="agentbench"
+-output="output/agentbench_v1_runs"
++output="output/agent_bench_traces"
+ csv_file="experiment1_reasoning.csv"
+ PLAN_ARGS_TEMPLATES=("")
+ HISTORIES=("null")
+@@ -43,7 +43,7 @@ done
+ 
+ # COMMON SETTINGS
+ dataset_name=SWE-bench/SWE-bench_Lite
+-output="output/swebench_lite"
++output="output/agent_bench_test_results"
+ 
+ 
+ for IDX in "${!PLAN_TYPES_GLOBAL[@]}"; do
+@@ -77,7 +77,7 @@ done
+ ###############################################
+ # COMMON SETTINGS
+ dataset_name=eth-sri/agentbench
+-output="output/agentbench_v1_runs"
++output="output/agent_bench_traces"
+ 
+ 
+ # PARTICULAR SETTINGS
+@@ -120,7 +120,7 @@ GENERATORS=("claude_code" "qwen_code" "codex" "codex")
+ 
+ # COMMON SETTINGS
+ dataset_name=SWE-bench/SWE-bench_Lite
+-output="output/swebench_lite"
++output="output/agent_bench_test_results"
+ 
+ 
+ for IDX in "${!EXEC_MODELS[@]}"; do
+diff --git a/final_scripts/experiment1/analyze_missing.sh b/final_scripts/experiment1/analyze_missing.sh
+index 55f8ede..22bd64d 100644
+--- a/final_scripts/experiment1/analyze_missing.sh
++++ b/final_scripts/experiment1/analyze_missing.sh
+@@ -3,7 +3,7 @@
+ # COMMON SETTINGS
+ dataset_name=eth-sri/agentbench
+ benchmark="agentbench"
+-output="output/agentbench_v1_runs"
++output="output/agent_bench_traces"
+ csv_file="experiment1.csv"
+ PLAN_ARGS_TEMPLATES=("")
+ HISTORIES=("null")
+@@ -26,7 +26,7 @@ GENERATORS=("claude_code" "qwen_code" "codex" "codex")
+ 
+ # COMMON SETTINGS
+ dataset_name=SWE-bench/SWE-bench_Lite
+-output="output/swebench_lite"
++output="output/agent_bench_test_results"
+ 
+ 
+ for IDX in "${!EXEC_MODELS[@]}"; do
+diff --git a/final_scripts/experiment1/swebench/evaluate_claude.sh b/final_scripts/experiment1/swebench/evaluate_claude.sh
+index 82a9077..35cd1a1 100644
+--- a/final_scripts/experiment1/swebench/evaluate_claude.sh
++++ b/final_scripts/experiment1/swebench/evaluate_claude.sh
+@@ -3,7 +3,7 @@
+ # COMMON SETTINGS
+ dataset_name=SWE-bench/SWE-bench_Lite
+ benchmark="swebench"
+-output="output/swebench_lite"
++output="output/agent_bench_test_results"
+ workers=32
+ PLAN_ARGS_TEMPLATES=("" "")
+ HISTORIES=("null" "null")
+diff --git a/final_scripts/experiment1/swebench/evaluate_gpt.sh b/final_scripts/experiment1/swebench/evaluate_gpt.sh
+index a223bc1..97bc147 100644
+--- a/final_scripts/experiment1/swebench/evaluate_gpt.sh
++++ b/final_scripts/experiment1/swebench/evaluate_gpt.sh
+@@ -3,7 +3,7 @@
+ # COMMON SETTINGS
+ dataset_name=SWE-bench/SWE-bench_Lite
+ benchmark="swebench"
+-output="output/swebench_lite"
++output="output/agent_bench_test_results"
+ workers=32
+ PLAN_ARGS_TEMPLATES=("" "")
+ HISTORIES=("null" "null")
+diff --git a/final_scripts/experiment1/swebench/evaluate_gpt_mini.sh b/final_scripts/experiment1/swebench/evaluate_gpt_mini.sh
+index eada693..e1da652 100644
+--- a/final_scripts/experiment1/swebench/evaluate_gpt_mini.sh
++++ b/final_scripts/experiment1/swebench/evaluate_gpt_mini.sh
+@@ -3,7 +3,7 @@
+ # COMMON SETTINGS
+ dataset_name=SWE-bench/SWE-bench_Lite
+ benchmark="swebench"
+-output="output/swebench_lite"
++output="output/agent_bench_test_results"
+ workers=32
+ PLAN_ARGS_TEMPLATES=("" "")
+ HISTORIES=("null" "null")
+diff --git a/final_scripts/experiment1/swebench/evaluate_qwen.sh b/final_scripts/experiment1/swebench/evaluate_qwen.sh
+index 87e054e..0ffe50d 100644
+--- a/final_scripts/experiment1/swebench/evaluate_qwen.sh
++++ b/final_scripts/experiment1/swebench/evaluate_qwen.sh
+@@ -3,7 +3,7 @@
+ # COMMON SETTINGS
+ dataset_name=SWE-bench/SWE-bench_Lite
+ benchmark="swebench"
+-output="output/swebench_lite"
++output="output/agent_bench_test_results"
+ workers=32
+ PLAN_ARGS_TEMPLATES=("" "")
+ HISTORIES=("null" "null")
+diff --git a/final_scripts/experiment1/swebench/generate_claude.sh b/final_scripts/experiment1/swebench/generate_claude.sh
+index 3bbaff9..7b61baa 100644
+--- a/final_scripts/experiment1/swebench/generate_claude.sh
++++ b/final_scripts/experiment1/swebench/generate_claude.sh
+@@ -4,7 +4,7 @@
+ dataset_name=SWE-bench/SWE-bench_Lite
+ benchmark="swebench"
+ slice_spec="0:301"
+-output="output/swebench_lite"
++output="output/agent_bench_test_results"
+ train_plan=no
+ continuous_training=yes
+ workers=16
+diff --git a/final_scripts/experiment1/swebench/generate_gpt.sh b/final_scripts/experiment1/swebench/generate_gpt.sh
+index dff165b..490224b 100644
+--- a/final_scripts/experiment1/swebench/generate_gpt.sh
++++ b/final_scripts/experiment1/swebench/generate_gpt.sh
+@@ -4,7 +4,7 @@
+ dataset_name=SWE-bench/SWE-bench_Lite
+ benchmark="swebench"
+ slice_spec="0:301"
+-output="output/swebench_lite"
++output="output/agent_bench_test_results"
+ train_plan=no
+ continuous_training=yes
+ workers=16
+diff --git a/final_scripts/experiment1/swebench/generate_gpt_mini.sh b/final_scripts/experiment1/swebench/generate_gpt_mini.sh
+index 39f605f..35d8348 100644
+--- a/final_scripts/experiment1/swebench/generate_gpt_mini.sh
++++ b/final_scripts/experiment1/swebench/generate_gpt_mini.sh
+@@ -4,7 +4,7 @@
+ dataset_name=SWE-bench/SWE-bench_Lite
+ benchmark="swebench"
+ slice_spec="0:301"
+-output="output/swebench_lite"
++output="output/agent_bench_test_results"
+ train_plan=no
+ continuous_training=yes
+ workers=16
+diff --git a/final_scripts/experiment1/swebench/generate_qwen.sh b/final_scripts/experiment1/swebench/generate_qwen.sh
+index 1fa88ce..0c0a7be 100644
+--- a/final_scripts/experiment1/swebench/generate_qwen.sh
++++ b/final_scripts/experiment1/swebench/generate_qwen.sh
+@@ -4,7 +4,7 @@
+ dataset_name=SWE-bench/SWE-bench_Lite
+ benchmark="swebench"
+ slice_spec="0:301"
+-output="output/swebench_lite"
++output="output/agent_bench_test_results"
+ train_plan=no
+ continuous_training=yes
+ workers=4
+diff --git a/final_scripts/experiment2/agentbench/evaluate_claude.sh b/final_scripts/experiment2/agentbench/evaluate_claude.sh
+index 27f7808..5bc03d6 100644
+--- a/final_scripts/experiment2/agentbench/evaluate_claude.sh
++++ b/final_scripts/experiment2/agentbench/evaluate_claude.sh
+@@ -3,7 +3,7 @@
+ # COMMON SETTINGS
+ dataset_name=eth-sri/agentbench
+ benchmark="agentbench"
+-output="output/agentbench_v1_runs"
++output="output/agent_bench_traces"
+ workers=32
+ PLAN_ARGS_TEMPLATES=("" "")
+ HISTORIES=("null" "null")
+diff --git a/final_scripts/experiment2/agentbench/evaluate_gpt_mini.sh b/final_scripts/experiment2/agentbench/evaluate_gpt_mini.sh
+index 23875bd..2af5c26 100644
+--- a/final_scripts/experiment2/agentbench/evaluate_gpt_mini.sh
++++ b/final_scripts/experiment2/agentbench/evaluate_gpt_mini.sh
+@@ -3,7 +3,7 @@
+ # COMMON SETTINGS
+ dataset_name=eth-sri/agentbench
+ benchmark="agentbench"
+-output="output/agentbench_v1_runs"
++output="output/agent_bench_traces"
+ workers=32
+ PLAN_ARGS_TEMPLATES=("" "")
+ HISTORIES=("null" "null")
+diff --git a/final_scripts/experiment2/agentbench/evaluate_qwen.sh b/final_scripts/experiment2/agentbench/evaluate_qwen.sh
+index 6308838..4057890 100644
+--- a/final_scripts/experiment2/agentbench/evaluate_qwen.sh
++++ b/final_scripts/experiment2/agentbench/evaluate_qwen.sh
+@@ -3,7 +3,7 @@
+ # COMMON SETTINGS
+ dataset_name=eth-sri/agentbench
+ benchmark="agentbench"
+-output="output/agentbench_v1_runs"
++output="output/agent_bench_traces"
+ workers=32
+ PLAN_ARGS_TEMPLATES=("" "")
+ HISTORIES=("null" "null")
+diff --git a/final_scripts/experiment2/agentbench/generate_claude.sh b/final_scripts/experiment2/agentbench/generate_claude.sh
+index a09ecc8..4f9123e 100644
+--- a/final_scripts/experiment2/agentbench/generate_claude.sh
++++ b/final_scripts/experiment2/agentbench/generate_claude.sh
+@@ -4,7 +4,7 @@
+ dataset_name=eth-sri/agentbench
+ benchmark="agentbench"
+ slice_spec="0:139"
+-output="output/agentbench_v1_runs"
++output="output/agent_bench_traces"
+ train_plan=no
+ continuous_training=yes
+ workers=16
+diff --git a/final_scripts/experiment2/agentbench/generate_gpt_mini.sh b/final_scripts/experiment2/agentbench/generate_gpt_mini.sh
+index 5c73229..53b9ab4 100644
+--- a/final_scripts/experiment2/agentbench/generate_gpt_mini.sh
++++ b/final_scripts/experiment2/agentbench/generate_gpt_mini.sh
+@@ -4,7 +4,7 @@
+ dataset_name=eth-sri/agentbench
+ benchmark="agentbench"
+ slice_spec="0:139"
+-output="output/agentbench_v1_runs"
++output="output/agent_bench_traces"
+ train_plan=no
+ continuous_training=yes
+ workers=16
+diff --git a/final_scripts/experiment2/agentbench/generate_qwen.sh b/final_scripts/experiment2/agentbench/generate_qwen.sh
+index 5b60340..79301be 100644
+--- a/final_scripts/experiment2/agentbench/generate_qwen.sh
++++ b/final_scripts/experiment2/agentbench/generate_qwen.sh
+@@ -4,7 +4,7 @@
+ dataset_name=eth-sri/agentbench
+ benchmark="agentbench"
+ slice_spec="0:139"
+-output="output/agentbench_v1_runs"
++output="output/agent_bench_traces"
+ train_plan=no
+ continuous_training=yes
+ workers=8
+diff --git a/final_scripts/experiment2/analyze.sh b/final_scripts/experiment2/analyze.sh
+index de834df..95ffcd0 100644
+--- a/final_scripts/experiment2/analyze.sh
++++ b/final_scripts/experiment2/analyze.sh
+@@ -3,7 +3,7 @@
+ # COMMON SETTINGS
+ dataset_name=eth-sri/agentbench
+ benchmark="agentbench"
+-output="output/agentbench_v1_runs"
++output="output/agent_bench_traces"
+ csv_file="experiment2.csv"
+ PLAN_ARGS_TEMPLATES=("")
+ HISTORIES=("null")
+@@ -45,7 +45,7 @@ done
+ 
+ # COMMON SETTINGS
+ dataset_name=SWE-bench/SWE-bench_Lite
+-output="output/swebench_lite"
++output="output/agent_bench_test_results"
+ 
+ 
+ for IDX in "${!PLAN_TYPES_GLOBAL[@]}"; do
+@@ -79,7 +79,7 @@ done
+ ###############################################
+ # COMMON SETTINGS
+ dataset_name=eth-sri/agentbench
+-output="output/agentbench_v1_runs"
++output="output/agent_bench_traces"
+ 
+ 
+ # PARTICULAR SETTINGS
+@@ -121,7 +121,7 @@ GENERATORS=("claude_code" "qwen_code" "codex")
+ 
+ # COMMON SETTINGS
+ dataset_name=SWE-bench/SWE-bench_Lite
+-output="output/swebench_lite"
++output="output/agent_bench_test_results"
+ 
+ 
+ for IDX in "${!EXEC_MODELS[@]}"; do
+diff --git a/final_scripts/experiment2/swebench/evaluate_claude.sh b/final_scripts/experiment2/swebench/evaluate_claude.sh
+index 3452211..cff99d3 100644
+--- a/final_scripts/experiment2/swebench/evaluate_claude.sh
++++ b/final_scripts/experiment2/swebench/evaluate_claude.sh
+@@ -3,7 +3,7 @@
+ # COMMON SETTINGS
+ dataset_name=SWE-bench/SWE-bench_Lite
+ benchmark="swebench"
+-output="output/swebench_lite"
++output="output/agent_bench_test_results"
+ workers=32
+ PLAN_ARGS_TEMPLATES=("" "")
+ HISTORIES=("null" "null")
+diff --git a/final_scripts/experiment2/swebench/evaluate_gpt_mini.sh b/final_scripts/experiment2/swebench/evaluate_gpt_mini.sh
+index b9e5bbd..d99a6f4 100644
+--- a/final_scripts/experiment2/swebench/evaluate_gpt_mini.sh
++++ b/final_scripts/experiment2/swebench/evaluate_gpt_mini.sh
+@@ -3,7 +3,7 @@
+ # COMMON SETTINGS
+ dataset_name=SWE-bench/SWE-bench_Lite
+ benchmark="swebench"
+-output="output/swebench_lite"
++output="output/agent_bench_test_results"
+ workers=32
+ PLAN_ARGS_TEMPLATES=("" "")
+ HISTORIES=("null" "null")
+diff --git a/final_scripts/experiment2/swebench/evaluate_qwen.sh b/final_scripts/experiment2/swebench/evaluate_qwen.sh
+index 6ede663..03d71f0 100644
+--- a/final_scripts/experiment2/swebench/evaluate_qwen.sh
++++ b/final_scripts/experiment2/swebench/evaluate_qwen.sh
+@@ -3,7 +3,7 @@
+ # COMMON SETTINGS
+ dataset_name=SWE-bench/SWE-bench_Lite
+ benchmark="swebench"
+-output="output/swebench_lite"
++output="output/agent_bench_test_results"
+ workers=32
+ PLAN_ARGS_TEMPLATES=("" "")
+ HISTORIES=("null" "null")
+diff --git a/final_scripts/experiment2/swebench/generate_claude.sh b/final_scripts/experiment2/swebench/generate_claude.sh
+index 7082c07..44cca86 100644
+--- a/final_scripts/experiment2/swebench/generate_claude.sh
++++ b/final_scripts/experiment2/swebench/generate_claude.sh
+@@ -4,7 +4,7 @@
+ dataset_name=SWE-bench/SWE-bench_Lite
+ benchmark="swebench"
+ slice_spec="0:301"
+-output="output/swebench_lite"
++output="output/agent_bench_test_results"
+ train_plan=no
+ continuous_training=yes
+ workers=16
+diff --git a/final_scripts/experiment2/swebench/generate_gpt_mini.sh b/final_scripts/experiment2/swebench/generate_gpt_mini.sh
+index 132439f..26a7e49 100644
+--- a/final_scripts/experiment2/swebench/generate_gpt_mini.sh
++++ b/final_scripts/experiment2/swebench/generate_gpt_mini.sh
+@@ -4,7 +4,7 @@
+ dataset_name=SWE-bench/SWE-bench_Lite
+ benchmark="swebench"
+ slice_spec="0:301"
+-output="output/swebench_lite"
++output="output/agent_bench_test_results"
+ train_plan=no
+ continuous_training=yes
+ workers=16
+diff --git a/final_scripts/experiment2/swebench/generate_qwen.sh b/final_scripts/experiment2/swebench/generate_qwen.sh
+index 24d829f..90f1c6c 100644
+--- a/final_scripts/experiment2/swebench/generate_qwen.sh
++++ b/final_scripts/experiment2/swebench/generate_qwen.sh
+@@ -4,7 +4,7 @@
+ dataset_name=SWE-bench/SWE-bench_Lite
+ benchmark="swebench"
+ slice_spec="0:301"
+-output="output/swebench_lite"
++output="output/agent_bench_test_results"
+ train_plan=no
+ continuous_training=yes
+ workers=8
+diff --git a/final_scripts/experiment3/agentbench/evaluate_gpt.sh b/final_scripts/experiment3/agentbench/evaluate_gpt.sh
+index 3ceee22..30c9d5c 100644
+--- a/final_scripts/experiment3/agentbench/evaluate_gpt.sh
++++ b/final_scripts/experiment3/agentbench/evaluate_gpt.sh
+@@ -3,7 +3,7 @@
+ # COMMON SETTINGS
+ dataset_name=eth-sri/agentbench
+ benchmark="agentbench"
+-output="output/agentbench_v1_runs"
++output="output/agent_bench_traces"
+ workers=32
+ PLAN_ARGS_TEMPLATES=("" "")
+ HISTORIES=("null" "null")
+diff --git a/final_scripts/experiment3/agentbench/evaluate_gpt_mini.sh b/final_scripts/experiment3/agentbench/evaluate_gpt_mini.sh
+index 66de280..eb4e3cf 100644
+--- a/final_scripts/experiment3/agentbench/evaluate_gpt_mini.sh
++++ b/final_scripts/experiment3/agentbench/evaluate_gpt_mini.sh
+@@ -3,7 +3,7 @@
+ # COMMON SETTINGS
+ dataset_name=eth-sri/agentbench
+ benchmark="agentbench"
+-output="output/agentbench_v1_runs"
++output="output/agent_bench_traces"
+ workers=32
+ PLAN_ARGS_TEMPLATES=("" "")
+ HISTORIES=("null" "null")
+diff --git a/final_scripts/experiment3/agentbench/evaluate_qwen.sh b/final_scripts/experiment3/agentbench/evaluate_qwen.sh
+index d184eaa..05dee6b 100644
+--- a/final_scripts/experiment3/agentbench/evaluate_qwen.sh
++++ b/final_scripts/experiment3/agentbench/evaluate_qwen.sh
+@@ -3,7 +3,7 @@
+ # COMMON SETTINGS
+ dataset_name=eth-sri/agentbench
+ benchmark="agentbench"
+-output="output/agentbench_v1_runs"
++output="output/agent_bench_traces"
+ workers=32
+ PLAN_ARGS_TEMPLATES=("" "" "")
+ HISTORIES=("null" "null" "null")
+diff --git a/final_scripts/experiment3/agentbench/evaluate_sonnet.sh b/final_scripts/experiment3/agentbench/evaluate_sonnet.sh
+index 78b363d..5d73155 100644
+--- a/final_scripts/experiment3/agentbench/evaluate_sonnet.sh
++++ b/final_scripts/experiment3/agentbench/evaluate_sonnet.sh
+@@ -3,7 +3,7 @@
+ # COMMON SETTINGS
+ dataset_name=eth-sri/agentbench
+ benchmark="agentbench"
+-output="output/agentbench_v1_runs"
++output="output/agent_bench_traces"
+ workers=32
+ PLAN_ARGS_TEMPLATES=("" "")
+ HISTORIES=("null" "null")
+diff --git a/final_scripts/experiment3/agentbench/generate_gpt.sh b/final_scripts/experiment3/agentbench/generate_gpt.sh
+index 5eae1b9..9e4834e 100644
+--- a/final_scripts/experiment3/agentbench/generate_gpt.sh
++++ b/final_scripts/experiment3/agentbench/generate_gpt.sh
+@@ -4,7 +4,7 @@
+ dataset_name=eth-sri/agentbench
+ benchmark="agentbench"
+ slice_spec="0:139"
+-output="output/agentbench_v1_runs"
++output="output/agent_bench_traces"
+ train_plan=no
+ continuous_training=yes
+ workers=16
+diff --git a/final_scripts/experiment3/agentbench/generate_gpt_mini.sh b/final_scripts/experiment3/agentbench/generate_gpt_mini.sh
+index c815f0f..f0c1a19 100644
+--- a/final_scripts/experiment3/agentbench/generate_gpt_mini.sh
++++ b/final_scripts/experiment3/agentbench/generate_gpt_mini.sh
+@@ -4,7 +4,7 @@
+ dataset_name=eth-sri/agentbench
+ benchmark="agentbench"
+ slice_spec="0:139"
+-output="output/agentbench_v1_runs"
++output="output/agent_bench_traces"
+ train_plan=no
+ continuous_training=yes
+ workers=16
+diff --git a/final_scripts/experiment3/agentbench/generate_qwen.sh b/final_scripts/experiment3/agentbench/generate_qwen.sh
+index 68da3bc..afa0980 100644
+--- a/final_scripts/experiment3/agentbench/generate_qwen.sh
++++ b/final_scripts/experiment3/agentbench/generate_qwen.sh
+@@ -4,7 +4,7 @@
+ dataset_name=eth-sri/agentbench
+ benchmark="agentbench"
+ slice_spec="0:139"
+-output="output/agentbench_v1_runs"
++output="output/agent_bench_traces"
+ train_plan=no
+ continuous_training=yes
+ workers=4
+diff --git a/final_scripts/experiment3/agentbench/generate_sonnet.sh b/final_scripts/experiment3/agentbench/generate_sonnet.sh
+index d046a6a..8f5b732 100644
+--- a/final_scripts/experiment3/agentbench/generate_sonnet.sh
++++ b/final_scripts/experiment3/agentbench/generate_sonnet.sh
+@@ -4,7 +4,7 @@
+ dataset_name=eth-sri/agentbench
+ benchmark="agentbench"
+ slice_spec="0:139"
+-output="output/agentbench_v1_runs"
++output="output/agent_bench_traces"
+ train_plan=no
+ continuous_training=yes
+ workers=16
+diff --git a/final_scripts/experiment3/analyze.sh b/final_scripts/experiment3/analyze.sh
+index c30c9b2..0de705d 100644
+--- a/final_scripts/experiment3/analyze.sh
++++ b/final_scripts/experiment3/analyze.sh
+@@ -3,7 +3,7 @@
+ # COMMON SETTINGS
+ dataset_name=eth-sri/agentbench
+ benchmark="agentbench"
+-output="output/agentbench_v1_runs"
++output="output/agent_bench_traces"
+ csv_file="experiment3.csv"
+ PLAN_ARGS_TEMPLATES=("")
+ HISTORIES=("null")
+@@ -43,7 +43,7 @@ done
+ 
+ # COMMON SETTINGS
+ dataset_name=SWE-bench/SWE-bench_Lite
+-output="output/swebench_lite"
++output="output/agent_bench_test_results"
+ 
+ 
+ for IDX in "${!PLAN_TYPES_GLOBAL[@]}"; do
+diff --git a/final_scripts/experiment3/swebench/evaluate_gpt.sh b/final_scripts/experiment3/swebench/evaluate_gpt.sh
+index 79cf583..e25404a 100644
+--- a/final_scripts/experiment3/swebench/evaluate_gpt.sh
++++ b/final_scripts/experiment3/swebench/evaluate_gpt.sh
+@@ -3,7 +3,7 @@
+ # COMMON SETTINGS
+ dataset_name=SWE-bench/SWE-bench_Lite
+ benchmark="swebench"
+-output="output/swebench_lite"
++output="output/agent_bench_test_results"
+ workers=32
+ PLAN_ARGS_TEMPLATES=("" "")
+ HISTORIES=("null" "null")
+diff --git a/final_scripts/experiment3/swebench/evaluate_gpt_mini.sh b/final_scripts/experiment3/swebench/evaluate_gpt_mini.sh
+index 0c1227a..397499d 100644
+--- a/final_scripts/experiment3/swebench/evaluate_gpt_mini.sh
++++ b/final_scripts/experiment3/swebench/evaluate_gpt_mini.sh
+@@ -3,7 +3,7 @@
+ # COMMON SETTINGS
+ dataset_name=SWE-bench/SWE-bench_Lite
+ benchmark="swebench"
+-output="output/swebench_lite"
++output="output/agent_bench_test_results"
+ workers=32
+ PLAN_ARGS_TEMPLATES=("" "")
+ HISTORIES=("null" "null")
+diff --git a/final_scripts/experiment3/swebench/evaluate_qwen.sh b/final_scripts/experiment3/swebench/evaluate_qwen.sh
+index 0f15d51..6fd7351 100644
+--- a/final_scripts/experiment3/swebench/evaluate_qwen.sh
++++ b/final_scripts/experiment3/swebench/evaluate_qwen.sh
+@@ -3,7 +3,7 @@
+ # COMMON SETTINGS
+ dataset_name=SWE-bench/SWE-bench_Lite
+ benchmark="swebench"
+-output="output/swebench_lite"
++output="output/agent_bench_test_results"
+ workers=32
+ PLAN_ARGS_TEMPLATES=("" "" "")
+ HISTORIES=("null" "null" "null")
+diff --git a/final_scripts/experiment3/swebench/evaluate_sonnet.sh b/final_scripts/experiment3/swebench/evaluate_sonnet.sh
+index 792b87f..e8f7561 100644
+--- a/final_scripts/experiment3/swebench/evaluate_sonnet.sh
++++ b/final_scripts/experiment3/swebench/evaluate_sonnet.sh
+@@ -3,7 +3,7 @@
+ # COMMON SETTINGS
+ dataset_name=SWE-bench/SWE-bench_Lite
+ benchmark="swebench"
+-output="output/swebench_lite"
++output="output/agent_bench_test_results"
+ workers=32
+ PLAN_ARGS_TEMPLATES=("" "")
+ HISTORIES=("null" "null")
+diff --git a/final_scripts/experiment3/swebench/generate_gpt.sh b/final_scripts/experiment3/swebench/generate_gpt.sh
+index db072e0..db292d7 100644
+--- a/final_scripts/experiment3/swebench/generate_gpt.sh
++++ b/final_scripts/experiment3/swebench/generate_gpt.sh
+@@ -4,7 +4,7 @@
+ dataset_name=SWE-bench/SWE-bench_Lite
+ benchmark="swebench"
+ slice_spec="0:301"
+-output="output/swebench_lite"
++output="output/agent_bench_test_results"
+ train_plan=no
+ continuous_training=yes
+ workers=16
+diff --git a/final_scripts/experiment3/swebench/generate_gpt_mini.sh b/final_scripts/experiment3/swebench/generate_gpt_mini.sh
+index 7b6f70f..537323d 100644
+--- a/final_scripts/experiment3/swebench/generate_gpt_mini.sh
++++ b/final_scripts/experiment3/swebench/generate_gpt_mini.sh
+@@ -4,7 +4,7 @@
+ dataset_name=SWE-bench/SWE-bench_Lite
+ benchmark="swebench"
+ slice_spec="0:301"
+-output="output/swebench_lite"
++output="output/agent_bench_test_results"
+ train_plan=no
+ continuous_training=yes
+ workers=16
+diff --git a/final_scripts/experiment3/swebench/generate_qwen.sh b/final_scripts/experiment3/swebench/generate_qwen.sh
+index 3149ba3..3b80d10 100644
+--- a/final_scripts/experiment3/swebench/generate_qwen.sh
++++ b/final_scripts/experiment3/swebench/generate_qwen.sh
+@@ -4,7 +4,7 @@
+ dataset_name=SWE-bench/SWE-bench_Lite
+ benchmark="swebench"
+ slice_spec="0:301"
+-output="output/swebench_lite"
++output="output/agent_bench_test_results"
+ train_plan=no
+ continuous_training=yes
+ workers=4
+diff --git a/final_scripts/experiment3/swebench/generate_sonnet.sh b/final_scripts/experiment3/swebench/generate_sonnet.sh
+index fee7b86..2f2d3d1 100644
+--- a/final_scripts/experiment3/swebench/generate_sonnet.sh
++++ b/final_scripts/experiment3/swebench/generate_sonnet.sh
+@@ -4,7 +4,7 @@
+ dataset_name=SWE-bench/SWE-bench_Lite
+ benchmark="swebench"
+ slice_spec="0:301"
+-output="output/swebench_lite"
++output="output/agent_bench_test_results"
+ train_plan=no
+ continuous_training=yes
+ workers=16
+diff --git a/final_scripts/experiment4/agentbench/evaluate_gpt.sh b/final_scripts/experiment4/agentbench/evaluate_gpt.sh
+index 2273882..c8cde39 100644
+--- a/final_scripts/experiment4/agentbench/evaluate_gpt.sh
++++ b/final_scripts/experiment4/agentbench/evaluate_gpt.sh
+@@ -3,7 +3,7 @@
+ # COMMON SETTINGS
+ dataset_name=eth-sri/agentbench
+ benchmark="agentbench"
+-output="output/agentbench_v1_runs_nodocs"
++output="output/agent_bench_test_results_nodocs"
+ workers=32
+ PLAN_ARGS_TEMPLATES=("" "" "")
+ HISTORIES=("null" "null" "null")
+diff --git a/final_scripts/experiment4/agentbench/evaluate_gpt_mini.sh b/final_scripts/experiment4/agentbench/evaluate_gpt_mini.sh
+index 7a3d96a..3e999f3 100644
+--- a/final_scripts/experiment4/agentbench/evaluate_gpt_mini.sh
++++ b/final_scripts/experiment4/agentbench/evaluate_gpt_mini.sh
+@@ -3,7 +3,7 @@
+ # COMMON SETTINGS
+ dataset_name=eth-sri/agentbench
+ benchmark="agentbench"
+-output="output/agentbench_v1_runs_nodocs"
++output="output/agent_bench_test_results_nodocs"
+ workers=32
+ PLAN_ARGS_TEMPLATES=("" "" "")
+ HISTORIES=("null" "null" "null")
+diff --git a/final_scripts/experiment4/agentbench/evaluate_qwen.sh b/final_scripts/experiment4/agentbench/evaluate_qwen.sh
+index eee089f..a73cb45 100644
+--- a/final_scripts/experiment4/agentbench/evaluate_qwen.sh
++++ b/final_scripts/experiment4/agentbench/evaluate_qwen.sh
+@@ -3,7 +3,7 @@
+ # COMMON SETTINGS
+ dataset_name=eth-sri/agentbench
+ benchmark="agentbench"
+-output="output/agentbench_v1_runs_nodocs"
++output="output/agent_bench_test_results_nodocs"
+ workers=32
+ PLAN_ARGS_TEMPLATES=("" "" "")
+ HISTORIES=("null" "null" "null")
+diff --git a/final_scripts/experiment4/analyze.sh b/final_scripts/experiment4/analyze.sh
+index cc2a3f7..c7d3c0f 100644
+--- a/final_scripts/experiment4/analyze.sh
++++ b/final_scripts/experiment4/analyze.sh
+@@ -3,7 +3,7 @@
+ # COMMON SETTINGS
+ dataset_name=eth-sri/agentbench
+ benchmark="agentbench"
+-output="output/agentbench_v1_runs_nodocs"
++output="output/agent_bench_test_results_nodocs"
+ csv_file="experiment4.csv"
+ PLAN_ARGS_TEMPLATES=("")
+ HISTORIES=("null")
+@@ -43,7 +43,7 @@ done
+ ###############################################
+ # COMMON SETTINGS
+ dataset_name=eth-sri/agentbench
+-output="output/agentbench_v1_runs_nodocs"
++output="output/agent_bench_test_results_nodocs"
+ 
+ 
+ # PARTICULAR SETTINGS
+diff --git a/scripts/agentbench/run_harness/generate.py b/scripts/agentbench/run_harness/generate.py
+index b33cb11..0cd3518 100644
+--- a/scripts/agentbench/run_harness/generate.py
++++ b/scripts/agentbench/run_harness/generate.py
+@@ -620,13 +620,19 @@ def main(
+     # Add plan model to planner config
+     if plan_model is None:
+         plan_model = exec_model
++        # Inject model_config for planners that need it (e.g. init_planner)
++        plan_model_config = deepcopy(ALL_MODEL_CONFIGS[plan_model])
++        if "model_class" not in plan_model_config:
++            plan_model_config["model_class"] = "litellm_server"
++        plan_model_config["port"] = port  # Reuse exec model port
++        config["planner"]["model_config"] = plan_model_config
+     else: # We need to initialize the model server in advance + use special port to avoid conflicts
+         plan_model_config = deepcopy(ALL_MODEL_CONFIGS[plan_model])
+         if "model_class" not in plan_model_config:
+             plan_model_config["model_class"] = "litellm_server"
+         plan_model_config["port"] = port + 1 # Offset port to avoid conflicts
+         logger.info(f"Starting plan model server on port {plan_model_config['port']}")
+-        plan_model_obj = get_model(config=plan_model_config)    
++        plan_model_obj = get_model(config=plan_model_config)
+         plan_model_obj.serve()
+         config["planner"]["model_config"] = plan_model_config # Update the config with the port
+     config["planner"]["plan_model"] = plan_model
+diff --git a/scripts/agentbench/run_harness/preindex.py b/scripts/agentbench/run_harness/preindex.py
+new file mode 100644
+index 0000000..7a00e04
+--- /dev/null
++++ b/scripts/agentbench/run_harness/preindex.py
+@@ -0,0 +1,194 @@
++"""
++preindex.py - Pre-index repos and pre-generate CLAUDE.md for agentbench evaluation.
++
++Indexes each repo once (using flat clones at ~/.claudemem/eval-repos/{slug}/)
++and generates a single CLAUDE.md per repo. The index and generated content are
++reused across all instances regardless of commit.
++
++Usage:
++    python preindex.py [--workers N] [--dataset DATASET] [--split SPLIT]
++                       [--filter REGEX] [--timeout SECONDS]
++
++Outputs:
++    ~/.claudemem/eval-repos/{repo_slug}/                   Cloned repos
++    ~/.claudemem/eval-repos/{repo_slug}/.claudemem/        Claudemem indexes
++    ~/.claudemem/eval-generated/{repo_slug}/CLAUDE.md      Generated context
++"""
++
++from __future__ import annotations
++
++import argparse
++import logging
++import re
++import subprocess
++import time
++from pathlib import Path
++
++from datasets import load_dataset
++from rich.console import Console
++from rich.logging import RichHandler
++from rich.progress import Progress, SpinnerColumn, TextColumn, BarColumn, MofNCompleteColumn
++
++logging.basicConfig(
++    level=logging.INFO,
++    format="%(message)s",
++    handlers=[RichHandler(rich_tracebacks=True, show_path=False)],
++)
++logger = logging.getLogger(__name__)
++
++REPO_CACHE_DIR = Path.home() / ".claudemem" / "eval-repos"
++GENERATED_DIR = Path.home() / ".claudemem" / "eval-generated"
++
++
++def _repo_slug(repo: str) -> str:
++    return repo.replace("/", "_")
++
++
++def _ensure_flat_clone(repo: str) -> Path:
++    """Ensure a flat clone exists at {REPO_CACHE_DIR}/{slug}/."""
++    slug = _repo_slug(repo)
++    local_dir = REPO_CACHE_DIR / slug
++
++    if local_dir.is_dir() and (local_dir / ".git").exists():
++        logger.debug("Flat clone exists: %s", local_dir)
++        return local_dir
++
++    local_dir.mkdir(parents=True, exist_ok=True)
++    url = f"https://github.com/{repo}.git"
++    logger.info("Cloning %s to %s", url, local_dir)
++    subprocess.run(
++        ["git", "clone", url, str(local_dir)],
++        capture_output=True, text=True, timeout=600, check=True,
++    )
++    return local_dir
++
++
++def _index_repo(repo_path: Path, timeout: int) -> None:
++    """Run claudemem index. Skips if .claudemem/index.db already exists."""
++    index_db = repo_path / ".claudemem" / "index.db"
++    if index_db.exists():
++        logger.info("Index already exists: %s", index_db)
++        return
++
++    logger.info("Indexing %s (timeout=%ds)", repo_path, timeout)
++    result = subprocess.run(
++        ["claudemem", "index", str(repo_path)],
++        capture_output=True, text=True, timeout=timeout,
++    )
++    if result.returncode != 0:
++        logger.warning("Index returned %d: %s", result.returncode, result.stderr[:300])
++        # Non-fatal: continue even if indexing is incomplete
++
++
++def _generate_claude_md(repo_path: Path, repo: str) -> None:
++    """Run claudemem doctor --agent and save output."""
++    slug = _repo_slug(repo)
++    out_dir = GENERATED_DIR / slug
++    out_file = out_dir / "CLAUDE.md"
++
++    if out_file.exists() and out_file.stat().st_size > 0:
++        logger.debug("Generated CLAUDE.md exists: %s", out_file)
++        return
++
++    logger.info("Generating CLAUDE.md for %s", repo)
++    result = subprocess.run(
++        ["claudemem", "--agent", "doctor", str(repo_path)],
++        capture_output=True, text=True, timeout=120,
++    )
++
++    out_dir.mkdir(parents=True, exist_ok=True)
++    if result.returncode == 0 and result.stdout.strip():
++        out_file.write_text(result.stdout, encoding="utf-8")
++        logger.info("Saved generated CLAUDE.md (%d chars)", len(result.stdout))
++    else:
++        out_file.write_text("", encoding="utf-8")
++        logger.warning(
++            "doctor --agent produced no output for %s (rc=%d): %s",
++            repo, result.returncode, result.stderr[:200],
++        )
++
++
++def _process_repo(repo: str, timeout: int) -> tuple[str, bool]:
++    """Clone, index, and generate for a single repo."""
++    try:
++        repo_path = _ensure_flat_clone(repo)
++        _index_repo(repo_path, timeout)
++        _generate_claude_md(repo_path, repo)
++        return repo, True
++    except Exception as exc:
++        logger.error("Failed %s: %s", repo, exc)
++        return repo, False
++
++
++def main() -> None:
++    parser = argparse.ArgumentParser(description="Pre-index repos for agentbench evaluation")
++    parser.add_argument("--workers", type=int, default=2, help="Parallel workers (default: 2)")
++    parser.add_argument("--dataset", default="eth-sri/agentbench", help="HuggingFace dataset name")
++    parser.add_argument("--split", default="train", help="Dataset split (default: train)")
++    parser.add_argument(
++        "--filter", default="",
++        help="Regex filter on instance_id (e.g. 'ansible_ansible|jlowin_fastmcp')",
++    )
++    parser.add_argument("--timeout", type=int, default=1800, help="Index timeout in seconds (default: 1800)")
++    args = parser.parse_args()
++
++    console = Console()
++    console.print(f"\n[bold cyan]Pre-indexing repos for {args.dataset} ({args.split})[/bold cyan]\n")
++
++    # Load dataset and extract unique repos
++    logger.info("Loading dataset %s (split=%s)", args.dataset, args.split)
++    ds = load_dataset(args.dataset, split=args.split)
++
++    repos: set[str] = set()
++    for row in ds:
++        instance_id = row.get("instance_id", "")
++        if args.filter and not re.match(args.filter, instance_id):
++            continue
++        repo = row.get("base_repo", "")
++        if repo:
++            repos.add(repo)
++
++    repos_list = sorted(repos)
++    console.print(f"Found [bold]{len(repos_list)}[/bold] unique repos to index\n")
++
++    if not repos_list:
++        console.print("[yellow]No repos to process. Check --filter flag.[/yellow]")
++        return
++
++    for repo in repos_list:
++        console.print(f"  - {repo}")
++    console.print()
++
++    # Process repos (can run in parallel since each has its own directory)
++    succeeded = 0
++    failed = 0
++    start_time = time.monotonic()
++
++    with Progress(
++        SpinnerColumn(),
++        TextColumn("[progress.description]{task.description}"),
++        BarColumn(),
++        MofNCompleteColumn(),
++        console=console,
++    ) as progress:
++        task = progress.add_task("Pre-indexing", total=len(repos_list))
++
++        # Process sequentially to avoid resource contention on large repos
++        for repo in repos_list:
++            _repo, success = _process_repo(repo, args.timeout)
++            if success:
++                succeeded += 1
++            else:
++                failed += 1
++            progress.advance(task)
++
++    elapsed = time.monotonic() - start_time
++    minutes, seconds = divmod(int(elapsed), 60)
++
++    console.print(f"\n[bold green]Done![/bold green] {succeeded} succeeded, {failed} failed in {minutes}m{seconds}s")
++    console.print(f"  Repos:     {REPO_CACHE_DIR}")
++    console.print(f"  Generated: {GENERATED_DIR}")
++
++
++if __name__ == "__main__":
++    main()
+diff --git a/scripts/agentbench/run_harness/restore_indexes.sh b/scripts/agentbench/run_harness/restore_indexes.sh
+new file mode 100755
+index 0000000..1ea8218
+--- /dev/null
++++ b/scripts/agentbench/run_harness/restore_indexes.sh
+@@ -0,0 +1,104 @@
++#!/usr/bin/env bash
++#
++# restore_indexes.sh - Restore pre-built claudemem indexes from archive.
++#
++# Restores the .claudemem/ index directories into eval-repos/ so that
++# preindex.py and the ClaudememPlanner skip re-indexing.
++#
++# Usage:
++#   ./restore_indexes.sh [--archive PATH] [--repos-dir PATH]
++#
++# Defaults:
++#   --archive   ~/.claudemem/eval-index-archive/indexes-<latest>.tar.gz
++#   --repos-dir ~/.claudemem/eval-repos
++
++set -euo pipefail
++
++REPOS_DIR="${HOME}/.claudemem/eval-repos"
++ARCHIVE_DIR="${HOME}/.claudemem/eval-index-archive"
++ARCHIVE=""
++
++while [[ $# -gt 0 ]]; do
++    case "$1" in
++        --archive)   ARCHIVE="$2"; shift 2 ;;
++        --repos-dir) REPOS_DIR="$2"; shift 2 ;;
++        -h|--help)
++            echo "Usage: $0 [--archive PATH] [--repos-dir PATH]"
++            echo ""
++            echo "Restores claudemem indexes from archive into eval-repos."
++            echo "Skips repos that already have an index.db."
++            exit 0
++            ;;
++        *) echo "Unknown argument: $1"; exit 1 ;;
++    esac
++done
++
++# Find latest archive if not specified
++if [[ -z "$ARCHIVE" ]]; then
++    ARCHIVE=$(ls -t "$ARCHIVE_DIR"/indexes-*.tar.gz 2>/dev/null | head -1)
++    if [[ -z "$ARCHIVE" ]]; then
++        echo "ERROR: No archive found in $ARCHIVE_DIR"
++        echo "Run preindex.py first to build indexes, then archive them."
++        exit 1
++    fi
++fi
++
++echo "Restoring indexes from: $ARCHIVE"
++echo "Target directory:       $REPOS_DIR"
++echo ""
++
++# Check which repos need restoration
++NEED_RESTORE=()
++for slug in $(tar tzf "$ARCHIVE" | grep -o '^[^/]*' | sort -u); do
++    idx="$REPOS_DIR/$slug/.claudemem/index.db"
++    if [[ -f "$idx" ]]; then
++        size=$(du -sh "$REPOS_DIR/$slug/.claudemem" | cut -f1)
++        echo "  SKIP  $slug (index exists, $size)"
++    else
++        NEED_RESTORE+=("$slug")
++        echo "  RESTORE  $slug"
++    fi
++done
++echo ""
++
++if [[ ${#NEED_RESTORE[@]} -eq 0 ]]; then
++    echo "All indexes already present. Nothing to restore."
++    exit 0
++fi
++
++# Ensure repos are cloned (indexes need the repo to be useful)
++for slug in "${NEED_RESTORE[@]}"; do
++    repo_dir="$REPOS_DIR/$slug"
++    if [[ ! -d "$repo_dir/.git" ]]; then
++        # Convert slug back to GitHub URL: owner_name -> owner/name
++        repo=$(echo "$slug" | sed 's/_/\//')
++        echo "Cloning $repo -> $repo_dir ..."
++        git clone "https://github.com/$repo.git" "$repo_dir"
++    fi
++done
++
++# Extract indexes
++echo "Extracting indexes..."
++cd "$REPOS_DIR"
++for slug in "${NEED_RESTORE[@]}"; do
++    tar xzf "$ARCHIVE" "$slug/.claudemem" 2>/dev/null || true
++    if [[ -f "$slug/.claudemem/index.db" ]]; then
++        size=$(du -sh "$slug/.claudemem" | cut -f1)
++        echo "  OK  $slug ($size)"
++    else
++        echo "  WARN  $slug - index.db not found in archive"
++    fi
++done
++
++# Also restore generated CLAUDE.md files if archive exists
++GEN_ARCHIVE=$(ls -t "$ARCHIVE_DIR"/generated-*.tar.gz 2>/dev/null | head -1)
++if [[ -n "$GEN_ARCHIVE" ]]; then
++    echo ""
++    echo "Restoring generated CLAUDE.md files from: $GEN_ARCHIVE"
++    cd "${HOME}/.claudemem"
++    tar xzf "$GEN_ARCHIVE"
++    echo "  Done."
++fi
++
++echo ""
++echo "Restore complete."
+diff --git a/scripts/agentbench/run_harness/results/run_1/summary.json b/scripts/agentbench/run_harness/results/run_1/summary.json
+new file mode 100644
+index 0000000..a9020c6
+--- /dev/null
++++ b/scripts/agentbench/run_harness/results/run_1/summary.json
+@@ -0,0 +1,383 @@
++{
++  "run_id": 1,
++  "date": "2026-03-04",
++  "model": "sonnet-4-5",
++  "dataset": "eth-sri/agentbench",
++  "instances_per_condition": 48,
++  "repos": [
++    "ansible/ansible",
++    "getzep/graphiti",
++    "huggingface/smolagents",
++    "huggingface/transformers",
++    "jlowin/fastmcp"
++  ],
++  "notes": "Parallel run (6 conditions, 2 workers each, ports 18080-18085). 46-57% of instances had infrastructure errors (pr_test_results.json empty). smolagents, transformers, graphiti repos 100% infra error.",
++  "conditions": {
++    "no_plan": {
++      "total": 48,
++      "resolved": 10,
++      "real_fail": 11,
++      "infra_error": 27,
++      "pass_rate_raw": 20.8,
++      "pass_rate_corrected": 47.6,
++      "resolved_instances": [
++        "ansible_ansible-83217",
++        "ansible_ansible-84999",
++        "ansible_ansible-85187",
++        "ansible_ansible-85487",
++        "ansible_ansible-85488",
++        "ansible_ansible-85516",
++        "ansible_ansible-85709",
++        "ansible_ansible-85930",
++        "ansible_ansible-86047",
++        "jlowin_fastmcp-2727"
++      ],
++      "infra_error_instances": [
++        "ansible_ansible-85728",
++        "getzep_graphiti-761",
++        "getzep_graphiti-843",
++        "huggingface_smolagents-1648",
++        "huggingface_smolagents-1707",
++        "huggingface_smolagents-1763",
++        "huggingface_smolagents-1800",
++        "huggingface_smolagents-1801",
++        "huggingface_smolagents-1805",
++        "huggingface_smolagents-1833",
++        "huggingface_smolagents-1859",
++        "huggingface_smolagents-1864",
++        "huggingface_smolagents-1881",
++        "huggingface_smolagents-1900",
++        "huggingface_smolagents-1902",
++        "huggingface_transformers-41359",
++        "huggingface_transformers-41412",
++        "huggingface_transformers-41612",
++        "huggingface_transformers-41661",
++        "huggingface_transformers-41750",
++        "huggingface_transformers-41757",
++        "jlowin_fastmcp-2676",
++        "jlowin_fastmcp-2720",
++        "jlowin_fastmcp-2764",
++        "jlowin_fastmcp-2768",
++        "jlowin_fastmcp-2771",
++        "jlowin_fastmcp-2776"
++      ],
++      "real_fail_instances": [
++        "ansible_ansible-85695",
++        "getzep_graphiti-829",
++        "huggingface_smolagents-1766",
++        "huggingface_smolagents-1797",
++        "huggingface_smolagents-1826",
++        "huggingface_smolagents-1914",
++        "jlowin_fastmcp-2674",
++        "jlowin_fastmcp-2749",
++        "jlowin_fastmcp-2763",
++        "jlowin_fastmcp-2785",
++        "jlowin_fastmcp-2800"
++      ]
++    },
++    "claudemem_full": {
++      "total": 46,
++      "resolved": 15,
++      "real_fail": 9,
++      "infra_error": 22,
++      "pass_rate_raw": 32.6,
++      "pass_rate_corrected": 62.5,
++      "resolved_instances": [
++        "ansible_ansible-83217",
++        "ansible_ansible-84999",
++        "ansible_ansible-85187",
++        "ansible_ansible-85488",
++        "ansible_ansible-85516",
++        "ansible_ansible-85728",
++        "ansible_ansible-85930",
++        "ansible_ansible-86047",
++        "jlowin_fastmcp-2674",
++        "jlowin_fastmcp-2676",
++        "jlowin_fastmcp-2720",
++        "jlowin_fastmcp-2763",
++        "jlowin_fastmcp-2768",
++        "jlowin_fastmcp-2771",
++        "jlowin_fastmcp-2776"
++      ],
++      "infra_error_instances": [
++        "getzep_graphiti-843",
++        "huggingface_smolagents-1648",
++        "huggingface_smolagents-1707",
++        "huggingface_smolagents-1763",
++        "huggingface_smolagents-1800",
++        "huggingface_smolagents-1801",
++        "huggingface_smolagents-1805",
++        "huggingface_smolagents-1833",
++        "huggingface_smolagents-1859",
++        "huggingface_smolagents-1864",
++        "huggingface_smolagents-1881",
++        "huggingface_smolagents-1900",
++        "huggingface_smolagents-1902",
++        "huggingface_transformers-41359",
++        "huggingface_transformers-41412",
++        "huggingface_transformers-41612",
++        "huggingface_transformers-41661",
++        "huggingface_transformers-41750",
++        "huggingface_transformers-41757",
++        "jlowin_fastmcp-2727",
++        "jlowin_fastmcp-2764",
++        "jlowin_fastmcp-2785"
++      ],
++      "real_fail_instances": [
++        "ansible_ansible-85695",
++        "ansible_ansible-85709",
++        "getzep_graphiti-829",
++        "huggingface_smolagents-1766",
++        "huggingface_smolagents-1797",
++        "huggingface_smolagents-1826",
++        "huggingface_smolagents-1914",
++        "jlowin_fastmcp-2749",
++        "jlowin_fastmcp-2800"
++      ]
++    },
++    "human_written": {
++      "total": 47,
++      "resolved": 11,
++      "real_fail": 9,
++      "infra_error": 27,
++      "pass_rate_raw": 23.4,
++      "pass_rate_corrected": 55.0,
++      "resolved_instances": [
++        "ansible_ansible-83217",
++        "ansible_ansible-84999",
++        "ansible_ansible-85187",
++        "ansible_ansible-85488",
++        "ansible_ansible-85516",
++        "ansible_ansible-85709",
++        "ansible_ansible-85930",
++        "ansible_ansible-86047",
++        "jlowin_fastmcp-2676",
++        "jlowin_fastmcp-2720",
++        "jlowin_fastmcp-2727"
++      ],
++      "infra_error_instances": [
++        "ansible_ansible-85728",
++        "getzep_graphiti-761",
++        "getzep_graphiti-843",
++        "huggingface_smolagents-1648",
++        "huggingface_smolagents-1707",
++        "huggingface_smolagents-1763",
++        "huggingface_smolagents-1800",
++        "huggingface_smolagents-1801",
++        "huggingface_smolagents-1805",
++        "huggingface_smolagents-1833",
++        "huggingface_smolagents-1859",
++        "huggingface_smolagents-1864",
++        "huggingface_smolagents-1881",
++        "huggingface_smolagents-1900",
++        "huggingface_smolagents-1902",
++        "huggingface_transformers-41359",
++        "huggingface_transformers-41412",
++        "huggingface_transformers-41612",
++        "huggingface_transformers-41661",
++        "huggingface_transformers-41750",
++        "huggingface_transformers-41757",
++        "jlowin_fastmcp-2763",
++        "jlowin_fastmcp-2764",
++        "jlowin_fastmcp-2768",
++        "jlowin_fastmcp-2771",
++        "jlowin_fastmcp-2785",
++        "jlowin_fastmcp-2800"
++      ],
++      "real_fail_instances": [
++        "ansible_ansible-85487",
++        "ansible_ansible-85695",
++        "getzep_graphiti-829",
++        "huggingface_smolagents-1766",
++        "huggingface_smolagents-1797",
++        "huggingface_smolagents-1914",
++        "jlowin_fastmcp-2674",
++        "jlowin_fastmcp-2749",
++        "jlowin_fastmcp-2776"
++      ]
++    },
++    "claude_planner": {
++      "total": 47,
++      "resolved": 12,
++      "real_fail": 13,
++      "infra_error": 22,
++      "pass_rate_raw": 25.5,
++      "pass_rate_corrected": 48.0,
++      "resolved_instances": [
++        "ansible_ansible-83217",
++        "ansible_ansible-84999",
++        "ansible_ansible-85187",
++        "ansible_ansible-85516",
++        "ansible_ansible-85728",
++        "ansible_ansible-85930",
++        "ansible_ansible-86047",
++        "jlowin_fastmcp-2674",
++        "jlowin_fastmcp-2676",
++        "jlowin_fastmcp-2727",
++        "jlowin_fastmcp-2768",
++        "jlowin_fastmcp-2771"
++      ],
++      "infra_error_instances": [
++        "getzep_graphiti-761",
++        "getzep_graphiti-843",
++        "huggingface_smolagents-1648",
++        "huggingface_smolagents-1707",
++        "huggingface_smolagents-1763",
++        "huggingface_smolagents-1800",
++        "huggingface_smolagents-1801",
++        "huggingface_smolagents-1805",
++        "huggingface_smolagents-1833",
++        "huggingface_smolagents-1859",
++        "huggingface_smolagents-1864",
++        "huggingface_smolagents-1881",
++        "huggingface_smolagents-1900",
++        "huggingface_smolagents-1902",
++        "huggingface_transformers-41359",
++        "huggingface_transformers-41412",
++        "huggingface_transformers-41612",
++        "huggingface_transformers-41661",
++        "huggingface_transformers-41750",
++        "huggingface_transformers-41757",
++        "jlowin_fastmcp-2763",
++        "jlowin_fastmcp-2776"
++      ],
++      "real_fail_instances": [
++        "ansible_ansible-85487",
++        "ansible_ansible-85695",
++        "ansible_ansible-85709",
++        "getzep_graphiti-829",
++        "huggingface_smolagents-1766",
++        "huggingface_smolagents-1797",
++        "huggingface_smolagents-1826",
++        "huggingface_smolagents-1914",
++        "jlowin_fastmcp-2720",
++        "jlowin_fastmcp-2749",
++        "jlowin_fastmcp-2764",
++        "jlowin_fastmcp-2785",
++        "jlowin_fastmcp-2800"
++      ]
++    },
++    "claudemem+human_written": {
++      "total": 47,
++      "resolved": 8,
++      "real_fail": 13,
++      "infra_error": 26,
++      "pass_rate_raw": 17.0,
++      "pass_rate_corrected": 38.1,
++      "resolved_instances": [
++        "ansible_ansible-85187",
++        "ansible_ansible-85487",
++        "ansible_ansible-85488",
++        "ansible_ansible-85516",
++        "ansible_ansible-85728",
++        "ansible_ansible-85930",
++        "ansible_ansible-86047",
++        "jlowin_fastmcp-2720"
++      ],
++      "infra_error_instances": [
++        "getzep_graphiti-761",
++        "getzep_graphiti-843",
++        "huggingface_smolagents-1648",
++        "huggingface_smolagents-1707",
++        "huggingface_smolagents-1763",
++        "huggingface_smolagents-1800",
++        "huggingface_smolagents-1801",
++        "huggingface_smolagents-1805",
++        "huggingface_smolagents-1833",
++        "huggingface_smolagents-1859",
++        "huggingface_smolagents-1864",
++        "huggingface_smolagents-1881",
++        "huggingface_smolagents-1900",
++        "huggingface_smolagents-1902",
++        "huggingface_transformers-41359",
++        "huggingface_transformers-41412",
++        "huggingface_transformers-41612",
++        "huggingface_transformers-41661",
++        "huggingface_transformers-41750",
++        "huggingface_transformers-41757",
++        "jlowin_fastmcp-2727",
++        "jlowin_fastmcp-2764",
++        "jlowin_fastmcp-2768",
++        "jlowin_fastmcp-2771",
++        "jlowin_fastmcp-2785",
++        "jlowin_fastmcp-2800"
++      ],
++      "real_fail_instances": [
++        "ansible_ansible-84999",
++        "ansible_ansible-85695",
++        "ansible_ansible-85709",
++        "getzep_graphiti-829",
++        "huggingface_smolagents-1766",
++        "huggingface_smolagents-1797",
++        "huggingface_smolagents-1826",
++        "huggingface_smolagents-1914",
++        "jlowin_fastmcp-2674",
++        "jlowin_fastmcp-2676",
++        "jlowin_fastmcp-2749",
++        "jlowin_fastmcp-2763",
++        "jlowin_fastmcp-2776"
++      ]
++    },
++    "claudemem+generated": {
++      "total": 47,
++      "resolved": 11,
++      "real_fail": 11,
++      "infra_error": 25,
++      "pass_rate_raw": 23.4,
++      "pass_rate_corrected": 50.0,
++      "resolved_instances": [
++        "ansible_ansible-83217",
++        "ansible_ansible-84999",
++        "ansible_ansible-85187",
++        "ansible_ansible-85487",
++        "ansible_ansible-85516",
++        "ansible_ansible-85728",
++        "ansible_ansible-85930",
++        "ansible_ansible-86047",
++        "jlowin_fastmcp-2674",
++        "jlowin_fastmcp-2720",
++        "jlowin_fastmcp-2727"
++      ],
++      "infra_error_instances": [
++        "getzep_graphiti-761",
++        "getzep_graphiti-843",
++        "huggingface_smolagents-1648",
++        "huggingface_smolagents-1707",
++        "huggingface_smolagents-1763",
++        "huggingface_smolagents-1800",
++        "huggingface_smolagents-1801",
++        "huggingface_smolagents-1805",
++        "huggingface_smolagents-1833",
++        "huggingface_smolagents-1859",
++        "huggingface_smolagents-1864",
++        "huggingface_smolagents-1881",
++        "huggingface_smolagents-1900",
++        "huggingface_smolagents-1902",
++        "huggingface_transformers-41359",
++        "huggingface_transformers-41412",
++        "huggingface_transformers-41612",
++        "huggingface_transformers-41661",
++        "huggingface_transformers-41750",
++        "huggingface_transformers-41757",
++        "jlowin_fastmcp-2763",
++        "jlowin_fastmcp-2768",
++        "jlowin_fastmcp-2776",
++        "jlowin_fastmcp-2785",
++        "jlowin_fastmcp-2800"
++      ],
++      "real_fail_instances": [
++        "ansible_ansible-85695",
++        "ansible_ansible-85709",
++        "getzep_graphiti-829",
++        "huggingface_smolagents-1766",
++        "huggingface_smolagents-1797",
++        "huggingface_smolagents-1826",
++        "huggingface_smolagents-1914",
++        "jlowin_fastmcp-2676",
++        "jlowin_fastmcp-2749",
++        "jlowin_fastmcp-2764",
++        "jlowin_fastmcp-2771"
++      ]
++    }
++  }
++}
+\ No newline at end of file
+diff --git a/scripts/agentbench/run_harness/run_all_conditions.sh b/scripts/agentbench/run_harness/run_all_conditions.sh
+new file mode 100755
+index 0000000..79acddc
+--- /dev/null
++++ b/scripts/agentbench/run_harness/run_all_conditions.sh
+@@ -0,0 +1,152 @@
++#!/usr/bin/env bash
++#
++# run_all_conditions.sh - Run all 6 evaluation conditions for agentbench.
++#
++# 1. Pre-index repos and generate CLAUDE.md files
++# 2. For each condition: generate plans, then evaluate
++#
++# Usage:
++#   ./run_all_conditions.sh [--workers N] [--exec-model MODEL] [--generator GEN]
++#                           [--skip-preindex] [--conditions COND1,COND2,...]
++#
++# Defaults use the agentbench dataset (eth-sri/agentbench, split=train).
++
++set -euo pipefail
++
++SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
++REPO_ROOT="$(cd "$SCRIPT_DIR/../../.." && pwd)"
++cd "$SCRIPT_DIR"
++
++# Use the project venv Python if available.
++if [[ -x "$REPO_ROOT/.venv/bin/python" ]]; then
++    PYTHON="$REPO_ROOT/.venv/bin/python"
++else
++    PYTHON="python3"
++fi
++
++# ---------------------------------------------------------------------------
++# Defaults
++# ---------------------------------------------------------------------------
++WORKERS=2
++EXEC_MODEL="sonnet-4-5"
++GENERATOR="claude_code"
++DATASET="eth-sri/agentbench"
++BENCHMARK="agentbench"
++SPLIT="train"
++SKIP_PREINDEX=false
++OUTPUT_DIR="output"
++RUN_ID=1
++FILTER_SPEC=""
++
++# The 6 conditions (plan_type keys matching ALL_PLAN_CONFIGS)
++ALL_CONDITIONS="no_plan,claudemem_full,human_written,claude_planner,claudemem+human_written,claudemem+generated"
++CONDITIONS=""
++
++# ---------------------------------------------------------------------------
++# Parse arguments
++# ---------------------------------------------------------------------------
++while [[ $# -gt 0 ]]; do
++    case "$1" in
++        --workers)       WORKERS="$2"; shift 2 ;;
++        --exec-model)    EXEC_MODEL="$2"; shift 2 ;;
++        --generator)     GENERATOR="$2"; shift 2 ;;
++        --skip-preindex) SKIP_PREINDEX=true; shift ;;
++        --conditions)    CONDITIONS="$2"; shift 2 ;;
++        --output-dir)    OUTPUT_DIR="$2"; shift 2 ;;
++        --run-id)        RUN_ID="$2"; shift 2 ;;
++        --dataset)       DATASET="$2"; shift 2 ;;
++        --split)         SPLIT="$2"; shift 2 ;;
++        --filter)        FILTER_SPEC="$2"; shift 2 ;;
++        -h|--help)
++            echo "Usage: $0 [--workers N] [--exec-model MODEL] [--generator GEN]"
++            echo "          [--skip-preindex] [--conditions COND1,COND2,...] [--output-dir DIR]"
++            echo ""
++            echo "Conditions: $ALL_CONDITIONS"
++            exit 0
++            ;;
++        *) echo "Unknown argument: $1"; exit 1 ;;
++    esac
++done
++
++if [[ -z "$CONDITIONS" ]]; then
++    CONDITIONS="$ALL_CONDITIONS"
++fi
++
++IFS=',' read -ra CONDITION_LIST <<< "$CONDITIONS"
++
++echo ""
++echo "================================================================"
++echo "  AgentBench 6-Condition Evaluation"
++echo "================================================================"
++echo "  Exec model:  $EXEC_MODEL"
++echo "  Generator:   $GENERATOR"
++echo "  Workers:     $WORKERS"
++echo "  Dataset:     $DATASET ($SPLIT)"
++echo "  Conditions:  ${CONDITION_LIST[*]}"
++echo "  Output:      $OUTPUT_DIR"
++echo "  Run ID:      $RUN_ID"
++echo "================================================================"
++echo ""
++
++# ---------------------------------------------------------------------------
++# Step 1: Pre-index repos and generate CLAUDE.md files
++# ---------------------------------------------------------------------------
++if [[ "$SKIP_PREINDEX" == false ]]; then
++    echo "[Step 1/2] Pre-indexing repos and generating CLAUDE.md files..."
++    $PYTHON preindex.py --workers "$WORKERS" --dataset "$DATASET" --split "$SPLIT"
++    echo ""
++else
++    echo "[Step 1/2] Skipping pre-index (--skip-preindex)"
++    echo ""
++fi
++
++# ---------------------------------------------------------------------------
++# Step 2: Run each condition
++# ---------------------------------------------------------------------------
++TOTAL=${#CONDITION_LIST[@]}
++CURRENT=0
++
++for CONDITION in "${CONDITION_LIST[@]}"; do
++    CURRENT=$((CURRENT + 1))
++    echo "================================================================"
++    echo "  [Step 2/2] Condition $CURRENT/$TOTAL: $CONDITION"
++    echo "================================================================"
++    echo ""
++
++    # Generate plans
++    echo "  -> Generating plans..."
++    FILTER_ARGS=""
++    if [[ -n "$FILTER_SPEC" ]]; then
++        FILTER_ARGS="--filter_spec=$FILTER_SPEC"
++    fi
++    $PYTHON generate.py \
++        --plan_type="$CONDITION" \
++        --exec_model="$EXEC_MODEL" \
++        --generator="$GENERATOR" \
++        --dataset_name="$DATASET" \
++        --benchmark="$BENCHMARK" \
++        --split="$SPLIT" \
++        --workers="$WORKERS" \
++        --run_id="$RUN_ID" \
++        --output_dir="$OUTPUT_DIR" \
++        $FILTER_ARGS
++    echo ""
++
++    # Evaluate
++    echo "  -> Evaluating..."
++    $PYTHON evaluate.py \
++        --plan_type="$CONDITION" \
++        --exec_model="$EXEC_MODEL" \
++        --generator="$GENERATOR" \
++        --dataset_name="$DATASET" \
++        --benchmark="$BENCHMARK" \
++        --run_id="$RUN_ID" \
++        --output_dir="$OUTPUT_DIR"
++    echo ""
++done
++
++echo "================================================================"
++echo "  All $TOTAL conditions complete!"
++echo "================================================================"
++echo "  Results in: $OUTPUT_DIR/"
++echo ""
+diff --git a/scripts/agentbench/run_harness/run_parallel.sh b/scripts/agentbench/run_harness/run_parallel.sh
+new file mode 100755
+index 0000000..c41f951
+--- /dev/null
++++ b/scripts/agentbench/run_harness/run_parallel.sh
+@@ -0,0 +1,127 @@
++#!/usr/bin/env bash
++#
++# run_parallel.sh - Run all 6 conditions in parallel.
++#
++# Each condition gets its own litellm proxy port and log file.
++# After all generate steps complete, runs evaluate for each.
++
++set -euo pipefail
++
++SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
++REPO_ROOT="$(cd "$SCRIPT_DIR/../../.." && pwd)"
++cd "$SCRIPT_DIR"
++
++if [[ -x "$REPO_ROOT/.venv/bin/python" ]]; then
++    PYTHON="$REPO_ROOT/.venv/bin/python"
++else
++    PYTHON="python3"
++fi
++
++EXEC_MODEL="sonnet-4-5"
++GENERATOR="claude_code"
++DATASET="eth-sri/agentbench"
++BENCHMARK="agentbench"
++SPLIT="train"
++RUN_ID=1
++OUTPUT_DIR="output"
++WORKERS=2
++FILTER="ansible_ansible|getzep_graphiti|huggingface_smolagents|huggingface_transformers|jlowin_fastmcp"
++
++CONDITIONS=(no_plan claudemem_full human_written claude_planner claudemem+human_written claudemem+generated)
++BASE_PORT=18080
++
++mkdir -p logs
++
++echo ""
++echo "================================================================"
++echo "  Parallel 6-Condition Evaluation"
++echo "================================================================"
++echo "  Launching ${#CONDITIONS[@]} conditions in parallel"
++echo "  Ports: $BASE_PORT - $((BASE_PORT + ${#CONDITIONS[@]} - 1))"
++echo "  Workers per condition: $WORKERS"
++echo "================================================================"
++echo ""
++
++# Launch all generate steps in parallel
++PIDS=()
++for i in "${!CONDITIONS[@]}"; do
++    COND="${CONDITIONS[$i]}"
++    PORT=$((BASE_PORT + i))
++    LOG="logs/generate_${COND}.log"
++
++    echo "  Starting $COND (port=$PORT, log=$LOG)"
++    $PYTHON generate.py \
++        --plan_type="$COND" \
++        --exec_model="$EXEC_MODEL" \
++        --generator="$GENERATOR" \
++        --dataset_name="$DATASET" \
++        --benchmark="$BENCHMARK" \
++        --split="$SPLIT" \
++        --filter_spec="$FILTER" \
++        --workers="$WORKERS" \
++        --run_id="$RUN_ID" \
++        --output_dir="$OUTPUT_DIR" \
++        --port="$PORT" \
++        --progress="tqdm" \
++        > "$LOG" 2>&1 &
++    PIDS+=($!)
++done
++
++echo ""
++echo "  All ${#CONDITIONS[@]} conditions launched (PIDs: ${PIDS[*]})"
++echo "  Monitor with: tail -f logs/generate_*.log"
++echo ""
++
++# Wait for all generate steps
++FAILED=0
++for i in "${!CONDITIONS[@]}"; do
++    COND="${CONDITIONS[$i]}"
++    PID="${PIDS[$i]}"
++    if wait "$PID"; then
++        echo "  DONE: $COND (generate)"
++    else
++        echo "  FAIL: $COND (generate) - check logs/generate_${COND}.log"
++        FAILED=$((FAILED + 1))
++    fi
++done
++
++echo ""
++if [[ $FAILED -gt 0 ]]; then
++    echo "  WARNING: $FAILED conditions failed during generate step"
++fi
++
++# Run evaluate for each condition
++echo "  Running evaluate for all conditions..."
++EVAL_PIDS=()
++for i in "${!CONDITIONS[@]}"; do
++    COND="${CONDITIONS[$i]}"
++    LOG="logs/evaluate_${COND}.log"
++
++    echo "  Evaluating $COND (log=$LOG)"
++    $PYTHON evaluate.py \
++        --plan_type="$COND" \
++        --exec_model="$EXEC_MODEL" \
++        --generator="$GENERATOR" \
++        --dataset_name="$DATASET" \
++        --benchmark="$BENCHMARK" \
++        --run_id="$RUN_ID" \
++        --output_dir="$OUTPUT_DIR" \
++        > "$LOG" 2>&1 &
++    EVAL_PIDS+=($!)
++done
++
++for i in "${!CONDITIONS[@]}"; do
++    COND="${CONDITIONS[$i]}"
++    PID="${EVAL_PIDS[$i]}"
++    if wait "$PID"; then
++        echo "  DONE: $COND (evaluate)"
++    else
++        echo "  FAIL: $COND (evaluate) - check logs/evaluate_${COND}.log"
++    fi
++done
++
++echo ""
++echo "================================================================"
++echo "  All conditions complete!"
++echo "================================================================"
++echo "  Results in: $OUTPUT_DIR/"
+diff --git a/src/agentbench/benchmarks/agentbench.py b/src/agentbench/benchmarks/agentbench.py
+index 87f9857..4be1223 100644
+--- a/src/agentbench/benchmarks/agentbench.py
++++ b/src/agentbench/benchmarks/agentbench.py
+@@ -172,7 +172,17 @@ class AgentbenchInstance(Instance):
+ 
+         # Fetch the test_results.json file created by the test runner in the environment
+         test_results = env.read_file("test_results.json")
+-        test_results = json.loads(test_results)
++        try:
++            test_results = json.loads(test_results)
++        except (json.JSONDecodeError, TypeError):
++            logger.warning(
++                "Failed to parse test_results.json for instance %s (content: %r). "
++                "Treating all repo tests as failed.",
++                self.instance_id,
++                test_results[:200] if test_results else test_results,
++            )
++            # Return all expected tests as failed so the comparison logic can proceed
++            test_results = {k: False for k in (self.repo_test_after_pr_patch or {})}
+ 
+         return test_results
+ 
+@@ -184,19 +194,35 @@ class AgentbenchInstance(Instance):
+ 
+         # Write the test file runner script
+         env.execute("rm -f run_pr_tests.py", timeout=False)
+-        env.execute(f"echo {shlex.quote(self.test_file_runner)} > run_pr_tests.py")
++        env.write_file("run_pr_tests.py", self.test_file_runner)
+ 
+-    def _run_instance_test(self, env: Environment) -> tuple[bool, dict[str, Any]]:
++    def _run_instance_test(self, env: Environment) -> dict[str, bool]:
+         # Delete previous test results if any
+         env.execute("rm -f pr_test_results.json", timeout=False)
+ 
+         # Execute the instance test commands
+         for cmd in self.test_commands:
+-            env.execute(cmd, timeout=False)
++            result = env.execute(cmd, timeout=False)
++            if result.get("returncode", 1) != 0:
++                logger.debug(
++                    "Instance %s: test command returned non-zero: %s (output: %.500s)",
++                    self.instance_id,
++                    cmd,
++                    result.get("output", ""),
++                )
+ 
+         # Fetch the test_results.json file created by the test runner in the environment
+         test_results = env.read_file("pr_test_results.json")
+-        test_results = json.loads(test_results)
++        try:
++            test_results = json.loads(test_results)
++        except (json.JSONDecodeError, TypeError):
++            logger.warning(
++                "Failed to parse pr_test_results.json for instance %s (content: %r). "
++                "Treating all instance tests as failed.",
++                self.instance_id,
++                test_results[:200] if test_results else test_results,
++            )
++            test_results = {}
+ 
+         return test_results
+ 
+@@ -256,26 +282,64 @@ class AgentbenchInstance(Instance):
+ 
+         logger.info(f"Solving instance {self.instance_id} in repo {self.repo} at commit {self.commit}")
+ 
++        # Initialize defaults so the except block doesn't clobber
++        # values that were already computed before the exception.
++        repo_test_pass = False
++        repo_test_after = {}
++        repo_test_after_pr_patch = {}
++        base_passed = False
++
+         try:
+             env = self.setup({})
+ 
++            # Run baseline repo tests BEFORE applying patch to detect
++            # pre-broken tests (e.g. MCP tests that fail under x86 emulation on ARM)
++            pre_broken_tests = set()
++            if run_repo_test:
++                self._setup_repo_test(env)
++                baseline_results = self._run_repo_test(env)
++                baseline_results = {k[-200:]: v for k, v in baseline_results.items()}
++                if baseline_results:
++                    repo_test_after_pr_patch = self.repo_test_after_pr_patch or {}
++                    for test_name, expected_pass in repo_test_after_pr_patch.items():
++                        truncated = test_name[-200:]
++                        actual = baseline_results.get(truncated, True)
++                        if expected_pass and not actual:
++                            logger.info(
++                                "Instance %s: repo test %s is pre-broken in this environment "
++                                "(expected PASS from golden ref, got FAIL before patching). "
++                                "Excluding from post-patch comparison.",
++                                self.instance_id,
++                                test_name,
++                            )
++                            pre_broken_tests.add(truncated)
++                else:
++                    logger.warning(
++                        "Instance %s: baseline repo test returned no results "
++                        "(timeout or parse error). Skipping pre-broken detection.",
++                        self.instance_id,
++                    )
++
+             # We add the proposed solution patch
+-            # First we remove the modifications to test files from the patch 
++            # First we remove the modifications to test files from the patch
+             apply_patch_cmd = f"echo {shlex.quote(model_patch)} | git apply --whitespace=nowarn -"
+             env.execute(apply_patch_cmd)
+ 
+             if run_repo_test:
+-                self._setup_repo_test(env)
+                 repo_test_after = self._run_repo_test(env)
+ 
+                 # Truncate keys to match those in repo_test_after_pr_patch
+-                repo_test_after = {k[-50:]: v for k, v in repo_test_after.items()}
++                repo_test_after = {k[-200:]: v for k, v in repo_test_after.items()}
+ 
+                 repo_test_pass = True
+                 # Results should be the same as repo_test_after_pr_patch (or better)
+                 repo_test_after_pr_patch = self.repo_test_after_pr_patch or {}
+                 for test_name, result_before in repo_test_after_pr_patch.items():
+-                    result_after = repo_test_after.get(test_name[-50:], True)
++                    truncated = test_name[-200:]
++                    # Skip tests that were already broken before patching
++                    if truncated in pre_broken_tests:
++                        continue
++                    result_after = repo_test_after.get(truncated, True)
+                     if result_before and not result_after:
+                         logger.warning(
+                             "Rejecting instance %s: repo test %s broke because of the patch.",
+@@ -292,15 +356,20 @@ class AgentbenchInstance(Instance):
+             # We add the proposed test patch
+             self._setup_instance_test(env)
+             instance_test_results = self._run_instance_test(env)
+-            base_passed = all(instance_test_results.get(test, False) for test in instance_test_results)
++            # Empty results means test runner failed — treat as not passed
++            if not instance_test_results:
++                logger.warning(
++                    "Instance %s: instance test produced no results (test runner failed).",
++                    self.instance_id,
++                )
++                base_passed = False
++            else:
++                base_passed = all(instance_test_results.get(test, False) for test in instance_test_results)
+ 
+         except Exception as e:
+             logger.error(f"Error during solving instance {self.instance_id}: {e}")
+             logger.error(traceback.format_exc())
+             base_passed = False
+-            repo_test_pass = False
+-            repo_test_after = {}
+-            repo_test_after_pr_patch = {}
+ 
+         # Save the results
+         output_file = base_dir / f"{self.instance_id}" / "report.json"
+diff --git a/src/agentbench/environments/docker.py b/src/agentbench/environments/docker.py
+index d7e425c..1f65765 100644
+--- a/src/agentbench/environments/docker.py
++++ b/src/agentbench/environments/docker.py
+@@ -56,7 +56,7 @@ class DockerEnvironmentConfig:
+     """Additional arguments to pass to the docker/container executable.
+     Default is ["--rm"], which removes the container after it exits.
+     """
+-    container_timeout: str = "2h"
++    container_timeout: str = "4h"
+     """Max duration to keep container running. Uses the same format as the sleep command."""
+ 
+ 
+diff --git a/src/agentbench/model/litellm_wrapper/litellm_server.py b/src/agentbench/model/litellm_wrapper/litellm_server.py
+index 4824ed5..00919db 100644
+--- a/src/agentbench/model/litellm_wrapper/litellm_server.py
++++ b/src/agentbench/model/litellm_wrapper/litellm_server.py
+@@ -5,6 +5,7 @@ import json
+ import os
+ import shutil
+ import subprocess
++import sys
+ import tempfile
+ import threading
+ import time
+@@ -77,7 +78,12 @@ class LitellmServer(Model):
+         self.responses: list[dict[str, Any]] = []
+ 
+         self._host = host
+-        self._bind_host = get_primary_ip() if host == "0.0.0.0" else host
++        import platform
++        if platform.system() == "Darwin" and host == "0.0.0.0":
++            # macOS Docker Desktop: containers reach host via host.docker.internal
++            self._bind_host = "host.docker.internal"
++        else:
++            self._bind_host = get_primary_ip() if host == "0.0.0.0" else host
+         self._port = port
+         self._startup_wait_s = startup_wait_s
+ 
+@@ -129,28 +135,59 @@ class LitellmServer(Model):
+ 
+         alias = self.config.model_name
+         self.logger.debug(f"Model '{self.config.model_name}' as alias '{alias}'")
++
++        # Build base litellm_params for the configured model
++        base_params = {
++            "model": self.config.model_name,
++            **({"api_base": self.config.api_base} if self.config.api_base else {}),
++            **(self.config.model_kwargs or {}),
++        }
++        haiku_params = {
++            "model": "claude-haiku-4-5-20251001",
++            **({"api_base": self.config.api_base} if self.config.api_base else {}),
++            **(self.config.model_kwargs or {}),
++        }
++
++        model_list = [
++            {"model_name": alias, "litellm_params": {**base_params}},
++        ]
++
++        # Claude Code sub-agents (Task tool) resolve model names to canonical
++        # Anthropic IDs that differ from the API model ID passed via --model.
++        # For example, when the parent runs as "anthropic/claude-sonnet-4-5-20250929",
++        # a sub-agent with model="sonnet" sends "claude-sonnet-4-6" to the API.
++        # We register all known canonical names so sub-agents can reach the proxy.
++        #
++        # Claude Code model resolution (from system prompt):
++        #   model="sonnet" → claude-sonnet-4-6
++        #   model="haiku"  → claude-haiku-4-5 (or claude-haiku-4-5-20251001)
++        #   model="opus"   → claude-opus-4-6
++        #   no model specified → inherits parent, but may still use canonical ID
++        claude_code_aliases = [
++            # Sonnet aliases → route to configured model
++            "claude-sonnet-4-6",
++            "claude-sonnet-4-5-20250929",
++            # Opus aliases → route to configured model (same proxy, best effort)
++            "claude-opus-4-6",
++            "claude-opus-4-5-20251101",
++        ]
++        haiku_aliases = [
++            "claude-haiku-4-5-20251001",
++            "claude-haiku-4-5",
++        ]
++
++        seen = {alias}
++        for name in claude_code_aliases:
++            if name not in seen:
++                model_list.append({"model_name": name, "litellm_params": {**base_params}})
++                seen.add(name)
++        for name in haiku_aliases:
++            if name not in seen:
++                model_list.append({"model_name": name, "litellm_params": {**haiku_params}})
++                seen.add(name)
++
+         proxy_cfg = {
+-            # A single-model list mapping to your configured model
+-            "model_list": [
+-                {
+-                    # Alias exposed by the proxy. Using the same string is convenient,
+-                    # but you could also put a friendly alias here.
+-                    "model_name": alias,
+-                    "litellm_params": {
+-                        "model": self.config.model_name,
+-                        **({"api_base": self.config.api_base} if self.config.api_base else {}),
+-                        **(self.config.model_kwargs or {}),
+-                    },
+-                },
+-                {
+-                    "model_name": "claude-haiku-4-5-20251001",
+-                    "litellm_params": {
+-                        "model": "claude-haiku-4-5-20251001",
+-                        **({"api_base": self.config.api_base} if self.config.api_base else {}),
+-                        **(self.config.model_kwargs or {}),
+-                    },
+-                }
+-            ],
++            "model_list": model_list,
+             "general_settings": {"drop_params": True, "disable_responses_id_security": True},
+             "litellm_settings": {
+                 "json_logs": True,
+@@ -176,9 +213,13 @@ class LitellmServer(Model):
+         log_path = self._log_dir / f"proxy_{self._port}.log"
+         self._server_log_fp = open(log_path, "a", buffering=1)
+ 
+-        cmd = ["litellm", "--config", self._server_cfg_path,
++        # Use litellm from the same environment as the running Python
++        litellm_bin = str(Path(sys.executable).parent / "litellm")
++        if not Path(litellm_bin).exists():
++            litellm_bin = "litellm"  # fallback to PATH
++        cmd = [litellm_bin, "--config", self._server_cfg_path,
+                    "--host", self._host, "--port", str(self._port)]
+-        
++
+         self.logger.debug(f"Starting LiteLLM proxy with command: {' '.join(cmd)}")
+         self._server_proc = subprocess.Popen(
+             cmd,
+diff --git a/src/agentbench/planners/__init__.py b/src/agentbench/planners/__init__.py
+index def6f66..bfd6509 100644
+--- a/src/agentbench/planners/__init__.py
++++ b/src/agentbench/planners/__init__.py
+@@ -14,6 +14,8 @@ _PLANNER_MAPPING = {
+     "no_plan": "agentbench.planners.no_plan.NoPlanPlanner",
+     "human_planner": "agentbench.planners.human_planner.HumanPlanner",
+     "init_planner": "agentbench.planners.init_planner.InitPlanner",
++    "claudemem_planner": "agentbench.planners.claudemem_planner.ClaudememPlanner",
++    "human_written_planner": "agentbench.planners.human_written_planner.HumanWrittenPlanner",
+ }
+ 
+ 
+diff --git a/src/agentbench/planners/claudemem_planner.py b/src/agentbench/planners/claudemem_planner.py
+new file mode 100644
+index 0000000..12736b5
+--- /dev/null
++++ b/src/agentbench/planners/claudemem_planner.py
+@@ -0,0 +1,921 @@
++"""
++claudemem_planner.py - AgentBench planner that uses claudemem for semantic context.
++
++This planner runs claudemem on the host to index a repo and extract relevant
++context, then writes an AGENTS.md into the Docker container before the agent
++starts solving. It is designed to plug into the eth-sri/agentbench harness.
++
++Usage in a plan config:
++    {
++        "planner_class": "claudemem_planner",
++        "variant": "full",           # full | map_only | search_only | minimal
++        "max_search_results": 5,
++        "max_map_symbols": 10,
++        "storage_dir": "output/plans",
++    }
++
++Environment variable override:
++    CLAUDEMEM_EVAL_VARIANT=full|map_only|search_only|minimal
++"""
++
++from __future__ import annotations
++
++import hashlib
++import json
++import logging
++import os
++import re
++import shlex
++import subprocess
++import tempfile
++from pathlib import Path
++from typing import Any, Optional
++
++logger = logging.getLogger(__name__)
++
++# ---------------------------------------------------------------------------
++# Variant constants
++# ---------------------------------------------------------------------------
++
++VARIANT_FULL = "full"
++VARIANT_MAP_ONLY = "map_only"
++VARIANT_SEARCH_ONLY = "search_only"
++VARIANT_MINIMAL = "minimal"
++VALID_VARIANTS = {VARIANT_FULL, VARIANT_MAP_ONLY, VARIANT_SEARCH_ONLY, VARIANT_MINIMAL}
++
++# Target token budget for the generated AGENTS.md (conservative estimate).
++TARGET_TOKENS = 850
++
++# Default limits
++DEFAULT_MAX_SEARCH_RESULTS = 5
++DEFAULT_MAX_MAP_SYMBOLS = 10
++
++
++# ---------------------------------------------------------------------------
++# Simple type stubs matching the agentbench Protocol interfaces.
++# The real imports come from the harness; these exist only for type-checking.
++# ---------------------------------------------------------------------------
++
++try:
++    from agentbench.envs import Environment  # type: ignore[import]
++    from agentbench.models import Model  # type: ignore[import]
++    from agentbench.instances import Instance  # type: ignore[import]
++except ImportError:
++    # Allow the module to be imported and tested outside the harness.
++    Environment = Any  # type: ignore[assignment,misc]
++    Model = Any  # type: ignore[assignment,misc]
++    Instance = Any  # type: ignore[assignment,misc]
++
++
++# ---------------------------------------------------------------------------
++# Cache helpers
++# ---------------------------------------------------------------------------
++
++def _get_cache_dir() -> Path:
++    """Return the default claudemem eval cache directory."""
++    return Path.home() / ".claudemem" / "eval-cache"
++
++
++def _get_repo_cache_dir() -> Path:
++    """Return the default directory for cloned eval repos."""
++    return Path.home() / ".claudemem" / "eval-repos"
++
++
++def _compute_cache_key(repo_path: str, git_commit: str) -> str:
++    """Compute a stable cache key for a repo at a specific commit.
++
++    Args:
++        repo_path: Absolute path to the repository on disk.
++        git_commit: Full or abbreviated git commit hash.
++
++    Returns:
++        A 64-character hex string (SHA-256 of ``repo_path:git_commit``).
++    """
++    raw = f"{repo_path}:{git_commit}"
++    return hashlib.sha256(raw.encode()).hexdigest()
++
++
++def _get_git_commit(repo_path: str) -> str:
++    """Return the HEAD commit hash for *repo_path*, or 'unknown' on failure."""
++    try:
++        result = subprocess.run(
++            ["git", "-C", repo_path, "rev-parse", "HEAD"],
++            capture_output=True,
++            text=True,
++            timeout=10,
++        )
++        if result.returncode == 0:
++            return result.stdout.strip()
++    except Exception as exc:  # noqa: BLE001
++        logger.debug("git rev-parse failed for %s: %s", repo_path, exc)
++    return "unknown"
++
++
++# ---------------------------------------------------------------------------
++# claudemem runner
++# ---------------------------------------------------------------------------
++
++def _run_claudemem(args: list[str], cwd: Optional[str] = None, timeout: int = 120) -> str:
++    """Run a claudemem command and return its stdout.
++
++    Args:
++        args: Command arguments to pass after ``claudemem``.
++        cwd: Working directory for the subprocess.
++        timeout: Maximum seconds to wait.
++
++    Returns:
++        Decoded stdout from the command.
++
++    Raises:
++        subprocess.CalledProcessError: If claudemem exits with non-zero status.
++        subprocess.TimeoutExpired: If the command exceeds *timeout* seconds.
++        FileNotFoundError: If ``claudemem`` is not on PATH.
++    """
++    cmd = ["claudemem", *args]
++    logger.debug("Running: %s (cwd=%s)", " ".join(shlex.quote(a) for a in cmd), cwd)
++    result = subprocess.run(
++        cmd,
++        capture_output=True,
++        text=True,
++        cwd=cwd,
++        timeout=timeout,
++    )
++    if result.returncode != 0:
++        logger.warning(
++            "claudemem exited %d: %s", result.returncode, result.stderr.strip()
++        )
++        result.check_returncode()
++    return result.stdout
++
++
++# ---------------------------------------------------------------------------
++# Output parsers
++# ---------------------------------------------------------------------------
++
++def _parse_map_output(raw: str) -> list[dict[str, str]]:
++    """Parse ``claudemem map --agent`` plain-text output.
++
++    The output format is::
++
++        file=src/core/indexer.ts
++        symbol name=Indexer kind=class line=75 rank=0.0524
++
++    i.e. ``file=<path>`` header lines followed by ``symbol name=... kind=...
++    line=... rank=...`` detail lines.
++
++    Args:
++        raw: Raw stdout from ``claudemem map --agent``.
++
++    Returns:
++        List of dicts with keys ``file``, ``line``, ``name``, ``kind``.
++    """
++    results: list[dict[str, str]] = []
++    current_file = ""
++    for line in raw.splitlines():
++        line = line.strip()
++        if not line:
++            continue
++        # Try JSON first (future-proofing if claudemem adds JSON output).
++        try:
++            obj = json.loads(line)
++            if isinstance(obj, dict):
++                results.append(obj)
++                continue
++        except (json.JSONDecodeError, ValueError):
++            pass
++
++        # file=<path> header line
++        if line.startswith("file="):
++            current_file = line[5:]
++            continue
++
++        # symbol name=X kind=Y line=Z rank=R
++        match = re.match(
++            r"^symbol\s+name=(\S+)\s+kind=(\S+)\s+line=(\d+)(?:\s+rank=\S+)?",
++            line,
++        )
++        if match:
++            results.append({
++                "file": current_file,
++                "name": match.group(1),
++                "kind": match.group(2),
++                "line": match.group(3),
++            })
++            continue
++
++        # Legacy format: file:line name (kind)
++        match = re.match(r"^(.+?):(\d+)\s+(\S+)\s*(?:\((\w+)\))?", line)
++        if match:
++            results.append({
++                "file": match.group(1),
++                "line": match.group(2),
++                "name": match.group(3),
++                "kind": match.group(4) or "",
++            })
++        else:
++            logger.debug("Skipping unparseable map line: %r", line)
++    return results
++
++
++def _parse_search_output(raw: str) -> list[dict[str, str]]:
++    """Parse ``claudemem search --agent`` plain-text output.
++
++    Each line has the format::
++
++        src/core/indexer.ts:75
++
++    i.e. ``file:startLine``.
++
++    Args:
++        raw: Raw stdout from ``claudemem search --agent``.
++
++    Returns:
++        List of dicts with keys ``file`` and ``line``.
++    """
++    results: list[dict[str, str]] = []
++    for line in raw.splitlines():
++        line = line.strip()
++        if not line:
++            continue
++        # Try JSON first.
++        try:
++            obj = json.loads(line)
++            if isinstance(obj, dict):
++                results.append(obj)
++                continue
++        except (json.JSONDecodeError, ValueError):
++            pass
++
++        # Plain-text format: file:line
++        match = re.match(r"^(.+?):(\d+)$", line)
++        if match:
++            results.append({
++                "file": match.group(1),
++                "line": match.group(2),
++            })
++        else:
++            logger.debug("Skipping unparseable search line: %r", line)
++    return results
++
++
++def _truncate_to_tokens(text: str, max_tokens: int) -> str:
++    """Very rough token truncation (1 token ≈ 4 characters).
++
++    This is not a real tokenizer; it exists to keep the AGENTS.md within a
++    budget without adding a heavy dependency.  For production use, replace
++    with tiktoken or similar.
++
++    Args:
++        text: Input string.
++        max_tokens: Approximate upper bound in tokens.
++
++    Returns:
++        Possibly truncated string.
++    """
++    max_chars = max_tokens * 4
++    if len(text) <= max_chars:
++        return text
++    truncated = text[:max_chars]
++    # Try to end on a line boundary.
++    last_newline = truncated.rfind("\n")
++    if last_newline > max_chars // 2:
++        truncated = truncated[:last_newline]
++    return truncated + "\n<!-- truncated to stay within token budget -->"
++
++
++# ---------------------------------------------------------------------------
++# AGENTS.md formatter
++# ---------------------------------------------------------------------------
++
++def _format_agents_md(
++    *,
++    problem_description: str,
++    map_results: list[dict[str, str]],
++    search_results: list[dict[str, str]],
++    variant: str,
++    repo_path: str,
++) -> str:
++    """Format claudemem outputs into a concise AGENTS.md.
++
++    Follows the guidelines from arXiv 2602.11988: avoid generic overviews,
++    focus on actionable, task-specific information.
++
++    Args:
++        problem_description: The task/issue description (used as search query).
++        map_results: Parsed output from ``claudemem map --agent``.
++        search_results: Parsed output from ``claudemem search --agent``.
++        variant: One of VALID_VARIANTS.
++        repo_path: Absolute repo path (for display only).
++
++    Returns:
++        A Markdown string suitable for writing to AGENTS.md.
++    """
++    sections: list[str] = []
++
++    # Header - keep it tight, no generic boilerplate.
++    sections.append("# Repository Context\n")
++    sections.append(
++        f"> Generated by claudemem for: {problem_description[:120]}\n"
++    )
++
++    # Map section — list top symbols with file:line and kind
++    if map_results and variant in (VARIANT_FULL, VARIANT_MAP_ONLY):
++        lines = ["## Key Symbols (by PageRank)\n"]
++        for item in map_results:
++            name = item.get("name", "")
++            file_ = item.get("file", "")
++            line_no = item.get("line", "")
++            kind = item.get("kind", "")
++            if not file_:
++                continue
++            ref = f"`{file_}:{line_no}`" if line_no else f"`{file_}`"
++            parts = [f"- {ref}"]
++            if name:
++                parts.append(f"**{name}**")
++            if kind:
++                parts.append(f"({kind})")
++            lines.append(" ".join(parts))
++        if len(lines) > 1:
++            sections.append("\n".join(lines) + "\n")
++
++    # Search section — list relevant file locations
++    if search_results and variant in (VARIANT_FULL, VARIANT_SEARCH_ONLY, VARIANT_MINIMAL):
++        lines = ["## Relevant Code Locations\n"]
++        limit = 3 if variant == VARIANT_MINIMAL else len(search_results)
++        for item in search_results[:limit]:
++            file_ = item.get("file", "")
++            line_no = item.get("line", "")
++            name = item.get("name", "")
++            if not file_:
++                continue
++            ref = f"`{file_}:{line_no}`" if line_no else f"`{file_}`"
++            parts = [f"- {ref}"]
++            if name:
++                parts.append(f"**{name}**")
++            lines.append(" ".join(parts))
++        if len(lines) > 1:
++            sections.append("\n".join(lines) + "\n")
++
++    full_text = "\n".join(sections)
++    return _truncate_to_tokens(full_text, TARGET_TOKENS)
++
++
++# ---------------------------------------------------------------------------
++# Main planner class
++# ---------------------------------------------------------------------------
++
++class ClaudememPlanner:
++    """AgentBench Planner that uses claudemem for semantic repository context.
++
++    This planner runs on the **host** machine (not inside Docker).  It clones
++    the repo from GitHub, indexes it with claudemem, runs ``map`` and/or
++    ``search`` to extract relevant context, then writes an AGENTS.md into the
++    container before the agent session starts.
++
++    The constructor accepts ``**kwargs`` to match the harness calling convention:
++
++        planner_class = get_planner_class(config.pop("planner_class"))
++        planner = planner_class(**config)
++
++    Extra keys injected by the harness at runtime (``plan_model``,
++    ``generator_config``, ``model_config``, ``storage_dir``) are silently
++    ignored if not recognised.
++    """
++
++    def __init__(self, **kwargs: Any) -> None:
++        # Variant: env var overrides config, config overrides default.
++        self.variant: str = (
++            os.environ.get("CLAUDEMEM_EVAL_VARIANT")
++            or kwargs.get("variant", VARIANT_FULL)
++        )
++        if self.variant not in VALID_VARIANTS:
++            logger.warning(
++                "Unknown variant %r, falling back to %r", self.variant, VARIANT_FULL
++            )
++            self.variant = VARIANT_FULL
++
++        self.max_search_results: int = int(
++            kwargs.get("max_search_results", DEFAULT_MAX_SEARCH_RESULTS)
++        )
++        self.max_map_symbols: int = int(
++            kwargs.get("max_map_symbols", DEFAULT_MAX_MAP_SYMBOLS)
++        )
++        self.storage_dir: Path = Path(kwargs.get("storage_dir", "output/plans"))
++        self.cache_dir: Path = Path(
++            kwargs.get("cache_dir", _get_cache_dir())
++        )
++        self.repo_cache_dir: Path = Path(
++            kwargs.get("repo_cache_dir", _get_repo_cache_dir())
++        )
++        self.base_content_source: str | None = kwargs.get("base_content_source", None)
++        self.generated_cache_dir: Path = Path(
++            kwargs.get("generated_cache_dir",
++                       str(Path.home() / ".claudemem" / "eval-generated"))
++        )
++        self.cache_dir.mkdir(parents=True, exist_ok=True)
++        self._indexed_cache: set[str] = set()
++        logger.info(
++            "ClaudememPlanner initialised (variant=%s, base_content_source=%s, cache_dir=%s)",
++            self.variant,
++            self.base_content_source,
++            self.cache_dir,
++        )
++
++    # ------------------------------------------------------------------
++    # Public Protocol methods
++    # ------------------------------------------------------------------
++
++    def get_name(self) -> str:
++        """Return a human-readable planner name for logging and reports."""
++        base = f"claudemem_{self.variant}"
++        if self.base_content_source:
++            return f"{base}+{self.base_content_source}"
++        return base
++
++    def get_template_vars(self) -> dict[str, Any]:
++        """Return template variables injected into prompt templates.
++
++        Returns:
++            Dict with planner metadata that can be used in Jinja2 templates.
++        """
++        return {
++            "planner_name": self.get_name(),
++            "variant": self.variant,
++            "max_search_results": self.max_search_results,
++            "max_map_symbols": self.max_map_symbols,
++        }
++
++    def plan(self, env: Any, model: Any, instance: Any) -> None:
++        """Generate and inject an AGENTS.md for *instance*.
++
++        Clones the repo from GitHub (with caching), indexes it with claudemem,
++        runs the configured search/map variant, and writes AGENTS.md (and
++        CLAUDE.md) into the container.  If any step fails the planner writes an
++        empty AGENTS.md and continues - it must never crash the eval run.
++
++        Args:
++            env: agentbench Environment (provides ``execute``).
++            model: agentbench Model (unused here, available for future use).
++            instance: agentbench Instance with task metadata.
++        """
++        repo_path = self._ensure_local_repo(instance)
++        problem = self._resolve_problem(instance)
++
++        logger.info(
++            "[%s] Planning for instance %s (repo=%s, variant=%s)",
++            self.get_name(),
++            getattr(instance, "instance_id", "?"),
++            repo_path,
++            self.variant,
++        )
++
++        agents_md = ""
++        try:
++            self._ensure_indexed(repo_path)
++            agents_md = self._build_agents_md(repo_path, problem, instance)
++        except Exception as exc:  # noqa: BLE001
++            logger.error(
++                "[%s] claudemem failed, writing empty AGENTS.md: %s",
++                self.get_name(),
++                exc,
++                exc_info=True,
++            )
++
++        self._write_agents_md(env, agents_md, instance)
++        self._save_plan_locally(agents_md, instance)
++
++    def update_plan(
++        self,
++        instance: Any,
++        traces: list[dict],
++        result: str,
++        base_dir: Path,
++        **kwargs: Any,
++    ) -> None:
++        """No-op for claudemem: we produce a one-shot plan only.
++
++        Args:
++            instance: agentbench Instance.
++            traces: List of step traces (ignored).
++            result: Final result string (ignored).
++            base_dir: Output directory (ignored).
++            **kwargs: Extra keyword args injected by the harness (e.g. ``model``).
++        """
++        logger.debug("[%s] update_plan called (no-op)", self.get_name())
++
++    # ------------------------------------------------------------------
++    # Private helpers
++    # ------------------------------------------------------------------
++
++    def _ensure_local_repo(self, instance: Any) -> str:
++        """Clone the repo from GitHub and checkout the right commit.
++
++        The instance must have:
++          - ``instance.repo``: GitHub identifier like ``"owner/repo-name"``
++          - ``instance.commit``: git SHA to checkout
++
++        The repo is cloned to::
++
++            {self.repo_cache_dir}/{owner_name}/{commit[:12]}/
++
++        and reused on subsequent calls with the same repo+commit.
++
++        Args:
++            instance: agentbench Instance with ``repo`` and ``commit`` fields.
++
++        Returns:
++            Absolute path string to the local clone.
++
++        Raises:
++            ValueError: If ``instance.repo`` or ``instance.commit`` are missing.
++            subprocess.CalledProcessError: If git clone or checkout fails.
++        """
++        repo = getattr(instance, "repo", None)
++        if isinstance(instance, dict):
++            repo = repo or instance.get("repo")
++        if not repo:
++            raise ValueError(
++                f"Cannot resolve repo from instance (expected instance.repo): {instance!r}"
++            )
++
++        commit = getattr(instance, "commit", None)
++        if isinstance(instance, dict):
++            commit = commit or instance.get("commit")
++        if not commit:
++            raise ValueError(
++                f"Cannot resolve commit from instance (expected instance.commit): {instance!r}"
++            )
++
++        # Sanitize repo name for filesystem: "owner/name" -> "owner_name"
++        repo_slug = repo.replace("/", "_")
++        local_dir = self.repo_cache_dir / repo_slug / commit[:12]
++
++        if local_dir.exists() and (local_dir / ".git").exists():
++            logger.debug("Repo cache hit: %s at %s", repo, commit[:12])
++            return str(local_dir)
++
++        # Also check a flat layout: {repo_cache_dir}/{slug}/ (for pre-indexed repos)
++        flat_dir = self.repo_cache_dir / repo_slug
++        if flat_dir.is_dir() and (flat_dir / ".git").exists():
++            logger.debug("Repo cache hit (flat layout): %s", repo)
++            return str(flat_dir)
++
++        local_dir.mkdir(parents=True, exist_ok=True)
++        url = f"https://github.com/{repo}.git"
++        logger.info("Cloning %s to %s", url, local_dir)
++
++        clone_result = subprocess.run(
++            ["git", "clone", url, str(local_dir)],
++            capture_output=True,
++            text=True,
++            timeout=300,
++        )
++        if clone_result.returncode != 0:
++            clone_result.check_returncode()
++
++        checkout_result = subprocess.run(
++            ["git", "-C", str(local_dir), "checkout", commit],
++            capture_output=True,
++            text=True,
++            timeout=60,
++        )
++        if checkout_result.returncode != 0:
++            checkout_result.check_returncode()
++
++        logger.info("Cloned and checked out %s@%s to %s", repo, commit[:12], local_dir)
++        return str(local_dir)
++
++    def _resolve_problem(self, instance: Any) -> str:
++        """Extract the problem/task description from *instance*.
++
++        Checks ``task`` first (the field agentbench uses), then falls back to
++        other common field names.
++
++        Args:
++            instance: agentbench Instance object.
++
++        Returns:
++            Problem description string (may be empty).
++        """
++        for attr in ("task", "problem_statement", "description", "issue_description"):
++            val = getattr(instance, attr, None)
++            if val:
++                return str(val)[:500]  # keep it concise for the query
++
++        if isinstance(instance, dict):
++            for key in ("task", "problem_statement", "description", "issue_description"):
++                val = instance.get(key)
++                if val:
++                    return str(val)[:500]
++
++        return ""
++
++    def _compute_cache_key(self, repo_path: str) -> str:
++        """Compute cache key for *repo_path* at its current HEAD commit.
++
++        Args:
++            repo_path: Absolute path to the repository.
++
++        Returns:
++            SHA-256 hex digest string.
++        """
++        commit = _get_git_commit(repo_path)
++        return _compute_cache_key(repo_path, commit)
++
++    def _ensure_indexed(self, repo_path: str) -> None:
++        """Index *repo_path* with claudemem unless it is already cached.
++
++        Checks three levels of caching:
++        1. In-process set (fastest, same planner instance)
++        2. Existing ``.claudemem/index.db`` in repo (pre-indexed repos)
++        3. Persistent sentinel file ``<cache_dir>/<key>.indexed``
++
++        Falls back to running ``claudemem index`` if none match.
++
++        Args:
++            repo_path: Absolute path to the repo on disk.
++        """
++        cache_key = self._compute_cache_key(repo_path)
++
++        # In-process cache (fast path).
++        if cache_key in self._indexed_cache:
++            logger.debug("Cache hit (in-process): %s", cache_key[:12])
++            return
++
++        # Pre-indexed repo (e.g. flat clone from preindex.py).
++        index_db = Path(repo_path) / ".claudemem" / "index.db"
++        if index_db.exists():
++            logger.debug("Cache hit (index.db exists): %s", repo_path)
++            self._indexed_cache.add(cache_key)
++            return
++
++        # Persistent sentinel file (cross-process / cross-run cache).
++        sentinel = self.cache_dir / f"{cache_key}.indexed"
++        if sentinel.exists():
++            logger.debug("Cache hit (disk): %s", cache_key[:12])
++            self._indexed_cache.add(cache_key)
++            return
++
++        logger.info("Indexing repo %s (cache key %s…)", repo_path, cache_key[:12])
++        try:
++            _run_claudemem(["index", repo_path], timeout=300)
++            sentinel.touch()
++            self._indexed_cache.add(cache_key)
++            logger.info("Index complete for %s", repo_path)
++        except Exception as exc:
++            # Indexing failure is non-fatal; we'll proceed with degraded output.
++            logger.warning("Index failed for %s: %s", repo_path, exc)
++            raise
++
++    def _run_map(self, repo_path: str) -> list[dict[str, str]]:
++        """Run ``claudemem map --agent`` and return parsed results.
++
++        Args:
++            repo_path: Absolute path to the indexed repo.
++
++        Returns:
++            Parsed JSON-lines list (may be empty on failure).
++        """
++        try:
++            raw = _run_claudemem(
++                ["map", "--agent", "--limit", str(self.max_map_symbols)],
++                cwd=repo_path,
++                timeout=60,
++            )
++            return _parse_map_output(raw)
++        except Exception as exc:  # noqa: BLE001
++            logger.warning("claudemem map failed: %s", exc)
++            return []
++
++    def _run_search(self, repo_path: str, query: str) -> list[dict[str, str]]:
++        """Run ``claudemem search --agent`` and return parsed results.
++
++        Args:
++            repo_path: Absolute path to the indexed repo.
++            query: The semantic search query (problem description).
++
++        Returns:
++            Parsed JSON-lines list (may be empty on failure).
++        """
++        if not query:
++            logger.debug("Empty query, skipping search")
++            return []
++        try:
++            raw = _run_claudemem(
++                [
++                    "search",
++                    query,
++                    "--agent",
++                    "--limit",
++                    str(self.max_search_results),
++                ],
++                cwd=repo_path,
++                timeout=15,
++            )
++            return _parse_search_output(raw)
++        except Exception as exc:  # noqa: BLE001
++            logger.warning("claudemem search failed: %s", exc)
++            return []
++
++    def _build_agents_md(self, repo_path: str, problem: str, instance: Any = None) -> str:
++        """Run the configured variant and format the AGENTS.md string.
++
++        Args:
++            repo_path: Absolute path to the indexed repo.
++            problem: Task/issue description.
++            instance: agentbench Instance (needed for base_content_source lookups).
++
++        Returns:
++            Formatted AGENTS.md content.
++        """
++        map_results: list[dict[str, str]] = []
++        search_results: list[dict[str, str]] = []
++
++        if self.variant in (VARIANT_FULL, VARIANT_MAP_ONLY):
++            map_results = self._run_map(repo_path)
++
++        if self.variant in (VARIANT_FULL, VARIANT_SEARCH_ONLY, VARIANT_MINIMAL):
++            search_results = self._run_search(repo_path, problem)
++
++        claudemem_content = _format_agents_md(
++            problem_description=problem,
++            map_results=map_results,
++            search_results=search_results,
++            variant=self.variant,
++            repo_path=repo_path,
++        )
++
++        base_content = ""
++        if self.base_content_source == "human_written":
++            base_content = self._read_human_written_content(repo_path)
++        elif self.base_content_source == "generated" and instance is not None:
++            base_content = self._read_generated_content(repo_path, instance)
++
++        if base_content:
++            return claudemem_content + "\n\n---\n\n" + base_content
++        return claudemem_content
++
++    def _read_human_written_content(self, repo_path: str) -> str:
++        """Read human-written context files from the local repo clone.
++
++        Checks CLAUDE.md, AGENTS.md, and .github/copilot-instructions.md in
++        priority order (same as HumanWrittenPlanner).
++
++        Args:
++            repo_path: Absolute path to the local repo clone.
++
++        Returns:
++            Content of the first found context file, or empty string.
++        """
++        candidates = [
++            "CLAUDE.md",
++            "AGENTS.md",
++            ".github/copilot-instructions.md",
++        ]
++        repo = Path(repo_path)
++        for candidate in candidates:
++            candidate_path = repo / candidate
++            if candidate_path.is_file():
++                try:
++                    content = candidate_path.read_text(encoding="utf-8")
++                    if content.strip():
++                        logger.info(
++                            "Read human-written content from %s (%d chars)",
++                            candidate, len(content),
++                        )
++                        return content
++                except OSError as exc:
++                    logger.warning("Could not read %s: %s", candidate_path, exc)
++
++        logger.debug("No human-written context file found in %s", repo_path)
++        return ""
++
++    def _read_generated_content(self, repo_path: str, instance: Any) -> str:
++        """Read doctor-generated CLAUDE.md from the pre-generated cache.
++
++        Checks these locations in order:
++        1. ``{generated_cache_dir}/{repo_slug}/{commit[:12]}/CLAUDE.md``
++        2. ``{generated_cache_dir}/{repo_slug}/CLAUDE.md`` (flat layout)
++        3. ``{repo_path}/.claudemem/generated/CLAUDE.md``
++
++        Args:
++            repo_path: Absolute path to the local repo clone.
++            instance: agentbench Instance with ``repo`` and ``commit`` fields.
++
++        Returns:
++            Generated CLAUDE.md content, or empty string.
++        """
++        repo = getattr(instance, "repo", None)
++        if isinstance(instance, dict):
++            repo = repo or instance.get("repo")
++        commit = getattr(instance, "commit", None)
++        if isinstance(instance, dict):
++            commit = commit or instance.get("commit")
++
++        candidates: list[Path] = []
++        if repo:
++            repo_slug = repo.replace("/", "_")
++            if commit:
++                candidates.append(
++                    self.generated_cache_dir / repo_slug / commit[:12] / "CLAUDE.md"
++                )
++            candidates.append(self.generated_cache_dir / repo_slug / "CLAUDE.md")
++        candidates.append(Path(repo_path) / ".claudemem" / "generated" / "CLAUDE.md")
++
++        for path in candidates:
++            if path.is_file():
++                try:
++                    content = path.read_text(encoding="utf-8")
++                    if content.strip():
++                        logger.info(
++                            "Read generated content from %s (%d chars)",
++                            path, len(content),
++                        )
++                        return content
++                except OSError as exc:
++                    logger.warning("Could not read generated file %s: %s", path, exc)
++
++        logger.debug("No generated context file found for %s", repo_path)
++        return ""
++
++    def _write_agents_md(self, env: Any, content: str, instance: Any) -> None:
++        """Write *content* to AGENTS.md and CLAUDE.md inside the Docker container.
++
++        If the repo already has an AGENTS.md, the claudemem context is prepended
++        to it rather than replacing it.  If claudemem produced only a stub header
++        (no map/search results), the original file is preserved untouched.
++
++        Args:
++            env: agentbench Environment with an ``execute`` method.
++            content: AGENTS.md content (may be empty).
++            instance: agentbench Instance (used for logging only).
++        """
++        instance_id = getattr(instance, "instance_id", "?")
++
++        # Check if claudemem produced useful content beyond the stub header.
++        has_useful_content = (
++            "## Key Symbols" in content or "## Relevant Code" in content
++        )
++
++        try:
++            for fname in ("AGENTS.md", "CLAUDE.md"):
++                # Read existing file (if any) from the container.
++                existing = ""
++                try:
++                    existing = env.read_file(fname) or ""
++                except Exception:
++                    pass
++
++                if existing and not has_useful_content:
++                    # claudemem produced only a stub — preserve original.
++                    logger.info(
++                        "[%s] Keeping existing %s (%d chars) for %s "
++                        "(claudemem output was degraded)",
++                        self.get_name(),
++                        fname,
++                        len(existing),
++                        instance_id,
++                    )
++                    continue
++
++                if existing:
++                    # Prepend claudemem context before original content.
++                    merged = content + "\n\n---\n\n" + existing
++                else:
++                    merged = content
++
++                quoted = shlex.quote(merged)
++                env.execute(f"echo {quoted} > {fname}", timeout=False)
++
++            logger.info(
++                "[%s] Wrote AGENTS.md and CLAUDE.md (%d chars, useful=%s) for instance %s",
++                self.get_name(),
++                len(content),
++                has_useful_content,
++                instance_id,
++            )
++        except Exception as exc:  # noqa: BLE001
++            logger.error(
++                "[%s] Failed to write context files to container: %s",
++                self.get_name(),
++                exc,
++            )
++
++    def _save_plan_locally(self, content: str, instance: Any) -> None:
++        """Save the generated plan to *storage_dir* for analysis.
++
++        Args:
++            content: AGENTS.md content.
++            instance: agentbench Instance (used for naming the file).
++        """
++        try:
++            self.storage_dir.mkdir(parents=True, exist_ok=True)
++            instance_id = getattr(instance, "instance_id", None)
++            if isinstance(instance, dict):
++                instance_id = instance.get("instance_id", instance_id)
++            filename = f"{instance_id or 'unknown'}_agents.md"
++            out_path = self.storage_dir / filename
++            out_path.write_text(content, encoding="utf-8")
++            logger.debug("Saved plan to %s", out_path)
++        except Exception as exc:  # noqa: BLE001
++            logger.debug("Could not save plan locally: %s", exc)
+diff --git a/src/agentbench/planners/human_written_planner.py b/src/agentbench/planners/human_written_planner.py
+new file mode 100644
+index 0000000..6e8f3c3
+--- /dev/null
++++ b/src/agentbench/planners/human_written_planner.py
+@@ -0,0 +1,312 @@
++"""
++human_written_planner.py - AgentBench planner that uses existing human-written context files.
++
++This planner reads CLAUDE.md, AGENTS.md, or .github/copilot-instructions.md from
++the local repo clone (not from Docker) and injects the content into the Docker
++container as both AGENTS.md and CLAUDE.md before the agent starts solving.
++
++Priority order for reading context files:
++1. CLAUDE.md (Claude Code native)
++2. AGENTS.md (Codex/universal)
++3. .github/copilot-instructions.md (Copilot)
++
++If multiple exist, only the highest-priority file is used. If none exist,
++empty AGENTS.md and CLAUDE.md are written (same behavior as no_plan).
++
++Usage in a plan config:
++    {
++        "planner_class": "human_written_planner",
++        "storage_dir": "output/plans/human_written",
++    }
++"""
++
++from __future__ import annotations
++
++import logging
++import shlex
++from pathlib import Path
++from typing import Any
++
++logger = logging.getLogger(__name__)
++
++
++# ---------------------------------------------------------------------------
++# Simple type stubs matching the agentbench Protocol interfaces.
++# The real imports come from the harness; these exist only for type-checking.
++# ---------------------------------------------------------------------------
++
++try:
++    from agentbench.envs import Environment  # type: ignore[import]
++    from agentbench.models import Model  # type: ignore[import]
++    from agentbench.instances import Instance  # type: ignore[import]
++except ImportError:
++    # Allow the module to be imported and tested outside the harness.
++    Environment = Any  # type: ignore[assignment,misc]
++    Model = Any  # type: ignore[assignment,misc]
++    Instance = Any  # type: ignore[assignment,misc]
++
++
++# Context file candidates in priority order (highest priority first).
++_CONTEXT_FILE_CANDIDATES = [
++    "CLAUDE.md",
++    "AGENTS.md",
++    ".github/copilot-instructions.md",
++]
++
++
++def _get_repo_cache_dir() -> Path:
++    """Return the default directory for cloned eval repos."""
++    return Path.home() / ".claudemem" / "eval-repos"
++
++
++def _read_context_file(repo_path: Path) -> tuple[str, str]:
++    """Read the highest-priority context file from *repo_path*.
++
++    Checks each candidate in priority order. Returns the content of the first
++    file that exists and is non-empty.
++
++    Args:
++        repo_path: Path to the local repo clone.
++
++    Returns:
++        A tuple of (source_filename, content). If no context file is found,
++        returns ("", "").
++    """
++    for candidate in _CONTEXT_FILE_CANDIDATES:
++        candidate_path = repo_path / candidate
++        if candidate_path.is_file():
++            try:
++                content = candidate_path.read_text(encoding="utf-8")
++                if content.strip():
++                    logger.info(
++                        "Found context file: %s (%d chars)", candidate, len(content)
++                    )
++                    return candidate, content
++                else:
++                    logger.debug("Skipping empty context file: %s", candidate)
++            except OSError as exc:
++                logger.warning("Could not read %s: %s", candidate_path, exc)
++
++    logger.debug("No context file found in %s", repo_path)
++    return "", ""
++
++
++# ---------------------------------------------------------------------------
++# Main planner class
++# ---------------------------------------------------------------------------
++
++
++class HumanWrittenPlanner:
++    """AgentBench Planner that injects existing human-written context files.
++
++    This planner reads CLAUDE.md, AGENTS.md, or .github/copilot-instructions.md
++    from the local repo clone at ``~/.claudemem/eval-repos/{repo_slug}/``
++    and writes the content into the Docker container before the agent session
++    starts. If no context file exists, it writes empty files (equivalent to
++    no_plan behavior).
++
++    The constructor accepts ``**kwargs`` to match the harness calling convention:
++
++        planner_class = get_planner_class(config.pop("planner_class"))
++        planner = planner_class(**config)
++
++    Extra keys injected by the harness at runtime (``plan_model``,
++    ``generator_config``, ``model_config``, ``storage_dir``) are silently
++    ignored if not recognised.
++    """
++
++    def __init__(self, **kwargs: Any) -> None:
++        self.storage_dir: Path = Path(kwargs.get("storage_dir", "output/plans/human_written"))
++        self.repo_cache_dir: Path = Path(
++            kwargs.get("repo_cache_dir", _get_repo_cache_dir())
++        )
++        logger.info(
++            "HumanWrittenPlanner initialised (storage_dir=%s, repo_cache_dir=%s)",
++            self.storage_dir,
++            self.repo_cache_dir,
++        )
++
++    # ------------------------------------------------------------------
++    # Public Protocol methods
++    # ------------------------------------------------------------------
++
++    def get_name(self) -> str:
++        """Return a human-readable planner name for logging and reports."""
++        return "human_written"
++
++    def get_template_vars(self) -> dict[str, Any]:
++        """Return template variables injected into prompt templates.
++
++        Returns:
++            Dict with planner metadata that can be used in Jinja2 templates.
++        """
++        return {
++            "planner_name": self.get_name(),
++        }
++
++    def plan(self, env: Any, model: Any, instance: Any) -> None:
++        """Read the human-written context file and inject it into the container.
++
++        Resolves the local repo clone path from the instance's repo field,
++        reads the highest-priority context file (CLAUDE.md > AGENTS.md >
++        .github/copilot-instructions.md), and writes it as both AGENTS.md and
++        CLAUDE.md in the Docker container.
++
++        If no context file exists or any step fails, writes empty files and
++        continues - this planner must never crash the eval run.
++
++        Args:
++            env: agentbench Environment (provides ``execute``).
++            model: agentbench Model (unused here, available for future use).
++            instance: agentbench Instance with task metadata.
++        """
++        repo_path = self._resolve_local_repo(instance)
++        instance_id = getattr(instance, "instance_id", None)
++        if isinstance(instance, dict):
++            instance_id = instance.get("instance_id", instance_id)
++
++        logger.info(
++            "[%s] Planning for instance %s (repo_path=%s)",
++            self.get_name(),
++            instance_id or "?",
++            repo_path or "unknown",
++        )
++
++        content = ""
++        source_file = ""
++        if repo_path is not None:
++            try:
++                source_file, content = _read_context_file(repo_path)
++            except Exception as exc:  # noqa: BLE001
++                logger.error(
++                    "[%s] Failed to read context file: %s",
++                    self.get_name(),
++                    exc,
++                    exc_info=True,
++                )
++
++        if not content:
++            logger.info(
++                "[%s] No context file found for instance %s, writing empty files",
++                self.get_name(),
++                instance_id or "?",
++            )
++
++        self._write_context_files(env, content, instance)
++        self._save_plan_locally(content, source_file, instance)
++
++    def update_plan(
++        self,
++        instance: Any,
++        traces: list[dict],
++        result: str,
++        base_dir: Path,
++        **kwargs: Any,
++    ) -> None:
++        """No-op: human-written plans are static and not updated at runtime.
++
++        Args:
++            instance: agentbench Instance.
++            traces: List of step traces (ignored).
++            result: Final result string (ignored).
++            base_dir: Output directory (ignored).
++            **kwargs: Extra keyword args injected by the harness (e.g. ``model``).
++        """
++        logger.debug("[%s] update_plan called (no-op)", self.get_name())
++
++    # ------------------------------------------------------------------
++    # Private helpers
++    # ------------------------------------------------------------------
++
++    def _resolve_local_repo(self, instance: Any) -> Path | None:
++        """Resolve the local repo clone path for *instance*.
++
++        Uses the instance's ``repo`` field (e.g. ``"owner/repo-name"``) to
++        build the expected local path:
++        ``{self.repo_cache_dir}/{repo_slug}/``
++        where ``repo_slug`` is the repo with ``/`` replaced by ``_``.
++
++        Args:
++            instance: agentbench Instance with a ``repo`` field.
++
++        Returns:
++            Path to the local repo clone, or None if the repo field is missing
++            or the directory does not exist.
++        """
++        repo = getattr(instance, "repo", None)
++        if isinstance(instance, dict):
++            repo = repo or instance.get("repo")
++
++        if not repo:
++            logger.warning(
++                "[%s] Cannot resolve repo from instance: %r",
++                self.get_name(),
++                instance,
++            )
++            return None
++
++        repo_slug = repo.replace("/", "_")
++        local_dir = self.repo_cache_dir / repo_slug
++
++        if not local_dir.is_dir():
++            logger.warning(
++                "[%s] Local repo not found at %s (repo=%s)",
++                self.get_name(),
++                local_dir,
++                repo,
++            )
++            return None
++
++        return local_dir
++
++    def _write_context_files(self, env: Any, content: str, instance: Any) -> None:
++        """Write *content* to AGENTS.md and CLAUDE.md inside the Docker container.
++
++        Uses ``env.execute`` to run a shell command that writes the files.
++        An empty *content* string is acceptable (writes blank files).
++
++        Args:
++            env: agentbench Environment with an ``execute`` method.
++            content: Context file content (may be empty).
++            instance: agentbench Instance (used for logging only).
++        """
++        quoted = shlex.quote(content)
++        instance_id = getattr(instance, "instance_id", "?")
++        try:
++            env.execute(f"echo {quoted} > AGENTS.md", timeout=False)
++            env.execute(f"echo {quoted} > CLAUDE.md", timeout=False)
++            logger.info(
++                "[%s] Wrote AGENTS.md and CLAUDE.md (%d chars) for instance %s",
++                self.get_name(),
++                len(content),
++                instance_id,
++            )
++        except Exception as exc:  # noqa: BLE001
++            logger.error(
++                "[%s] Failed to write context files to container: %s",
++                self.get_name(),
++                exc,
++            )
++
++    def _save_plan_locally(
++        self, content: str, source_file: str, instance: Any
++    ) -> None:
++        """Save the plan content to *storage_dir* for analysis.
++
++        Args:
++            content: Context file content (may be empty).
++            source_file: The filename the content was read from (e.g. "CLAUDE.md").
++            instance: agentbench Instance (used for naming the output file).
++        """
++        try:
++            self.storage_dir.mkdir(parents=True, exist_ok=True)
++            instance_id = getattr(instance, "instance_id", None)
++            if isinstance(instance, dict):
++                instance_id = instance.get("instance_id", instance_id)
++            filename = f"{instance_id or 'unknown'}_agents.md"
++            out_path = self.storage_dir / filename
++            header = f"<!-- source: {source_file} -->\n" if source_file else "<!-- source: none -->\n"
++            out_path.write_text(header + content, encoding="utf-8")
++            logger.debug("Saved plan to %s", out_path)
++        except Exception as exc:  # noqa: BLE001
++            logger.debug("Could not save plan locally: %s", exc)
+diff --git a/src/agentbench/utils/log.py b/src/agentbench/utils/log.py
+index d9496d4..b507941 100644
+--- a/src/agentbench/utils/log.py
++++ b/src/agentbench/utils/log.py
+@@ -12,7 +12,7 @@ def _setup_root_logger(log_level = logging.INFO) -> None:
+         show_path=False,
+         show_time=False,
+         show_level=False,
+-        markup=True,
++        markup=False,
+     )
+     _formatter = logging.Formatter("%(name)s: %(levelname)s: %(message)s")
+     _handler.setFormatter(_formatter)
+diff --git a/src/configs/generator_constants.py b/src/configs/generator_constants.py
+index 213bdbc..1cafef1 100644
+--- a/src/configs/generator_constants.py
++++ b/src/configs/generator_constants.py
+@@ -44,7 +44,7 @@ CODEX_GENERATOR_CONFIG = {
+ }
+ 
+ CLAUDE_CODE_GENERATOR_CONFIG = {
+-    "launch_command": "IS_SANDBOX=1 ANTHROPIC_BASE_URL={base_url} ANTHROPIC_AUTH_TOKEN={api_key} ~/.local/bin/claude --dangerously-skip-permissions --model {model} -p {prompt}",
++    "launch_command": "IS_SANDBOX=1 ANTHROPIC_BASE_URL={base_url} ANTHROPIC_AUTH_TOKEN={api_key} ~/.local/bin/claude --dangerously-skip-permissions --max-budget-usd 5.00 --model {model} -p {prompt}",
+     "install_commands": [
+         "curl -fsSL https://claude.ai/install.sh | bash",
+     ],
+diff --git a/src/configs/model_constants.py b/src/configs/model_constants.py
+index d7ba1d2..aed0f0b 100644
+--- a/src/configs/model_constants.py
++++ b/src/configs/model_constants.py
+@@ -56,7 +56,7 @@ MODEL_SONNET = {
+     "model_name": "anthropic/claude-sonnet-4-5-20250929",
+     "model_kwargs": {
+         "drop_params": True,
+-        "temperature": 0.0,
++        "temperature": 1.0,  # Must be 1.0 for extended thinking (Claude Code default)
+         "api_key": ANTHROPIC_API_KEY,
+     },
+ }
+diff --git a/src/configs/plan_constants.py b/src/configs/plan_constants.py
+index 09fc907..5b6f629 100644
+--- a/src/configs/plan_constants.py
++++ b/src/configs/plan_constants.py
+@@ -37,6 +37,45 @@ HUMAN_PLANNER = {
+     "storage_dir": "output/plans",
+ }
+ 
++CLAUDEMEM_FULL = {
++    "planner_class": "claudemem_planner",
++    "variant": "full",
++    "max_search_results": 5,
++    "max_map_symbols": 10,
++    "storage_dir": "output/plans/claudemem_full",
++}
++
++CLAUDEMEM_MINIMAL = {
++    "planner_class": "claudemem_planner",
++    "variant": "minimal",
++    "max_search_results": 3,
++    "max_map_symbols": 0,
++    "storage_dir": "output/plans/claudemem_minimal",
++}
++
++HUMAN_WRITTEN_PLAN = {
++    "planner_class": "human_written_planner",
++    "storage_dir": "output/plans/human_written",
++}
++
++CLAUDEMEM_HUMAN_WRITTEN = {
++    "planner_class": "claudemem_planner",
++    "variant": "full",
++    "max_search_results": 5,
++    "max_map_symbols": 10,
++    "base_content_source": "human_written",
++    "storage_dir": "output/plans/claudemem_human_written",
++}
++
++CLAUDEMEM_GENERATED = {
++    "planner_class": "claudemem_planner",
++    "variant": "full",
++    "max_search_results": 5,
++    "max_map_symbols": 10,
++    "base_content_source": "generated",
++    "storage_dir": "output/plans/claudemem_generated",
++}
++
+ ALL_PLAN_CONFIGS = {
+     "baseline": BASELINE_PLAN_CONFIG,
+     "oracle": ORACLE_CONFIG,
+@@ -46,6 +85,11 @@ ALL_PLAN_CONFIGS = {
+     "claude_planner": CLAUDE_PLAN_CONFIG,
+     "qwen_planner": QWEN_PLAN_CONFIG,
+     "gemini_planner": GEMINI_PLAN_CONFIG,
++    "claudemem_full": CLAUDEMEM_FULL,
++    "claudemem_minimal": CLAUDEMEM_MINIMAL,
++    "human_written": HUMAN_WRITTEN_PLAN,
++    "claudemem+human_written": CLAUDEMEM_HUMAN_WRITTEN,
++    "claudemem+generated": CLAUDEMEM_GENERATED,
+ }
+ 
+ 

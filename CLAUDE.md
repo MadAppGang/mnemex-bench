@@ -11,7 +11,7 @@ This repo evaluates components of the **mnemex search pipeline**:
 - **Reranking** — reorder search results by relevance
 - **End-to-end** — does the full pipeline actually help agents solve tasks?
 
-The mnemex source code lives at `../mnemex/`. The agentbench eval harness lives at `../agentbench/`.
+The mnemex source code lives at `../mnemex/`. The agentbench eval harness (fork of eth-sri/agentbench) lives at `../agentbench/`; experiment 012 contains our patches and results.
 
 ## Experiments
 
@@ -24,6 +24,7 @@ The mnemex source code lives at `../mnemex/`. The agentbench eval harness lives 
 | 005 | Embedding Models | Model research + evaluation methodology | Complete |
 | 009 | Mnemex vs Serena | Head-to-head MCP tool comparison (efficiency) | Round 1 complete |
 | 010 | MCP vs CLI Efficiency | MCP tools vs CLI (Bash) for same tasks | Ready to run |
+| 012 | SWE-bench Context Ablation | 6-condition ablation: mnemex vs CLAUDE.md on SWE-bench | Round 1 complete |
 
 ## Current Status & Next Steps
 
