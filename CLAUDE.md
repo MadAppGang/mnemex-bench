@@ -74,6 +74,14 @@ Download: `aws s3 cp s3://mnemex-bench/archives/indexes-20260304-deepseek.tar.gz
 
 See README.md for full archive table.
 
+## Language Preferences
+
+Scripts and tooling in this repo follow this priority order:
+
+1. **Bun + TypeScript** — analyzers, parsers, report generators, any non-trivial logic
+2. **Bash** — harness runners, shell orchestration, simple glue scripts
+3. **Python** — last resort only, when a dependency requires it (e.g. agentbench upstream)
+
 ## Key Decisions Made
 
 - **No LLM query planner** — rule-based classifier is correct. No production tool (Cody, Cursor, aider) uses LLM at query time for routing (experiment 003)
