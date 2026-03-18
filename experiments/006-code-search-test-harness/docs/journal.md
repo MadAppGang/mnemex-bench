@@ -552,3 +552,52 @@ No expander. No reranker. No LLM calls at query time.
 - Path fix: `../mnemex/eval/mnemex-search-steps-evaluation/run-all.ts` (toRelativePath helper)
 - Aggregator: `../mnemex/eval/mnemex-search-steps-evaluation/aggregate-repos.ts`
 - Multi-repo runner: `../mnemex/eval/mnemex-search-steps-evaluation/run-multi-repo.sh`
+
+---
+
+## 2026-03-18 — Clean Re-Index with nomic-embed-text (Local Embeddings)
+
+### What was done
+
+Deleted corrupted 12GB `.mnemex/` index (accumulated 535+ lance transactions, binary garbage in status output). Created `~/.mnemex/config.json` with `embeddingProvider: "ollama"`, `defaultModel: "nomic-embed-text"`. Re-indexed fastmcp from scratch: 5026 chunks, 1914 symbols, 119MB vectors (down from 12GB).
+
+Backed up clean index to `experiments/006-code-search-test-harness/indexes/fastmcp-nomic-embed-text-20260318.tar.gz` (42MB compressed).
+
+Ran 4-condition ablation (A, B1, E-RA, F-RA) on the clean index.
+
+### Results — Clean nomic-embed-text Index (n=30, jlowin_fastmcp)
+
+| Condition | MRR@10 | NDCG@10 | P95 | p-value | Sig? |
+|-----------|--------|---------|-----|---------|------|
+| **E-RA** | **0.495** | **0.995** | 33573ms | 0.0018 | **YES** |
+| F-RA | 0.467 | 0.984 | 2039ms | 0.0020 | **YES** |
+| B1 | 0.463 | 0.962 | 1161ms | 0.0025 | **YES** |
+| A (baseline) | 0.248 | 0.553 | 1311ms | — | — |
+
+### Comparison across embedding models
+
+| Condition | voyage-3.5-lite (Mar 11) | migrated (Mar 16) | nomic-embed-text (Mar 18) |
+|-----------|-------------------------|-------------------|--------------------------|
+| A (baseline) | 0.438 | 0.309 | 0.248 |
+| B1 (router) | 0.485 | 0.442 | 0.463 |
+| E-RA (full+RA) | — | 0.477 | **0.495** |
+| F-RA (RA, no rerank) | — | 0.427 | 0.467 |
+
+### Key findings
+
+1. **Baseline quality depends heavily on embedding model**: voyage-3.5-lite (0.438) >> migrated (0.309) > nomic-embed-text (0.248). The API model produces much better raw vectors for code search.
+
+2. **Pipeline compensates for weaker embeddings**: E-RA achieves 0.495 on nomic-embed-text — higher than 0.477 on the migrated voyage vectors. The router + route-aware expansion + reranker makes the base embedding model matter less.
+
+3. **All pipeline conditions are statistically significant** (p<0.003) with large effect sizes (r>0.64). The weaker baseline amplifies the pipeline's relative contribution.
+
+4. **F-RA is the sweet spot for local-only deployment**: MRR=0.467 at 2039ms P95, using only local ollama embeddings + local LM Studio expansion. No cloud API needed. Only 0.028 MRR behind E-RA but 16x faster.
+
+5. **Clean index is 100x smaller**: 119MB vs 12GB. The old index had accumulated 535+ lance fragments from repeated operations.
+
+### References
+
+- Results: `../mnemex/eval/mnemex-search-steps-evaluation/runs/clean-reindex-20260318/`
+- Report: `../mnemex/eval/mnemex-search-steps-evaluation/runs/clean-reindex-20260318/report.md`
+- Index archive: `experiments/006-code-search-test-harness/indexes/fastmcp-nomic-embed-text-20260318.tar.gz`
+- Global config: `~/.mnemex/config.json` (ollama + nomic-embed-text)
