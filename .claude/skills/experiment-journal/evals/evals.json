@@ -1,0 +1,23 @@
+{
+  "skill_name": "experiment-journal",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Write a journal entry for the hypothesis-a experiment. The experiment tested whether separating AGENTS and SKILLS sections in CLAUDE.md with prohibition language would improve agent delegation. Results are in experiments/hypothesis-a/. Baseline is in experiments/baseline/. The architecture session with multi-model consensus is in ai-docs/sessions/dev-arch-20260318-125504-7f2a2d29/.",
+      "expected_output": "A structured journal article at experiments/hypothesis-a/journal/iteration-1.md with all required sections: abstract, hypothesis, setup, results tables, failure analysis, conclusions, and references. Tables should compare baseline (50% agent, 100% skill) vs hypothesis-a (80% agent, 100% skill).",
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "Document the full experiment session — we ran hypothesis-a and hypothesis-a-e back to back. Write journals for both and a session summary comparing them. Also note that we discovered a parser bug (transcript-parser.ts only checked for 'Task' tool name, not 'Agent') that initially made results look like 0-10% when the real rate was 50-80%.",
+      "expected_output": "Three files: experiments/hypothesis-a/journal/iteration-1.md, experiments/hypothesis-a-e/journal/iteration-1.md, and experiments/journal/session-20260318.md. The session summary should have a progression table showing baseline → A → A+E with the parser bug discovery prominently noted.",
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "Write up the experiment journal for hypothesis-a-e. This added concrete trigger examples to each agent entry on top of the A changes. Results showed no improvement over hypothesis A alone — both at 80% agent delegation. The trigger examples didn't help because the structural separation was already sufficient.",
+      "expected_output": "A journal entry at experiments/hypothesis-a-e/journal/iteration-1.md with verdict PARTIALLY CONFIRMED or REFUTED for hypothesis E specifically. Should clearly explain that A+E = A in terms of measured impact, and discuss why trigger examples didn't add value.",
+      "files": []
+    }
+  ]
+}
