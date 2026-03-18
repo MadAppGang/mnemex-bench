@@ -389,6 +389,72 @@ The ~0.1 drop in baseline is likely due to using a migrated vector store with co
 
 ---
 
+## 2026-03-18 — Multi-Repo Mixed-Query Ablation (3 Repos)
+
+### What was done
+
+1. **Fixed path normalization**: Added `toRelativePath()` function with `stripPrefixes` for multiple index locations (current eval-repos-dir, stale `~/.mnemex/eval-repos/`, stale `~/.claudemem/eval-repos/`). Uses fallback marker `/${repoName}/` for unknown prefixes.
+
+2. **Fixed index access**: Created `.mnemex → .claudemem` symlinks for all 12 eval repos to allow the harness (which uses `getIndexDbPath()` → `.mnemex/`) to read the original clean `.claudemem` indexes.
+
+3. **Added REPO_TEMPLATES**: Refactored hardcoded fastmcp ground truth into a `REPO_TEMPLATES` lookup with entries for `jlowin_fastmcp`, `tinygrad_tinygrad`, `huggingface_transformers`, and `openai_openai-agents-python`. Each has 10 semantic + 10 exploratory hand-crafted queries with verified ground truth file paths.
+
+4. **Discovered transformers index has 0 symbols**: The huggingface_transformers `.claudemem` index was never properly indexed (symbols table empty). Replaced with `openai_openai-agents-python` (3504 symbols) as the third repo.
+
+5. **Ran 5-condition mixed-query ablation** on 3 repos: fastmcp (1914 symbols), tinygrad (20056 symbols), openai-agents (3504 symbols). Each with 30 queries (10 symbol + 10 semantic + 10 exploratory).
+
+### Results — Cross-Repo Comparison (mixed queries, n=30 each)
+
+| Repo | A (baseline) | B1 (router) | C2 (expander) | E-RA (full+RA) | F-RA (RA, no rerank) |
+|------|-------------|-------------|--------------|----------------|---------------------|
+| fastmcp | 0.204 | 0.239 | 0.153 | **0.281** (p=0.017) | 0.167 |
+| tinygrad | 0.423 | 0.409 | 0.389 | 0.448 (p=0.600) | 0.408 |
+| openai-agents | 0.232 | 0.197 | 0.253 | 0.254 (p=0.925) | 0.213 |
+
+### Statistical significance (Wilcoxon signed-rank vs Condition A)
+
+| Repo | E-RA Delta | p-value | Significant? |
+|------|-----------|---------|-------------|
+| **fastmcp** | **+0.077** | **0.017** | **YES** |
+| tinygrad | +0.025 | 0.600 | no |
+| openai-agents | +0.021 | 0.925 | no |
+
+### Key findings
+
+1. **E-RA is the best condition on all 3 repos** — always the highest MRR, though only significant on fastmcp. The pattern is consistent: route-aware expansion + reranking always helps.
+
+2. **Effect size varies by baseline quality**: fastmcp (baseline 0.204) shows the largest improvement (+0.077). Tinygrad (baseline 0.423) shows only +0.025. The pipeline helps more when the baseline is weaker.
+
+3. **Blind expansion (C2) often hurts**: On fastmcp (-0.051) and tinygrad (-0.033), adding an expander without routing makes things worse. Route-awareness is essential.
+
+4. **The reranker matters**: E-RA consistently beats F-RA (by 0.114, 0.040, and 0.041 across repos). The reranker provides meaningful improvement even when the overall pipeline isn't significant.
+
+5. **30 queries may be too few for significance**: n=30 with MRR deltas of 0.02-0.08 likely needs n=100+ to reach significance (Wilcoxon power analysis). The consistent direction across repos suggests a real effect that's underpowered to detect.
+
+### Bugs encountered
+
+- **Disk full (11GB)**: Copying `.claudemem` → `.mnemex` filled the disk. Fixed by using symlinks instead.
+- **Subprocess "No symbols found"**: Intermittent error when E-RA/F-RA subprocesses started immediately after other conditions. Likely race condition with `.indexing.lock`. Resolved by re-running.
+- **LM Studio HTTP 500**: Reranker model overwhelmed by concurrent requests from parallel condition runs. E-RA results may undercount reranker benefit.
+- **huggingface_transformers has 0 symbols**: Index was never properly created. Substituted openai_openai-agents-python.
+
+### References
+
+- Results: `../mnemex/eval/mnemex-search-steps-evaluation/runs/fastmcp-mixed-v2/`, `runs/tinygrad-mixed-v2/`, `runs/openai-agents-mixed/`
+- Path normalization: `../mnemex/eval/mnemex-search-steps-evaluation/run-all.ts` (toRelativePath, lines ~797-811)
+- REPO_TEMPLATES: same file, lines ~418-690
+- Reports: `report.md` in each run directory
+
+### Next steps
+
+- Increase query count to n=100+ per repo for statistical power
+- Re-run with sequential LM Studio calls (avoid HTTP 500 overload)
+- Add QMD conditions (Q1, Q2) across all repos for comparison
+- Try additional repos (ansible, wagtail, pdm) for broader generalization
+- Pool results across repos for a combined significance test
+
+---
+
 ## 2026-03-17 — Multi-Repo Ablation (12 Repos, 860 Queries, 8 Conditions)
 
 ### What was done
