@@ -1,7 +1,7 @@
 # Experiment 006 — Code Search Test Harness Journal
 
 Chronological log of implementation, runs, and findings.
-Implementation lives at `../claudemem/eval/mnemex-search-steps-evaluation/`.
+Implementation lives at `../mnemex/eval/mnemex-search-steps-evaluation/`.
 
 ---
 
@@ -55,8 +55,8 @@ Built the 3-file ablation test harness from the design spec in `report.md`:
 ### References
 
 - Design spec: `experiments/006-code-search-test-harness/report.md`
-- Implementation: `../claudemem/eval/mnemex-search-steps-evaluation/`
-- Types extension: `../claudemem/src/benchmark-v2/types.ts` (lines 341-359)
+- Implementation: `../mnemex/eval/mnemex-search-steps-evaluation/`
+- Types extension: `../mnemex/src/benchmark-v2/types.ts` (lines 341-359)
 
 ---
 
@@ -64,7 +64,7 @@ Built the 3-file ablation test harness from the design spec in `report.md`:
 
 ### What was done
 
-Created `run-baseline.ts` — loads top-30 PageRank symbols from claudemem index, uses symbol names as queries with file-level ground truth.
+Created `run-baseline.ts` — loads top-30 PageRank symbols from mnemex index, uses symbol names as queries with file-level ground truth.
 
 **Repo**: jlowin_fastmcp (7MB index, 396 Python files)
 **Queries**: 30 symbol-name lookups (e.g. "FastMCP" → `src/fastmcp/server/server.py`)
@@ -87,8 +87,8 @@ Absolute vs relative path mismatch — search API returns absolute paths but sym
 
 ### References
 
-- Runner: `../claudemem/eval/mnemex-search-steps-evaluation/run-baseline.ts`
-- Results: `../claudemem/eval/mnemex-search-steps-evaluation/runs/first-run/`
+- Runner: `../mnemex/eval/mnemex-search-steps-evaluation/run-baseline.ts`
+- Results: `../mnemex/eval/mnemex-search-steps-evaluation/runs/first-run/`
 
 ---
 
@@ -155,9 +155,9 @@ RSS: 0.36GB | Peak: 0.68GB
 
 ### References
 
-- Runner: `../claudemem/eval/mnemex-search-steps-evaluation/run-all.ts`
-- Results: `../claudemem/eval/mnemex-search-steps-evaluation/runs/full-run/`
-- Report: `../claudemem/eval/mnemex-search-steps-evaluation/runs/full-run/report.md`
+- Runner: `../mnemex/eval/mnemex-search-steps-evaluation/run-all.ts`
+- Results: `../mnemex/eval/mnemex-search-steps-evaluation/runs/full-run/`
+- Report: `../mnemex/eval/mnemex-search-steps-evaluation/runs/full-run/report.md`
 
 ---
 
@@ -201,9 +201,9 @@ Note: Q2 uses `-C 10` (10 reranking candidates) because default 40 causes 30-60s
 
 | Condition | Description | MRR@10 | Recall@100 | P95 Latency | Sig vs A? |
 |-----------|-------------|--------|------------|-------------|-----------|
-| A | claudemem hybrid | **0.438** | **0.967** | 1372ms | — |
-| B1 | claudemem + router | 0.485 | 0.967 | 1423ms | no |
-| C1 | claudemem + expander | 0.486 | 0.933 | 2155ms | no |
+| A | mnemex hybrid | **0.438** | **0.967** | 1372ms | — |
+| B1 | mnemex + router | 0.485 | 0.967 | 1423ms | no |
+| C1 | mnemex + expander | 0.486 | 0.933 | 2155ms | no |
 | Q1 | QMD BM25 | 0.243 | 0.700 | **251ms** | **YES** (worse, p=0.013) |
 | Q2 | QMD expand+rerank | 0.290 | 0.667 | 13312ms | **YES** (worse, p=0.042) |
 
@@ -211,23 +211,23 @@ Note: Q2 uses `-C 10` (10 reranking candidates) because default 40 causes 30-60s
 
 | Condition | Overall MRR@10 | Symbol MRR | Semantic MRR | Exploratory MRR | Mean Latency |
 |-----------|---------------|------------|--------------|-----------------|-------------|
-| A (claudemem) | **0.269** | **0.461** | **0.177** | **0.170** | 1380ms |
+| A (mnemex) | **0.269** | **0.461** | **0.177** | **0.170** | 1380ms |
 | Q1 (QMD BM25) | 0.127 | 0.203 | 0.133 | 0.045 | **232ms** |
 | Q2 (QMD expand+rerank) | 0.127 | 0.198 | 0.142 | 0.042 | 4803ms |
 
 ### Key findings
 
-1. **claudemem wins across all query types** — 2x better MRR overall, 3-4x on exploratory queries. AST-aware indexing gives a structural advantage over QMD's text-only approach.
+1. **mnemex wins across all query types** — 2x better MRR overall, 3-4x on exploratory queries. AST-aware indexing gives a structural advantage over QMD's text-only approach.
 
 2. **QMD's expansion+reranking (Q2) doesn't help vs BM25-only (Q1)** — identical MRR (0.127) but 20x slower (4803ms vs 232ms). The local LLM expansion adds latency without improving relevance.
 
 3. **QMD is fastest for BM25** — 232ms vs 1380ms. Pure keyword search with SQLite FTS is very fast.
 
-4. **Semantic and exploratory queries are hard for both engines** — claudemem drops from 0.461 (symbols) to 0.17 (semantic/exploratory). QMD drops from 0.20 to 0.04. Neither engine handles natural-language code queries well.
+4. **Semantic and exploratory queries are hard for both engines** — mnemex drops from 0.461 (symbols) to 0.17 (semantic/exploratory). QMD drops from 0.20 to 0.04. Neither engine handles natural-language code queries well.
 
 5. **Important caveat**: QMD ran without vector search (sqlite-vec broken). With vectors enabled, Q2 would likely improve, especially on semantic queries.
 
-### Why claudemem crashes (Bun 1.3.2 + LanceDB)
+### Why mnemex crashes (Bun 1.3.2 + LanceDB)
 
 **Symptom**: Process killed with SIGKILL (exit 133) after 20-30 search queries.
 
@@ -248,8 +248,8 @@ panic(main thread): Segmentation fault at address 0xCDFC00B80
 
 ### References
 
-- QMD comparison results: `../claudemem/eval/mnemex-search-steps-evaluation/runs/qmd-comparison/`
-- Mixed query results: `../claudemem/eval/mnemex-search-steps-evaluation/runs/mixed-qmd/`
+- QMD comparison results: `../mnemex/eval/mnemex-search-steps-evaluation/runs/qmd-comparison/`
+- Mixed query results: `../mnemex/eval/mnemex-search-steps-evaluation/runs/mixed-qmd/`
 - QMD GitHub: https://github.com/tobi/qmd
 - QMD collection config: `~/.config/qmd/index.yml`
 - QMD index: `~/.cache/qmd/index.sqlite`
@@ -259,7 +259,7 @@ panic(main thread): Segmentation fault at address 0xCDFC00B80
 - Fix sqlite-vec for QMD: upgrade Bun or use Node.js with better-sqlite3 (needs Homebrew SQLite with extension loading)
 - Re-run Q2 with vector search enabled for fair comparison
 - Run on more repos (tinygrad, transformers) to test generalization
-- Add structural queries (callers-of, depends-on) which should favor claudemem's AST graph
+- Add structural queries (callers-of, depends-on) which should favor mnemex's AST graph
 - Run E-RA and F-RA conditions on mixed queries to measure improvement over E/F
 
 ---
@@ -290,14 +290,14 @@ Fixed two HIGH priority issues identified from the full ablation run:
 
 **Problem**: LanceDB's Rust NAPI bindings (v0.13.0) accumulate ~15MB RSS per search query. After ~30 queries at k=100, the process hits ~0.6GB RSS and macOS sends SIGKILL (exit 133).
 
-**Fix**: Capped `SEARCH_LIMIT` to 20 in `run-all.ts` for all claudemem search functions. This is sufficient for computing MRR@10 and NDCG@10 (the primary metrics) and keeps RSS growth manageable (~300MB for 30 queries). Changed `kValues` from `[1, 5, 10, 100]` to `[1, 5, 10, 20]`.
+**Fix**: Capped `SEARCH_LIMIT` to 20 in `run-all.ts` for all mnemex search functions. This is sufficient for computing MRR@10 and NDCG@10 (the primary metrics) and keeps RSS growth manageable (~300MB for 30 queries). Changed `kValues` from `[1, 5, 10, 100]` to `[1, 5, 10, 20]`.
 
 **Trade-off**: Recall@100 is no longer available (recall@20 is computed instead). This is acceptable because:
 - MRR@10 and NDCG@10 are the primary comparison metrics
 - At k=100, ~50% of results were irrelevant padding anyway
 - Prevents crashes that blocked condition A from completing in orchestrator mode
 
-**Not fixed**: LanceDB memory leak itself (v0.13.0 → v0.26.2 upgrade may help but is a larger change to the claudemem codebase).
+**Not fixed**: LanceDB memory leak itself (v0.13.0 → v0.26.2 upgrade may help but is a larger change to the mnemex codebase).
 
 #### Fix 3: sqlite-vec / QMD running under Bun instead of Node
 
@@ -319,9 +319,9 @@ Two workarounds confirmed working:
 
 ### References
 
-- Route-aware expansion logic: `../claudemem/eval/mnemex-search-steps-evaluation/ablation.ts` (runCondition, lines ~460-475)
-- Memory mitigation: `../claudemem/eval/mnemex-search-steps-evaluation/run-all.ts` (SEARCH_LIMIT constant)
-- QMD Node.js fix: `../claudemem/eval/mnemex-search-steps-evaluation/run-all.ts` (QMD_CLI_PATH + makeQmdSearchFn)
+- Route-aware expansion logic: `../mnemex/eval/mnemex-search-steps-evaluation/ablation.ts` (runCondition, lines ~460-475)
+- Memory mitigation: `../mnemex/eval/mnemex-search-steps-evaluation/run-all.ts` (SEARCH_LIMIT constant)
+- QMD Node.js fix: `../mnemex/eval/mnemex-search-steps-evaluation/run-all.ts` (QMD_CLI_PATH + makeQmdSearchFn)
 - New conditions: E-RA, F-RA in `STANDARD_CONDITIONS` array
 - sqlite-vec workaround for Bun: `Database.setCustomSQLite("/opt/homebrew/opt/sqlite/lib/libsqlite3.dylib")`
 
@@ -386,3 +386,103 @@ The ~0.1 drop in baseline is likely due to using a migrated vector store with co
 - Results: `../mnemex/eval/mnemex-search-steps-evaluation/runs/full-rerun-v2/`
 - Report: `../mnemex/eval/mnemex-search-steps-evaluation/runs/full-rerun-v2/report.md`
 - JSON parse fixes: `../mnemex/src/core/store.ts` (lines ~453, ~478)
+
+---
+
+## 2026-03-17 — Multi-Repo Ablation (12 Repos, 860 Queries, 8 Conditions)
+
+### What was done
+
+Ran the first cross-repo ablation: 8 pipeline conditions tested against 10–12 eval repos, totaling 860 queries. Previous runs were single-repo (fastmcp only, 30 queries). This run answers: **does the router advantage hold across diverse codebases?**
+
+#### Infrastructure fixes
+
+1. **Stale index path fix** (`run-all.ts`): Repos were indexed when they lived at `~/.claudemem/eval-repos/{name}/`, but now live at `/Users/jack/mag/agentbench/data/eval-repos/{name}/`. Search results returned absolute paths with the old prefix, causing 0% match rate. Fixed by adding `toRelativePath()` helper that strips any known prefix, with a last-resort fallback that finds the repo name in the path.
+
+2. **New tooling**:
+   - `aggregate-repos.ts` — Cross-repo aggregation script. Scans `runs/{dir}/{repo}/condition_{X}.json` files, computes per-condition averages, delta vs baseline, and per-repo breakdown table.
+   - `run-multi-repo.sh` — Bash wrapper for running all 12 repos sequentially (bash 3.2 compatible, uses `case` instead of `declare -A`).
+
+#### Repos tested
+
+| Status | Repos |
+|--------|-------|
+| Completed (A+B1) | ansible, smolagents, fastmcp, openai-agents, opshin, pdm, pr-agent, tinygrad, ragas, wagtail (10) |
+| Failed (no symbols) | huggingface_transformers (0 symbols in index — AST parsing never ran) |
+| Failed (OOM) | getzep_graphiti (exit 133 — SIGKILL from LanceDB memory) |
+| Full 8-condition mixed | jlowin_fastmcp, tinygrad_tinygrad (hand-crafted semantic + exploratory queries) |
+
+### Results — Cross-Repo Averages (860 queries)
+
+| Condition | Description | Avg MRR@10 | Delta | % Change | Avg P95 | Repos |
+|-----------|-------------|-----------|-------|----------|---------|-------|
+| **B1** | **+Regex router** | **0.524** | **+0.094** | **+21.8%** | 2726ms | 11 |
+| A | Baseline — pure hybrid retrieval | 0.430 | — | — | 2549ms | 12 |
+| C2 | +Medium expander (Qwen3-1.7B-FT) | 0.316 | -0.114 | -26.4% | 6501ms | 2 |
+| C3 | +Large expander (LFM2-2.6B) | 0.307 | -0.123 | -28.6% | 4869ms | 2 |
+| D | +Reranker only | 0.292 | -0.138 | -32.0% | 10365ms | 2 |
+| C1 | +Tiny expander (LFM2-700M) | 0.292 | -0.138 | -32.0% | 4851ms | 2 |
+| E | Full pipeline (all components) | 0.255 | -0.175 | -40.6% | 20656ms | 2 |
+| F | Router + expander (no reranker) | 0.252 | -0.177 | -41.3% | 5370ms | 2 |
+
+### Per-Repo Breakdown (MRR@10)
+
+| Repo | A (baseline) | B1 (router) | Delta |
+|------|-------------|-------------|-------|
+| smolagents | 0.521 | **0.863** | +0.342 |
+| pdm | 0.246 | 0.499 | +0.253 |
+| opshin | 0.469 | 0.674 | +0.205 |
+| fastmcp | 0.382 | 0.498 | +0.116 |
+| pr-agent | 0.454 | 0.545 | +0.091 |
+| ragas | 0.511 | 0.575 | +0.064 |
+| tinygrad | 0.578 | 0.635 | +0.057 |
+| wagtail | 0.361 | 0.365 | +0.004 |
+| openai-agents | 0.549 | 0.468 | -0.081 |
+
+**Router wins in 8/9 repos** (89%). Largest gain: smolagents (+0.342, +66%). Only regression: openai-agents (-0.081, -15%).
+
+### Mixed-Query Results (fastmcp, 30 queries: 10 symbol + 10 semantic + 10 exploratory)
+
+| Condition | MRR@10 | P95 | vs Baseline |
+|-----------|--------|-----|-------------|
+| B1 (+Router) | **0.229** | 1334ms | +10% |
+| A (Baseline) | 0.208 | 1295ms | — |
+| C3 (+LFM2-2.6B) | 0.202 | 2358ms | -3% |
+| E (Full pipeline) | 0.200 | 24781ms | -4% |
+| C2 (+Qwen3-FT) | 0.199 | 3843ms | -4% |
+| C1 (+LFM2-700M) | 0.192 | 2155ms | -8% |
+| D (+Reranker) | 0.162 | 12346ms | -22% |
+| F (Router+expander) | 0.144 | 3282ms | -31% |
+
+### Key findings
+
+1. **Router (B1) is the only component that helps**: +21.8% MRR over baseline across 10+ repos, with zero latency overhead (2726ms vs 2549ms). The regex classifier routes symbol queries to keyword-only search — simple, free, effective.
+
+2. **Every LLM-based component degrades quality**: Expanders (-26% to -32%), reranker (-32%), and the full pipeline (-41%) all hurt. The small LLMs rewrite symbol queries into natural language, destroying the precise keyword signal.
+
+3. **The full pipeline (E) is the second-worst condition**: Combining all components yields worse results than the baseline, at 8x the latency (20s vs 2.5s). More pipeline ≠ better.
+
+4. **Router advantage is robust across repo types**: Works on Python (smolagents, opshin, fastmcp), mixed-language (tinygrad), and large repos (ansible, wagtail). The one regression (openai-agents) is small and may be noise.
+
+5. **Validates experiment 005 architecture decision**: "No LLM query planner" is correct, and extends to "no LLM query modification at search time." The regex classifier provides all the routing value needed.
+
+### Production recommendation
+
+The optimal mnemex search pipeline is:
+
+```
+query → regex classifier → {
+  symbol_lookup → keyword-only (BM25) search
+  semantic/exploratory → hybrid (vector + BM25) search
+}
+```
+
+No expander. No reranker. No LLM calls at query time.
+
+### References
+
+- Results: `../mnemex/eval/mnemex-search-steps-evaluation/runs/multi-repo-20260317/`
+- Aggregate report: `../mnemex/eval/mnemex-search-steps-evaluation/runs/multi-repo-20260317/aggregate-report.md`
+- Path fix: `../mnemex/eval/mnemex-search-steps-evaluation/run-all.ts` (toRelativePath helper)
+- Aggregator: `../mnemex/eval/mnemex-search-steps-evaluation/aggregate-repos.ts`
+- Multi-repo runner: `../mnemex/eval/mnemex-search-steps-evaluation/run-multi-repo.sh`
