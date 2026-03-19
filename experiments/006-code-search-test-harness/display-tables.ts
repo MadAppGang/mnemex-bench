@@ -17,19 +17,20 @@ title("CODE SEARCH PIPELINE ABLATION — 14 CONDITIONS RANKED");
 note("Single repo: jlowin_fastmcp · 30 symbol queries · Mar 16 (migrated index)");
 console.log();
 
+// Data: [rank, condition, description, mrr, _bar_placeholder, p95, vsA]
 const leaderboard: string[][] = [
-  ["1", "E-RA",  "Full pipeline + route-aware", "0.477", "35.4s", "+0.168"],
-  ["2", "B1",    "Regex router only",           "0.442", "1.1s",  "+0.133"],
-  ["3", "F-RA",  "Router+expander (route-aware)","0.427", "1.9s",  "+0.118"],
-  ["4", "D",     "Reranker only",               "0.419", "16.2s", "+0.110"],
-  ["5", "Q2",    "QMD expand+rerank",           "0.351", "1.5s",  "+0.042"],
-  ["6", "C2",    "Qwen3-1.7B-FT expander",     "0.338", "8.3s",  "+0.029"],
-  ["7", "C3",    "LFM2-2.6B expander",          "0.329", "4.5s",  "+0.020"],
-  ["8", "A",     "Baseline (hybrid search)",    "0.309", "1.7s",  "  —   "],
-  ["9", "C1",    "LFM2-700M expander",          "0.267", "3.0s",  "-0.042"],
-  ["10","Q1",    "QMD BM25 only",               "0.241", "0.4s",  "-0.068"],
-  ["11","F",     "Blind router+expander",       "0.119", "3.9s",  "-0.190"],
-  ["12","E",     "Blind full pipeline",         "0.118", "16.3s", "-0.191"],
+  ["1", "E-RA",  "Full pipeline + route-aware",  "0.477", "", "35.4s", "+0.168"],
+  ["2", "B1",    "Regex router only",            "0.442", "", "1.1s",  "+0.133"],
+  ["3", "F-RA",  "Router+expander (route-aware)","0.427", "", "1.9s",  "+0.118"],
+  ["4", "D",     "Reranker only",                "0.419", "", "16.2s", "+0.110"],
+  ["5", "Q2",    "QMD expand+rerank",            "0.351", "", "1.5s",  "+0.042"],
+  ["6", "C2",    "Qwen3-1.7B-FT expander",      "0.338", "", "8.3s",  "+0.029"],
+  ["7", "C3",    "LFM2-2.6B expander",           "0.329", "", "4.5s",  "+0.020"],
+  ["8", "A",     "Baseline (hybrid search)",     "0.309", "", "1.7s",  "  —   "],
+  ["9", "C1",    "LFM2-700M expander",           "0.267", "", "3.0s",  "-0.042"],
+  ["10","Q1",    "QMD BM25 only",                "0.241", "", "0.4s",  "-0.068"],
+  ["11","F",     "Blind router+expander",        "0.119", "", "3.9s",  "-0.190"],
+  ["12","E",     "Blind full pipeline",          "0.118", "", "16.3s", "-0.191"],
 ];
 
 renderTable({
@@ -85,40 +86,35 @@ note("jlowin_fastmcp · 30 symbol queries · Mar 18 · All p < 0.003");
 console.log();
 
 const cleanResults: string[][] = [
-  ["E-RA",  "Full pipeline + route-aware", "0.495", "0.995", "33573", "0.0018", "YES"],
-  ["F-RA",  "Router+expander (RA, no rerank)","0.467","0.984","2039",  "0.0020", "YES"],
-  ["B1",    "Regex router only",           "0.463", "0.962", "1161",  "0.0025", "YES"],
-  ["A",     "Baseline (hybrid search)",    "0.248", "0.553", "1311",  "  —  ",  " — "],
+  ["E-RA",  "Full pipeline + route-aware",     "0.495", "0.995", "33.6s", "0.0018", "YES"],
+  ["F-RA",  "Router+expander (RA, no rerank)", "0.467", "0.984", "2.0s",  "0.0020", "YES"],
+  ["B1",    "Regex router only",               "0.463", "0.962", "1.2s",  "0.0025", "YES"],
+  ["A",     "Baseline (hybrid search)",        "0.248", "0.553", "1.3s",  "  —  ",  " — "],
 ];
 
 renderTable({
   columns: [
-    { header: "Condition", width: 10, format: (cell) => {
+    { header: "Condition", width: 8, format: (cell) => {
       const color = cell.includes("E-RA") ? `${BOLD}${GREEN}` : cell === "A" ? `${DIM}` : `${BOLD}${WHITE}`;
-      return `${color}${center(cell, 10)}${RESET}`;
+      return `${color}${center(cell, 8)}${RESET}`;
     }},
-    { header: "Description", width: 34, align: "left" },
-    { header: "MRR@10", width: 10, format: (cell) => {
+    { header: "Description", width: 30, align: "left" },
+    { header: "MRR@10", width: 8, format: (cell) => {
       const v = parseFloat(cell);
       const color = v >= 0.45 ? GREEN : v >= 0.3 ? YELLOW : RED;
-      return `${BOLD}${color}${center(cell, 10)}${RESET}`;
+      return `${BOLD}${color}${center(cell, 8)}${RESET}`;
     }},
-    { header: "MRR Bar", width: 22, format: (cell, ri, row) => {
-      const v = parseFloat(row[2]);
-      const color = v >= 0.45 ? GREEN : v >= 0.3 ? YELLOW : RED;
-      return ` ${bar(v, 0.5, 20, color)} `;
-    }},
-    { header: "NDCG@10", width: 9, format: (cell) => {
+    { header: "NDCG@10", width: 8, format: (cell) => {
       const v = parseFloat(cell);
       const color = v >= 0.9 ? GREEN : v >= 0.7 ? YELLOW : RED;
-      return `${color}${center(cell, 9)}${RESET}`;
+      return `${color}${center(cell, 8)}${RESET}`;
     }},
-    { header: "P95 ms", width: 8 },
-    { header: "p-value", width: 9 },
-    { header: "Sig?", width: 6, format: (cell) => {
+    { header: "P95", width: 7 },
+    { header: "p-value", width: 8 },
+    { header: "Sig?", width: 5, format: (cell) => {
       const trimmed = cell.trim();
-      if (trimmed === "YES") return `${BOLD}${GREEN}${center("YES", 6)}${RESET}`;
-      return `${DIM}${center(trimmed, 6)}${RESET}`;
+      if (trimmed === "YES") return `${BOLD}${GREEN}${center("YES", 5)}${RESET}`;
+      return `${DIM}${center(trimmed, 5)}${RESET}`;
     }},
   ],
   rows: cleanResults,
