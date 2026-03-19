@@ -322,31 +322,26 @@ console.log();
 
 subtitle("Optimal Pipeline Architecture");
 console.log();
-console.log(`  ${BOLD}${WHITE}  query${RESET}`);
-console.log(`  ${BOLD}${CYAN}    │${RESET}`);
-console.log(`  ${BOLD}${CYAN}    ▼${RESET}`);
-console.log(`  ${BG_CYAN}${BOLD}${WHITE}  regex classifier (<5ms)  ${RESET}`);
-console.log(`  ${BOLD}${CYAN}    │${RESET}`);
-console.log(`  ${BOLD}${CYAN}    ├──── ${YELLOW}symbol_lookup${RESET}${CYAN} ────▶ ${RESET}${BG_YELLOW}${BOLD}${WHITE}  keyword-only (BM25)  ${RESET}`);
-console.log(`  ${BOLD}${CYAN}    │${RESET}`);
-console.log(`  ${BOLD}${CYAN}    └──── ${GREEN}semantic/other${RESET}${CYAN} ───▶ ${RESET}${BG_GREEN}${BOLD}${WHITE}  hybrid (vector+BM25) ${RESET}`);
+console.log(`  ${BOLD}${WHITE}query${RESET} ${CYAN}→${RESET} ${BG_CYAN}${BOLD}${WHITE} regex (<5ms) ${RESET}`);
+console.log(`          ${CYAN}├${RESET} ${YELLOW}symbol${RESET} ${CYAN}→${RESET} ${BG_YELLOW}${BOLD}${WHITE} BM25 only ${RESET}`);
+console.log(`          ${CYAN}└${RESET} ${GREEN}other${RESET}  ${CYAN}→${RESET} ${BG_GREEN}${BOLD}${WHITE} hybrid    ${RESET}`);
 console.log();
-console.log(`  ${DIM}No expander · No reranker · No LLM calls at query time${RESET}`);
+console.log(`  ${DIM}No expander · No reranker · No LLM${RESET}`);
 console.log();
 
 subtitle("What NOT to Ship");
-console.log(`  ${RED}✗${RESET} ${DIM}Query expansion (LFM2, Qwen3) — destroys symbol queries${RESET}`);
-console.log(`  ${RED}✗${RESET} ${DIM}LLM reranking — +0.05 MRR at 33s latency cost${RESET}`);
-console.log(`  ${RED}✗${RESET} ${DIM}LLM query planner — no production tool uses one${RESET}`);
+console.log(`  ${RED}✗${RESET} ${DIM}Query expansion — destroys symbols${RESET}`);
+console.log(`  ${RED}✗${RESET} ${DIM}LLM reranking — +0.05 MRR, 33s cost${RESET}`);
+console.log(`  ${RED}✗${RESET} ${DIM}LLM query planner — none needed${RESET}`);
 console.log();
 
 subtitle("Evidence");
-console.log(`  ${BOLD}${WHITE}14${RESET} conditions tested  ·  ${BOLD}${WHITE}12${RESET} repos  ·  ${BOLD}${WHITE}860+${RESET} queries  ·  ${BOLD}${WHITE}2${RESET} embedding models`);
-console.log(`  ${BOLD}${WHITE}Wilcoxon${RESET} signed-rank tests  ·  All key results ${BOLD}${GREEN}p < 0.003${RESET}`);
+console.log(`  ${BOLD}${WHITE}14${RESET} conditions · ${BOLD}${WHITE}12${RESET} repos · ${BOLD}${WHITE}860+${RESET} queries`);
+console.log(`  ${BOLD}${WHITE}Wilcoxon${RESET} tests · ${BOLD}${GREEN}p < 0.003${RESET}`);
 console.log();
 
-console.log(`\n  ${BOLD}${GREEN}${"═".repeat(80)}${RESET}`);
-console.log(`  ${BOLD}${GREEN}  Code Search Pipeline Ablation — Experiment 006${RESET}`);
-console.log(`  ${BOLD}${GREEN}  E-RA=0.495 MRR  ·  B1 +21.8% across 12 repos  ·  March 10-18, 2026${RESET}`);
-console.log(`  ${BOLD}${GREEN}${"═".repeat(80)}${RESET}`);
+console.log(`  ${BOLD}${GREEN}${"═".repeat(50)}${RESET}`);
+console.log(`  ${BOLD}${GREEN}  Experiment 006 — Pipeline Ablation${RESET}`);
+console.log(`  ${BOLD}${GREEN}  E-RA=0.495 · B1 +21.8% · Mar 2026${RESET}`);
+console.log(`  ${BOLD}${GREEN}${"═".repeat(50)}${RESET}`);
 console.log();
