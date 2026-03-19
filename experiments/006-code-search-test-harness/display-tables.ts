@@ -314,34 +314,76 @@ renderTable({
 await wait();
 
 // ══════════════════════════════════════════════════════════════
-// CLOSING: Production Recommendation
+// CLOSING: Production Recommendation — Ship vs Don't Ship
 // ══════════════════════════════════════════════════════════════
 clear();
 title("PRODUCTION RECOMMENDATION");
+note("What to ship based on 14 conditions · 12 repos · 860+ queries");
 console.log();
 
-subtitle("Optimal Pipeline Architecture");
-console.log();
-console.log(`  ${BOLD}${WHITE}query${RESET} ${CYAN}→${RESET} ${BG_CYAN}${BOLD}${WHITE} regex (<5ms) ${RESET}`);
-console.log(`          ${CYAN}├${RESET} ${YELLOW}symbol${RESET} ${CYAN}→${RESET} ${BG_YELLOW}${BOLD}${WHITE} BM25 only ${RESET}`);
-console.log(`          ${CYAN}└${RESET} ${GREEN}other${RESET}  ${CYAN}→${RESET} ${BG_GREEN}${BOLD}${WHITE} hybrid    ${RESET}`);
-console.log();
-console.log(`  ${DIM}No expander · No reranker · No LLM${RESET}`);
-console.log();
+const shipData: string[][] = [
+  ["Regex router",       "symbol→BM25, other→hybrid", "+21.8%", "<5ms",   "YES"],
+  ["Route-aware expand", "skip expand for symbols",    "+100%",  "2s",     "MAYBE"],
+  ["Blind expansion",    "rewrite all queries",        "-61%",   "4-8s",   "NO"],
+  ["LLM reranker",       "rescore top-k results",      "+16%",   "16-33s", "NO"],
+  ["LLM query planner",  "classify via LLM",           "~0%",    "1-3s",   "NO"],
+];
 
-subtitle("What NOT to Ship");
-console.log(`  ${RED}✗${RESET} ${DIM}Query expansion — destroys symbols${RESET}`);
-console.log(`  ${RED}✗${RESET} ${DIM}LLM reranking — +0.05 MRR, 33s cost${RESET}`);
-console.log(`  ${RED}✗${RESET} ${DIM}LLM query planner — none needed${RESET}`);
-console.log();
+renderTable({
+  columns: [
+    { header: "Component", width: 20, align: "left", format: (cell, ri) => {
+      const color = ri === 0 ? `${BOLD}${GREEN}` : ri === 1 ? `${BOLD}${YELLOW}` : `${RED}`;
+      return `${color} ${cell.padEnd(19)}${RESET}`;
+    }},
+    { header: "What it does", width: 26, align: "left" },
+    { header: "MRR Δ", width: 8, format: (cell) => {
+      const isPos = cell.startsWith("+");
+      const isNeg = cell.startsWith("-");
+      const color = isPos ? GREEN : isNeg ? RED : GRAY;
+      return `${BOLD}${color}${center(cell, 8)}${RESET}`;
+    }},
+    { header: "Latency", width: 9 },
+    { header: "Ship?", width: 7, format: (cell) => {
+      const trimmed = cell.trim();
+      if (trimmed === "YES")   return `${BG_GREEN}${BOLD}${WHITE}${center(trimmed, 7)}${RESET}`;
+      if (trimmed === "MAYBE") return `${BG_YELLOW}${BOLD}${WHITE}${center(trimmed, 7)}${RESET}`;
+      return `${BG_RED}${BOLD}${WHITE}${center(trimmed, 7)}${RESET}`;
+    }},
+  ],
+  rows: shipData,
+  rowBg: (i) => i === 0 ? BG_GREEN : i >= 2 ? BG_RED : i % 2 === 0 ? BG_ROW : "",
+});
 
-subtitle("Evidence");
-console.log(`  ${BOLD}${WHITE}14${RESET} conditions · ${BOLD}${WHITE}12${RESET} repos · ${BOLD}${WHITE}860+${RESET} queries`);
-console.log(`  ${BOLD}${WHITE}Wilcoxon${RESET} tests · ${BOLD}${GREEN}p < 0.003${RESET}`);
 console.log();
+subtitle("Why NOT to Ship Expansion");
 
+const destructionData: string[][] = [
+  ["FastMCP",        "symbol",  "0.477",  "0.118", "-75%"],
+  ["FastMCP",        "mixed",   "0.281",  "0.153", "-46%"],
+  ["tinygrad",       "mixed",   "0.448",  "0.389", "-13%"],
+  ["openai-agents",  "mixed",   "0.254",  "0.253", " ~0%"],
+];
+
+renderTable({
+  columns: [
+    { header: "Repo", width: 16, align: "left" },
+    { header: "Queries", width: 9 },
+    { header: "E-RA", width: 8, format: (cell) => `${BOLD}${GREEN}${center(cell, 8)}${RESET}` },
+    { header: "Blind E", width: 8, format: (cell) => `${RED}${center(cell, 8)}${RESET}` },
+    { header: "Damage", width: 8, format: (cell) => {
+      const trimmed = cell.trim();
+      if (trimmed.startsWith("-")) return `${BOLD}${RED}${center(trimmed, 8)}${RESET}`;
+      return `${DIM}${center(trimmed, 8)}${RESET}`;
+    }},
+  ],
+  rows: destructionData,
+  rowBg: (i) => i % 2 === 0 ? BG_ROW : "",
+});
+
+console.log();
 console.log(`  ${BOLD}${GREEN}${"═".repeat(50)}${RESET}`);
 console.log(`  ${BOLD}${GREEN}  Experiment 006 — Pipeline Ablation${RESET}`);
-console.log(`  ${BOLD}${GREEN}  E-RA=0.495 · B1 +21.8% · Mar 2026${RESET}`);
+console.log(`  ${BOLD}${GREEN}  Best: E-RA=0.495 · Ship: B1 (+21.8%)${RESET}`);
+console.log(`  ${BOLD}${GREEN}  14 cond · 12 repos · p<0.003 · Mar 2026${RESET}`);
 console.log(`  ${BOLD}${GREEN}${"═".repeat(50)}${RESET}`);
 console.log();
