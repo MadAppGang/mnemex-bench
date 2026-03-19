@@ -7,7 +7,13 @@
  */
 
 // ── Terminal width ──────────────────────────────────────────────────────
+/** @deprecated Use getWidth() for adaptive layout */
 export const W = 120;
+
+/** Auto-detect terminal width, falling back to 120 for non-TTY/piped output */
+export function getWidth(): number {
+  return process.stdout.columns || 120;
+}
 
 // ── ANSI colors ─────────────────────────────────────────────────────────
 export const RESET = "\x1b[0m";
@@ -42,14 +48,15 @@ export function clear(): void {
 }
 
 export function title(text: string): void {
-  const pad = Math.floor((W - text.length - 4) / 2);
-  const rightPad = W - pad - text.length - 4;
+  const w = getWidth();
+  const pad = Math.max(0, Math.floor((w - text.length - 4) / 2));
+  const rightPad = Math.max(0, w - pad - text.length - 4);
   console.log();
-  console.log(`${BOLD}${CYAN}${"━".repeat(W)}${RESET}`);
+  console.log(`${BOLD}${CYAN}${"━".repeat(w)}${RESET}`);
   console.log(
     `${BOLD}${CYAN}${"━".repeat(pad)}  ${WHITE}${text}  ${CYAN}${"━".repeat(rightPad)}${RESET}`,
   );
-  console.log(`${BOLD}${CYAN}${"━".repeat(W)}${RESET}`);
+  console.log(`${BOLD}${CYAN}${"━".repeat(w)}${RESET}`);
   console.log();
 }
 

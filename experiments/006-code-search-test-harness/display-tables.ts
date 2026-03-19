@@ -2,9 +2,8 @@
 export {};
 import {
   clear, title, subtitle, note, bar, center, renderTable, wait,
-  RESET, BOLD, DIM, WHITE, CYAN, GREEN, YELLOW, RED, MAGENTA, BLUE, GRAY,
-  BG_ROW, BG_HEAD, BG_GREEN, BG_RED, BG_YELLOW, BG_CYAN,
-  W,
+  RESET, BOLD, DIM, WHITE, CYAN, GREEN, YELLOW, RED, GRAY,
+  BG_ROW, BG_GREEN, BG_RED, BG_YELLOW,
 } from "../../tools/table";
 
 const write = (s: string) => Bun.write(Bun.stdout, s);
@@ -18,6 +17,8 @@ note("Single repo: jlowin_fastmcp · 30 symbol queries · Mar 16 (migrated index
 console.log();
 
 // Data: [rank, condition, description, mrr, _bar_placeholder, p95, vsA]
+// Note: _bar_placeholder (index 4) is an empty string consumed by the "MRR Bar"
+// virtual column, which reads its value from row[3] (MRR) via its format function.
 const leaderboard: string[][] = [
   ["1", "E-RA",  "Full pipeline + route-aware",  "0.477", "", "35.4s", "+0.168"],
   ["2", "B1",    "Regex router only",            "0.442", "", "1.1s",  "+0.133"],
@@ -35,15 +36,15 @@ const leaderboard: string[][] = [
 
 renderTable({
   columns: [
-    { header: "#", width: 4, format: (cell, ri) => {
+    { header: "#", width: 4, format: (cell) => {
       const rank = parseInt(cell);
       if (rank <= 3) return `${BOLD}${GREEN}${center(`★${cell}`, 4)}${RESET}`;
       return center(cell, 4);
     }},
-    { header: "Condition", width: 8, format: (cell, ri) => {
+    { header: "Condition", width: 10, format: (cell, ri) => {
       const rank = ri + 1;
       const color = rank <= 3 ? `${BOLD}${WHITE}` : rank >= 11 ? `${RED}` : "";
-      return `${color}${center(cell, 8)}${RESET}`;
+      return `${color}${center(cell, 10)}${RESET}`;
     }},
     { header: "Description", width: 30, align: "left" },
     { header: "MRR@10", width: 10, format: (cell) => {
@@ -51,7 +52,7 @@ renderTable({
       const color = v >= 0.45 ? GREEN : v >= 0.3 ? YELLOW : RED;
       return `${BOLD}${color}${center(cell, 10)}${RESET}`;
     }},
-    { header: "MRR Bar", width: 22, format: (cell, ri, row) => {
+    { header: "MRR Bar", width: 22, format: (_cell, _ri, row) => {
       const v = parseFloat(row[3]);
       const color = v >= 0.45 ? GREEN : v >= 0.3 ? YELLOW : RED;
       return ` ${bar(v, 0.5, 20, color)} `;
@@ -94,9 +95,9 @@ const cleanResults: string[][] = [
 
 renderTable({
   columns: [
-    { header: "Condition", width: 8, format: (cell) => {
+    { header: "Condition", width: 10, format: (cell) => {
       const color = cell.includes("E-RA") ? `${BOLD}${GREEN}` : cell === "A" ? `${DIM}` : `${BOLD}${WHITE}`;
-      return `${color}${center(cell, 8)}${RESET}`;
+      return `${color}${center(cell, 10)}${RESET}`;
     }},
     { header: "Description", width: 30, align: "left" },
     { header: "MRR@10", width: 8, format: (cell) => {
@@ -210,9 +211,9 @@ for (const [repo, baseline, router] of repoData) {
   const color = delta > 0.1 ? GREEN : delta > 0 ? YELLOW : RED;
   const arrow = delta > 0 ? "▲" : "▼";
 
-  write(`  ${BOLD}${WHITE}${repo.padEnd(16)}${RESET}`);
-  write(`  A ${YELLOW}${baseline.toFixed(3)}${RESET} ${bar(baseline, 1.0, 15, YELLOW)}`);
-  write(`  B1 ${GREEN}${router.toFixed(3)}${RESET} ${bar(router, 1.0, 15, GREEN)}`);
+  write(`  ${BOLD}${WHITE}${repo.padEnd(14)}${RESET}`);
+  write(`  A ${YELLOW}${baseline.toFixed(3)}${RESET} ${bar(baseline, 1.0, 12, YELLOW)}`);
+  write(`  B1 ${GREEN}${router.toFixed(3)}${RESET} ${bar(router, 1.0, 12, GREEN)}`);
   write(`  ${color}${arrow} ${deltaStr}${RESET}\n`);
 }
 
@@ -241,7 +242,6 @@ renderTable({
   columns: [
     { header: "Repo", width: 16, align: "left", format: (cell) => `${BOLD}${WHITE} ${cell.padEnd(15)}${RESET}` },
     { header: "A", width: 7, format: (cell) => {
-      const v = parseFloat(cell);
       return `${DIM}${center(cell, 7)}${RESET}`;
     }},
     { header: "B1", width: 7, format: (cell) => {
@@ -253,7 +253,6 @@ renderTable({
       return `${DIM}${center(cell, 7)}${RESET}`;
     }},
     { header: "E-RA", width: 8, format: (cell) => {
-      const v = parseFloat(cell);
       return `${BOLD}${GREEN}${center(cell, 8)}${RESET}`;
     }},
     { header: "F-RA", width: 7, format: (cell) => {
